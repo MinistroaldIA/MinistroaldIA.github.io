@@ -91,6 +91,22 @@ section[class^="t-"] h3{color:var(--tono)}
 .dato.ro{--tono:#a86a12}.dato.r26{--tono:#1f6f68}.dato.g26{--tono:#4b3b8f}
 @media (max-width:900px){.par{grid-template-columns:1fr;gap:14px}.dato{position:static}}
 @media (max-width:640px){body{font-size:15.5px}p{text-align:left}.barra{grid-template-columns:1fr 70px}.barra .lbl{grid-column:1/-1}td.txt{min-width:170px}}
+.indice{padding:40px 0 8px}
+.grupo{margin:22px 0 0}.grupo h3{display:flex;align-items:center;gap:10px;margin:0 0 10px;font-size:var(--s1);color:var(--tono)}
+.grupo h3::before{content:"";width:12px;height:12px;border-radius:3px;background:var(--tono)}
+.lista{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:12px}
+a.ax{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;align-items:start;text-decoration:none;color:var(--ink);background:#fff;border:1px solid var(--line);border-left:4px solid var(--tono);border-radius:12px;padding:14px 16px;transition:box-shadow .15s,transform .15s}
+a.ax:hover{transform:translateY(-2px);box-shadow:0 10px 22px -16px rgba(19,41,75,.5)}
+a.ax[aria-current=true]{background:var(--tinte);box-shadow:0 0 0 2px var(--tono) inset}
+a.ax .n{grid-row:1/4;font:700 22px/1 var(--f-d);color:#fff;background:var(--tono);border-radius:10px;min-width:44px;height:44px;display:flex;align-items:center;justify-content:center}
+a.ax .t{font-weight:600;line-height:1.3;color:var(--navy)}
+a.ax .d{font-size:13.5px;color:var(--muted);line-height:1.4}
+a.ax .f{font:500 12px var(--f-m);color:var(--tono)}
+.g-gen{--tono:#13294b;--tinte:#eef2f8}.g-ro{--tono:#a86a12;--tinte:#fbf3e4}.g-r26{--tono:#1f6f68;--tinte:#e8f3f1}.g-g26{--tono:#4b3b8f;--tinte:#efecf8}.g-ctl{--tono:#7a6a3a;--tinte:#f6f1e3}.g-dec{--tono:#9e2a2b;--tinte:#f9ecec}
+#visor{scroll-margin-top:70px;margin-top:40px}#visor:empty{display:none}
+#visor h2{color:var(--tono)}#visor h2::before{background:var(--tono)}#visor th{background:var(--tono)}#visor tbody tr:nth-child(even) td{background:var(--tinte)}
+.pasos{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;margin:18px 0 0}
+.pasos a{font-weight:600;color:var(--navy);text-decoration:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:9px 14px;min-height:42px;display:inline-flex;align-items:center}
 @media print{nav.saltos,.tabs,.buscar,.descargas{display:none}}
 </style></head><body>
 <header class="cab"><div class="wrap"><div class="eyebrow">Ministerio de Salud · Análisis de saldos 2026</div>
