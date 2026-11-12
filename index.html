@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ministro al Día</title>
+<meta name="description" content="Informes de ejecución presupuestal de ministerios y gobiernos regionales del Perú, con datos abiertos del MEF.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;600&family=Source+Serif+4:wght@600;700&display=swap">
+<style>
+:root{--bg:#faf8f3;--card:#fff;--ink:#1d2433;--muted:#5f6878;--line:#e3dccd;--navy:#13294b;--gold:#d7a03a;
+--ro:#a86a12;--r26:#1f6f68;--g26:#4b3b8f;--dec:#9e2a2b;
+--f-d:"Source Serif 4",Georgia,serif;--f-t:"IBM Plex Sans","Segoe UI",Arial,sans-serif;--f-m:"IBM Plex Mono",Consolas,monospace;color-scheme:light}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--f-t)}
+header{background:linear-gradient(135deg,#0d1d36 0%,#13294b 55%,#1f3d6b 100%);color:#fff;padding:56px 16px 64px;position:relative;overflow:hidden}
+header:after{content:"";position:absolute;left:0;right:0;bottom:0;height:6px;background:linear-gradient(90deg,var(--gold) 0 20%,var(--ro) 20% 40%,var(--r26) 40% 60%,var(--g26) 60% 80%,var(--dec) 80%)}
+.w{max-width:1040px;margin:0 auto}
+.eyebrow{font:500 11.5px/1.4 var(--f-m);letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+h1{font:700 clamp(34px,6vw,56px)/1.05 var(--f-d);margin:10px 0 14px}
+h1 span{color:var(--gold)}
+header p{max-width:640px;color:#d6dce7;margin:0;font-size:17px}
+main{padding:40px 16px 56px}
+h2{font:700 clamp(22px,3vw,28px)/1.2 var(--f-d);color:var(--navy);margin:0 0 6px}
+.sub{color:var(--muted);margin:0 0 22px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(19,41,75,.05);transition:transform .15s,box-shadow .15s}
+a.card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(19,41,75,.12)}
+.band{height:6px;background:linear-gradient(90deg,var(--navy),var(--ro),var(--r26),var(--g26))}
+.in{padding:20px 22px 22px}
+.tag{display:inline-block;font:500 11px var(--f-m);letter-spacing:.06em;text-transform:uppercase;color:var(--navy);background:#e8edf5;border-radius:999px;padding:3px 10px}
+.card h3{font:700 21px/1.25 var(--f-d);color:var(--navy);margin:12px 0 6px}
+.card p{margin:0 0 14px;color:var(--muted);font-size:14.5px}
+.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid var(--line);padding-top:14px}
+.kp b{display:block;font:700 18px/1.1 var(--f-d);color:var(--navy)}
+.kp small{font-size:12px;color:var(--muted)}
+.kp div:nth-child(3) b{color:var(--dec)}
+.go{margin-top:16px;font-weight:600;color:var(--r26);font-size:14.5px}
+.metodo{margin-top:44px;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--gold);border-radius:12px;padding:20px 22px}
+.metodo h2{font-size:20px}
+.metodo p{margin:6px 0 0;color:var(--muted);font-size:14.5px}
+footer{border-top:1px solid var(--line);padding:22px 16px;color:var(--muted);font-size:13px}
+</style>
+</head>
+<body>
+<header><div class="w">
+<div class="eyebrow">Ejecución presupuestal · Perú</div>
+<h1>Ministro al <span>Día</span></h1>
+<p>Informes sobre saldos, certificaciones y proyección al cierre de ministerios y gobiernos regionales, elaborados con los datos abiertos del Ministerio de Economía y Finanzas.</p>
+</div></header>
+<main><div class="w">
+<h2>Informes publicados</h2>
+<p class="sub">Ordenados del más reciente al más antiguo. Cada informe incluye sus anexos consultables y la base en Excel.</p>
+<div class="grid">
+<a class="card" href="minsa/">
+<div class="band"></div>
+<div class="in">
+<span class="tag">Corte 10/11/2026</span>
+<h3>Ministerio de Salud</h3>
+<p>Saldos no ejecutados del pliego y sus 34 unidades ejecutoras: Recursos Ordinarios, genérica 2.6, metas e inversiones.</p>
+<div class="kp">
+<div><b>11,816.0</b><small>PIM (S/ M)</small></div>
+<div><b>77.3%</b><small>Devengado</small></div>
+<div><b>2,682.3</b><small>Saldo (S/ M)</small></div>
+</div>
+<div class="go">Consultar informe →</div>
+</div>
+</a>
+</div>
+<section class="metodo">
+<h2>Fuente y método</h2>
+<p>Las cifras provienen de los archivos de Datos Abiertos del MEF (gasto mensual y diario, Formato 12B e inversiones) y se concilian con la Consulta Amigable a la fecha de corte. Las proyecciones al 31 de diciembre son escenarios de referencia; no son límites del resultado.</p>
+</section>
+</div></main>
+<footer><div class="w">Ministro al Día · Información pública del Estado peruano.</div></footer>
+</body>
+</html>
