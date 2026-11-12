@@ -1,0 +1,39 @@
+name: Control diario de Recursos Ordinarios
+
+on:
+  schedule:
+    - cron: "47 14 * * *"   # 09:47 hora de Lima, después de la publicación diaria del MEF
+    - cron: "13 20 * * *"   # 15:13 hora de Lima, segundo intento si el archivo salió tarde
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: control-ro
+  cancel-in-progress: false
+
+jobs:
+  actualizar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: pip install pandas requests
+      - name: Descargar el archivo diario del MEF y calcular el cuadro del MINSA
+        run: python herramientas/tablero_ro.py minsa
+      - name: Publicar si hay un corte nuevo
+        run: |
+          git config user.name "MinistroaldIA"
+          git config user.email "noreply@users.noreply.github.com"
+          git add minsa/ro/historial.csv minsa/ro/datos.json
+          if git diff --cached --quiet -- minsa/ro/historial.csv; then
+            echo "Sin corte nuevo; no se publica."
+          else
+            git commit -m "Control RO MINSA: corte $(python -c "import json;print(json.load(open('minsa/ro/datos.json'))['corte'])")"
+            git push
+          fi
