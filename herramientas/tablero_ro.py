@@ -31,7 +31,9 @@ C = {"MES": 1, "NIVEL": 2, "SECTOR": 4, "PLIEGO": 6, "SEC_EJEC": 8, "EJEC_NOM": 
      "META": 32, "FUENTE": 37, "RUBRO": 39, "GEN": 46, "GEN_NOM": 47, "M0": 56}
 MONTOS = ["PIA", "PIM", "CERTIFICADO", "COMPROMETIDO_ANUAL", "COMPROMETIDO", "DEVENGADO", "GIRADO"]
 LLAVES = ["SEC_EJEC", "SEC_FUNC", "TIPO_ACT_PROY", "PRODUCTO_PROYECTO", "META", "RUBRO", "GENERICA"]
-FERIADOS_DIC = {8, 25}   # días no laborables fijos que quedan en diciembre
+FERIADOS_DIC = {8, 9, 25}   # feriados nacionales de diciembre: Inmaculada Concepción, Batalla de Ayacucho (Ley 31381) y Navidad
+CALENDARIO = ("Días hábiles: lunes a viernes, sin los feriados nacionales del 8, 9 y 25 de diciembre. Se cuentan desde el día siguiente al corte "
+              "hasta el 31 de diciembre. No incluye días no laborables que el Gobierno decrete después.")
 _MIN = {"De", "Del", "La", "Las", "Los", "Y", "En", "El", "Para", "A", "Por"}
 _TILDE = {"Administracion": "Administración", "Direccion": "Dirección", "Credito": "Crédito", "Estrategicos": "Estratégicos", "Pediatricas": "Pediátricas",
           "Creacion": "Creación", "Atencion": "Atención", "Rehabilitacion": "Rehabilitación", "Oftalmologia": "Oftalmología", "Neurologicas": "Neurológicas",
@@ -135,8 +137,8 @@ def por_proyecto(PDA, prod, t0, t1):
         adic_da = float(da.adicional) if da is not None else 0.0
         adic = max(0.0, min(saldo, adic_da * f))
         hb = float(da.hasta_base) if da is not None else dev
-        w = float(da.w_planilla) if da is not None else 0.0
         tipo = (str(da.tipo) if da is not None else ("2" if len(k) == 7 and k.startswith("2") else "3"))
+        w = float(da.w_planilla) if da is not None else (1.0 if tipo == "2" else 0.0)
         dbase = dev - hb
         si = saldo + dbase
         filas.append({"SEC_EJEC": ue, "cod": k, "nombre": nom, "tipo": tipo, "PIM": pim, "DEVENGADO": dev, "saldo": saldo,
@@ -193,6 +195,59 @@ def con_consulta_amigable(g, par, corte_da, cfg):
     return g, par, fecha, "Consulta Amigable", PR
 
 
+def mensual_(d):
+    """Partidas que se devengan una vez al mes: planilla (2.1), pensiones (2.2) y proyectos de inversión (valorizaciones).
+    Para ellas la referencia de avance cuenta meses cerrados, no días hábiles."""
+    return d.GENERICA.astype(str).isin(["1", "2"]) | (d.TIPO_ACT_PROY.astype(str) == "2")
+
+
+PERFIL = os.path.join(AQUI, "perfil_historico_minsa.json")
+
+
+def tasas_hist(corte, perfil=PERFIL):
+    """Escenario según patrones de años anteriores: para cada unidad y genérica, parte del saldo pendiente a la misma fecha
+    que se devengó hasta el 31/12 en cada año cerrado (mismo método del informe de saldos)."""
+    if not os.path.isfile(perfil):
+        return None
+    J = json.load(open(perfil, encoding="utf-8"))
+    M, dia = corte.month, corte.day
+    dmes = calendar.monthrange(corte.year, M)[1]
+    frac = 0.0 if dia == dmes else (dmes - dia) / dmes
+    T = {}
+    for y, v in J["anios"].items():
+        t = {}
+        for k, a in v["combinaciones"].items():
+            pim, m = a[0], a[1:]
+            dev_ant = sum(m[:M - 1]) + m[M - 1] * (1 - frac)
+            adic = m[M - 1] * frac + sum(m[M:])
+            pend = pim - dev_ant
+            if pend > J.get("umbral_pendiente", 10000):
+                t[tuple(k.split("|"))] = min(max(adic / pend, 0.0), 1.0)
+        T[y] = pd.Series(t, dtype=float)
+    T = pd.DataFrame(T)
+    T.index.names = ["SEC_EJEC", "GENERICA"]
+    return pd.DataFrame({"central": T.mean(axis=1), "min": T.min(axis=1), "max": T.max(axis=1)})
+
+
+def riesgo_hist_ue(UG, corte):
+    """Fracción del saldo de cada unidad que quedaría sin devengar según los patrones de 2023–2025 (central, mínimo y máximo).
+    Las combinaciones sin historia comparable conservan el escenario según ejecución reciente, como en el informe."""
+    T = tasas_hist(corte)
+    if T is None:
+        return None
+    G = UG.join(T, how="left")
+    sal = G.saldo.clip(lower=0)
+    out = {}
+    for k in ("central", "min", "max"):
+        adic = (sal * G[k]).where(G[k].notna(), G.adicional)
+        out[k] = (G.saldo - adic).groupby(level=0).sum()
+    R = pd.DataFrame(out)
+    R["saldo"] = G.saldo.groupby(level=0).sum()
+    # la tasa más alta da el riesgo más bajo: se ordena el rango
+    R["bajo"], R["alto"] = R[["min", "max"]].min(axis=1), R[["min", "max"]].max(axis=1)
+    return R
+
+
 def calcular(df, publicado, anio, mes_base=10):
     """El archivo se publica en la mañana (hora de Lima) con datos hasta el día anterior."""
     lima = parsedate_to_datetime(publicado) - dt.timedelta(hours=5)
@@ -228,11 +283,11 @@ def calcular(df, publicado, anio, mes_base=10):
     _mc = (M - mes_base - 1) + (1 if dia == dmes else 0)          # meses completos cerrados después del mes base
     esp_mes = max(0, _mc) / (12 - mes_base)
     U["saldo_ini"] = U.saldo + U.dev_desde_base
-    U["esp_w"] = U.saldo_ini.clip(lower=0) * U.GENERICA.astype(str).isin(["1", "2"]).map({True: esp_mes, False: esp_lin})
+    U["esp_w"] = U.saldo_ini.clip(lower=0) * mensual_(U).map({True: esp_mes, False: esp_lin})
     _w = U.groupby("SEC_EJEC")[["saldo_ini", "esp_w"]].sum()
     g["esperado"] = (_w.esp_w / U.assign(si=U.saldo_ini.clip(lower=0)).groupby("SEC_EJEC").si.sum()).fillna(0.0)
     _si = U.assign(si=U.saldo_ini.clip(lower=0))
-    g["w_planilla"] = (_si[_si.GENERICA.astype(str).isin(["1", "2"])].groupby("SEC_EJEC").si.sum() / _si.groupby("SEC_EJEC").si.sum()).reindex(g.index).fillna(0.0)
+    g["w_planilla"] = (_si[mensual_(_si)].groupby("SEC_EJEC").si.sum() / _si.groupby("SEC_EJEC").si.sum()).reindex(g.index).fillna(0.0)
     g["ritmo_mensual"] = U.groupby("SEC_EJEC")[completos].sum().mean(axis=1)
     gen = U.groupby(["SEC_EJEC", "GENERICA"])[["PIM", "DEVENGADO", "saldo", "riesgo"]].sum().reset_index()
     mensual = df[df.MES_EJE > 0].groupby("MES_EJE").DEVENGADO.sum().reindex(range(1, 13)).fillna(0.0)
@@ -240,14 +295,15 @@ def calcular(df, publicado, anio, mes_base=10):
     fin_base = dt.date(anio, mes_base, calendar.monthrange(anio, mes_base)[1])
     hab_tot = dias_habiles(fin_base + dt.timedelta(days=1), dt.date(anio, 12, 31))
     hab_pas = dias_habiles(fin_base + dt.timedelta(days=1), corte)
-    _U = U.assign(si=U.saldo_ini.clip(lower=0), pl=U.GENERICA.astype(str).isin(["1", "2"]),
+    _U = U.assign(si=U.saldo_ini.clip(lower=0), pl=mensual_(U),
                   rit=U[completos].mean(axis=1), hb=U.DEVENGADO - U.dev_desde_base)
     _U["si_pl"] = _U.si.where(_U.pl, 0.0)
     PDA = _U.groupby(["SEC_EJEC", "PRODUCTO_PROYECTO"]).agg(tipo=("TIPO_ACT_PROY", "first"), PIM=("PIM", "sum"), DEVENGADO=("DEVENGADO", "sum"),
                                                           adicional=("adicional", "sum"), ritmo=("rit", "sum"), hasta_base=("hb", "sum"),
                                                           si=("si", "sum"), si_pl=("si_pl", "sum")).reset_index()
-    PDA["w_planilla"] = (PDA.si_pl / PDA.si).where(PDA.si > 0, 0.0)
+    PDA["w_planilla"] = (PDA.si_pl / PDA.si).where(PDA.si > 0, (PDA.tipo.astype(str) == "2").astype(float))
     calcular.PDA = PDA
+    calcular.UG = U.groupby(["SEC_EJEC", "GENERICA"])[["saldo", "adicional"]].sum()
     return corte, g[g.PIM > 0].reset_index(), gen, mensual, {"meses_ritmo": completos, "meses_restantes": round(meses_rest, 4),
                                                               "dias_habiles": hab, "publicado_lima": lima.strftime("%d/%m/%Y %H:%M"),
                                                               "fecha_base": fin_base.isoformat(), "habiles_desde_base": hab_pas,
@@ -287,6 +343,24 @@ def guardar_proyectos(PR, fc, out):
     print(f"proyectos: {sum(len(v) for v in J['ues'].values())} en {len(J['ues'])} unidades")
 
 
+def controles(g, ues, tot, P):
+    """Comprobaciones sobre los valores originales (antes de redondear). Se publican junto con los datos."""
+    c = []
+    ok = lambda regla, cond, det="": c.append({"regla": regla, "ok": bool(cond), "detalle": det})
+    ok("Saldo por devengar = PIM − devengado", ((g.saldo - (g.PIM - g.DEVENGADO)).abs() < 0.01).all())
+    ok("Sin certificar = PIM − certificado", ((g.no_certificado - (g.PIM - g.CERTIFICADO)).abs() < 0.01).all())
+    ok("La suma de las unidades coincide con el total del pliego", abs(g.saldo.sum() - tot["saldo"]) < 1 and abs(g.DEVENGADO.sum() - tot["DEVENGADO"]) < 1)
+    if P is not None:
+        neg = [u["sec"] for u in ues if u.get("dev_ant") is not None and u["dev"] - u["dev_ant"] < -0.5]
+        ok("Devengado entre cortes sin ajustes negativos", not neg, ("Unidades con ajuste negativo: " + ", ".join(neg)) if neg else "")
+        dP = g.PIM.sum() - P.PIM.sum()
+        ok("Variación del saldo = variación del PIM − variación del devengado",
+           abs((g.saldo.sum() - P.saldo.sum()) - (dP - (g.DEVENGADO.sum() - P.DEVENGADO.sum()))) < 1, f"Variación del PIM entre cortes: S/ {dP:,.2f}")
+    for x in c:
+        print(("OK   " if x["ok"] else "REVISAR ") + x["regla"] + (f" · {x['detalle']}" if x["detalle"] else ""))
+    return c
+
+
 def main():
     eid = sys.argv[1]
     cfg = json.load(open(os.path.join(AQUI, "pliegos.json"), encoding="utf-8"))[eid]
@@ -303,6 +377,15 @@ def main():
         t = tiempo(corte, cfg["anio"], cfg.get("mes_base", 10))
         PR = por_proyecto(calcular.PDA, None, t, t)
     par["fuente"] = fuente
+    par["consulta_ok"] = dt.datetime.now(dt.timezone(dt.timedelta(hours=-5))).strftime("%Y-%m-%dT%H:%M")
+    par["calendario"] = CALENDARIO
+    # escenario según patrones de 2023–2025, aplicado a la fecha de corte que se publica
+    RH = riesgo_hist_ue(calcular.UG, corte)
+    if RH is not None:
+        for k, col in (("central", "riesgo_hist"), ("bajo", "rh_bajo"), ("alto", "rh_alto")):
+            fr = (RH[k] / RH.saldo).where(RH.saldo.abs() > 0.5)
+            g[col] = (g.SEC_EJEC.map(fr) * g.saldo).fillna(g.riesgo)
+        par["hist_anios"] = "2023–2025"
     fc = corte.isoformat()
     guardar_proyectos(PR, fc, os.path.join(RAIZ, eid, "ro"))
     g.insert(0, "fecha_corte", fc)
@@ -313,8 +396,13 @@ def main():
     H = pd.read_csv(fh, dtype={"SEC_EJEC": str}) if os.path.isfile(fh) else pd.DataFrame()
     g["esp_monto"] = g.esperado * (g.saldo + g.dev_desde_base).clip(lower=0)
     cols = ["fecha_corte", "SEC_EJEC", "UE", "PIM", "CERTIFICADO", "COMPROMETIDO", "DEVENGADO", "saldo", "no_certificado", "adicional", "riesgo", "dev_desde_base", "esp_monto"]
+    cols += [c for c in ("riesgo_hist", "rh_bajo", "rh_alto") if c in g.columns]
+    g["fuente"] = fuente
+    cols.append("fuente")
     if len(H):
         H = H[H.fecha_corte != fc]
+    if prev_ := (sorted(H.fecha_corte.unique())[-1] if len(H) else None):
+        par["habiles_entre"] = dias_habiles(dt.date.fromisoformat(prev_) + dt.timedelta(days=1), corte)
     H = pd.concat([H, g[cols]], ignore_index=True).sort_values(["fecha_corte", "riesgo"], ascending=[True, False])
     H.round(2).to_csv(fh, index=False, quoting=csv.QUOTE_NONNUMERIC)
 
@@ -330,22 +418,27 @@ def main():
              "dev_base": r.dev_desde_base, "saldo_ini": r.saldo + r.dev_desde_base,
              "avance": (r.dev_desde_base / (r.saldo + r.dev_desde_base)) if (r.saldo + r.dev_desde_base) > 0 else 0.0,
              "esperado": r.esperado,
+             "riesgo_hist": getattr(r, "riesgo_hist", None), "rh_bajo": getattr(r, "rh_bajo", None), "rh_alto": getattr(r, "rh_alto", None),
              "gen": {x.GENERICA: [x.PIM, x.DEVENGADO, x.saldo, x.riesgo] for x in gen[gen.SEC_EJEC == r.SEC_EJEC].itertuples() if abs(x.PIM) > 0.5}}
         if P is not None and r.SEC_EJEC in P.index:
             d["dev_ant"], d["riesgo_ant"] = float(P.loc[r.SEC_EJEC, "DEVENGADO"]), float(P.loc[r.SEC_EJEC, "riesgo"])
+            d["pim_ant"], d["saldo_ant"] = float(P.loc[r.SEC_EJEC, "PIM"]), float(P.loc[r.SEC_EJEC, "saldo"])
+            d["cert_ant"] = float(P.loc[r.SEC_EJEC, "CERTIFICADO"])
         ues.append({k: (round(v, 4 if k in ("avance", "esperado") else 2) if isinstance(v, float) else v) for k, v in d.items()})
-    for c_ in ("dev_desde_base", "esp_monto"):
+    for c_ in ("dev_desde_base", "esp_monto", "riesgo_hist", "rh_bajo", "rh_alto"):
         if c_ not in H.columns:
             H[c_] = float("nan")
-    serie = H.groupby("fecha_corte")[["PIM", "DEVENGADO", "saldo", "riesgo", "no_certificado", "dev_desde_base", "esp_monto"]].sum(min_count=1).round(2)
+    serie = H.groupby("fecha_corte")[["PIM", "DEVENGADO", "saldo", "riesgo", "no_certificado", "dev_desde_base", "esp_monto", "riesgo_hist", "rh_bajo", "rh_alto"]].sum(min_count=1).round(2)
     serie["avance"] = (serie.dev_desde_base / (serie.saldo + serie.dev_desde_base)).round(4)
     serie["esperado"] = (serie.esp_monto / (serie.saldo + serie.dev_desde_base)).round(4)
     J = {"pliego": cfg["nombre"], "anio": cfg["anio"], "corte": fc, "corte_anterior": prev, "parametros": par,
          "actualizado": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
          "total": {k: (None if pd.isna(v) else v) for k, v in serie.loc[fc].to_dict().items()},
          "serie": {k: [None if pd.isna(x) else x for x in serie[k].tolist()] for k in serie.columns}, "fechas": list(serie.index),
-         "serie_ue": {s: H[H.SEC_EJEC == s].set_index("fecha_corte")[["saldo", "riesgo", "DEVENGADO", "dev_desde_base"]].reindex(serie.index).round(2)
-                      .fillna(0).to_dict("list") for s in g.SEC_EJEC},
+         "serie_ue": {s: {k: [None if pd.isna(x) else x for x in v] for k, v in H[H.SEC_EJEC == s].set_index("fecha_corte")[["PIM", "saldo", "riesgo", "DEVENGADO", "dev_desde_base"]]
+                          .reindex(serie.index).round(2).to_dict("list").items()} for s in g.SEC_EJEC},
+         "controles": controles(g, ues, serie.loc[fc], P),
+         "fuentes": [(H[H.fecha_corte == f_].fuente.dropna().iloc[0] if "fuente" in H.columns and H[H.fecha_corte == f_].fuente.notna().any() else None) for f_ in serie.index],
          "mensual": mensual.round(2).tolist(), "ues": ues}
     json.dump(J, open(os.path.join(out, "datos.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print(f"corte {fc} · {len(ues)} UE · saldo RO S/ {J['total']['saldo'] / 1e6:,.1f} M · riesgo S/ {J['total']['riesgo'] / 1e6:,.1f} M")

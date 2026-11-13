@@ -33,7 +33,8 @@ jobs:
           git config user.email "noreply@users.noreply.github.com"
           git add minsa/ro/historial.csv minsa/ro/datos.json minsa/ro/proyectos.json minsa/ro/historial_proyectos.csv
           if git diff --cached --quiet -- minsa/ro/historial.csv minsa/ro/proyectos.json; then
-            echo "Sin corte nuevo; no se publica."
+            # sin corte nuevo: se publica igual la hora de la última consulta exitosa (datos.json), para que el portal muestre su antigüedad
+            if git diff --cached --quiet; then echo "Sin cambios."; else git commit -m "Control RO MINSA: consulta sin corte nuevo" && git push; fi
           else
             git commit -m "Control RO MINSA: corte $(python -c "import json;print(json.load(open('minsa/ro/datos.json'))['corte'])")"
             git push

@@ -105,7 +105,8 @@ tfoot td{font-weight:700;background:var(--soft);position:sticky;bottom:0}
 .exp{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start;margin-top:12px}
 .ficha{position:sticky;top:76px}
 .ficha h3{font-size:20px !important}
-.ficha .fm{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.ficha .fm{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;margin:12px 0}
+.ficha .fm b{font-size:17px}
 .ficha .fm div{border:1px solid var(--line);border-radius:10px;padding:9px 10px}.ficha .fm small{display:block;color:var(--muted);font-size:12px}.ficha .fm b{font:700 18px var(--f-t);color:var(--navy);white-space:nowrap}
 .bar2{height:10px;background:#e6e9f0;border-radius:999px;overflow:hidden;margin:6px 0 12px}.bar2 i{display:block;height:100%;border-radius:999px}
 .estado{display:flex;gap:8px;align-items:center;border-radius:10px;padding:9px 12px;font:600 14px var(--f-t);margin-top:10px}
@@ -115,261 +116,393 @@ tfoot td{font-weight:700;background:var(--soft);position:sticky;bottom:0}
 .metodo p{margin:0 0 10px;text-align:justify}.metodo p:last-child{margin:0}
 footer{margin-top:36px;border-top:1px solid var(--line);padding:20px 0 36px;color:var(--muted);font-size:13px}
 #vacio{display:none}
+.fechas{display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:12px}
+.fechas span{font:500 12.5px var(--f-t);background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 11px;color:var(--ink)}
+.fechas b{font-weight:600;color:var(--navy)}
+.glos{margin-top:10px;font-size:13.5px}.glos summary{cursor:pointer;color:var(--turq-d);font-weight:600;min-height:32px;display:inline-flex;align-items:center}
+.glos dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;margin:8px 0 0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px}
+.glos dt{font-weight:700;color:var(--navy)}.glos dd{margin:0}
+.hero5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.hero5>div{padding:4px 14px}.hero5 .num{font-size:clamp(20px,2.05vw,29px)}.hero4 .num.sm{font-size:clamp(17px,1.6vw,21px);white-space:normal}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
+.chips button{font:600 13px var(--f-t);border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:999px;padding:7px 12px;min-height:38px;cursor:pointer}
+.chips button[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff}
+.chips button:disabled{opacity:.45;cursor:not-allowed}
+.vista{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.vista button{font:600 13.5px var(--f-t);border:0;background:#fff;color:var(--navy);padding:9px 14px;min-height:42px;cursor:pointer}
+.vista button[aria-pressed=true]{background:var(--turq-s);color:#0b5e4a}
+.criterio{font-size:13px;color:var(--muted);margin:0 0 8px}
+.tabla.alta{max-height:70vh}
+.tabla th:first-child,.tabla td:first-child{position:sticky;left:0;z-index:2;background:#fff}
+.tabla thead th:first-child{z-index:3;background:#eef1f6}
+.tabla tbody tr:nth-child(even) td:first-child{background:#fbfbfd}
+.tabla th button{all:unset;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
+.tabla th button:focus-visible{outline:2px solid var(--turq-d);outline-offset:2px;border-radius:3px}
+.tabla th::after{content:none}.tabla th .fl::after{content:"↕";opacity:.45}.tabla th[aria-sort=ascending] .fl::after{content:"↑";opacity:1}.tabla th[aria-sort=descending] .fl::after{content:"↓";opacity:1}
+.d{display:block;font-size:12px;font-weight:600}.d.up{color:#8c231a}.d.dn{color:#0b5e4a}.d.eq{color:var(--muted);font-weight:400}
+.neg{color:#8c231a;font-weight:700}
+.tarjetas{display:none}
+.tj{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
+.tj h4{margin:0 0 6px;font:700 15px var(--f-t);color:var(--navy);display:flex;justify-content:space-between;gap:8px}
+.tj dl{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin:0;font-size:13px}.tj dt{color:var(--muted)}.tj dd{margin:0;font-weight:600;text-align:right}
+:focus-visible{outline:3px solid #0f8f72;outline-offset:2px}
+.tabla tbody tr:focus-visible td{background:var(--turq-s)}
+.hb .lb{all:unset;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;cursor:pointer;font-size:13.5px}
+.hb .lb:focus-visible{outline:2px solid #0f8f72}
+.rango{font-size:12px;color:var(--muted);display:block}
+.ctx{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:10px}
+.ctx>div{border:1px solid var(--line);border-radius:12px;padding:12px 14px}.ctx b{display:block;font:700 22px var(--f-t);color:var(--navy);margin:4px 0}.ctx small{color:var(--muted);font-size:12.5px;line-height:1.4;display:block}
+.ctx .tg{font:700 12.5px var(--f-t);color:var(--navy)}
+.volver{margin:0 0 10px}
+details.valores{margin-top:8px;font-size:13px}details.valores summary{cursor:pointer;color:var(--turq-d);font-weight:600}
+@media (max-width:1100px){.hero5{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media (max-width:700px){.ttab{display:block;overflow-x:auto;max-width:100%}.ttab td,.ttab th{padding:7px 8px}.tabla.cuadro{display:none}.tarjetas{display:block}.hero5{grid-template-columns:1fr 1fr}}
 @media (max-width:900px){.dos,.exp,.avz{grid-template-columns:1fr}.hero4{grid-template-columns:1fr 1fr}.hero4>div{border-left:0;padding:10px 8px}.ficha{position:static}.corte{align-items:flex-start}}
-@media (max-width:640px){.metodo p{text-align:left}.hb .lb{max-width:120px}.ficha .fm{grid-template-columns:1fr 1fr 1fr}}
+@media (max-width:640px){.metodo p{text-align:left}.hb .lb{max-width:120px}}
 @media (max-width:460px){.hero4{grid-template-columns:1fr}}
-@media(max-width:640px){.hb .ej span:nth-child(even){display:none}.hb{padding-right:58px}}
 </style>
 </head>
 <body>
+<a href="#cuadro" style="position:absolute;left:-999px" onfocus="this.style.left='8px'" onblur="this.style.left='-999px'">Saltar al cuadro de seguimiento</a>
 <header><div class="wrap">
 <div class="hcab"><div><div class="eyebrow" id="ent">Ministerio de Salud · Pliego 011</div>
-<h1>Control diario de RO</h1><p class="sub0">Saldo de Recursos Ordinarios y riesgo estimado de reversión al 31 de diciembre</p></div>
+<h1>Control diario de RO</h1><p class="sub0">Qué cambió entre cortes y qué revisar hoy · solo Recursos Ordinarios</p></div>
 <div class="corte"><b id="cortebox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="cortetx">Cargando…</span></b><span class="hab" id="habiles"></span></div></div>
-<div class="meta" id="meta"></div>
+<div class="fechas" id="fechas"></div>
+<details class="glos"><summary>¿Qué significan las siglas y los términos?</summary><dl>
+<dt>RO</dt><dd>Recursos Ordinarios: fuente de financiamiento que proviene principalmente de los impuestos, asignada por el Tesoro Público.</dd>
+<dt>PIM</dt><dd>Presupuesto Institucional Modificado: presupuesto vigente con las modificaciones del año.</dd>
+<dt>Devengado</dt><dd>Reconocimiento de una obligación de pago por un bien o servicio recibido. No es el pago.</dd>
+<dt>Saldo por devengar</dt><dd>PIM − devengado. Es presupuesto, no dinero en caja.</dd>
+<dt>Sin certificar</dt><dd>PIM − certificado: crédito que todavía no está reservado para un gasto.</dd>
+<dt>CUI</dt><dd>Código Único de Inversión, que identifica a cada proyecto de inversión.</dd>
+<dt>F12B</dt><dd>Formato 12-B: seguimiento de inversiones donde cada unidad declara su programación y avance.</dd>
+<dt>Corte</dt><dd>Fecha hasta la que el MEF registra la ejecución.</dd>
+</dl></details>
 </div></header>
-<nav class="top" aria-label="Secciones"><div class="wrap"><a href="../#resumen">Resumen</a><a href="../#unidades">Unidades</a><a href="../#ro">RO</a><a href="../#ro26">RO–2.6</a><a href="../#g26">Inversiones</a><a href="../anexos.html">Anexos</a><a class="act" href="#indicadores" aria-current="page">Control diario</a><span class="sep"></span><a class="sub" href="#evolucion">Evolución</a><a class="sub" href="#cuadro">Cuadro por UE</a><a class="sub" href="#proyectos">Proyectos</a><a class="sub" href="#metodo">Método</a><a class="sub" href="historial.csv" download>Historial (CSV)</a></div></nav>
+<nav class="top" aria-label="Secciones"><div class="wrap"><a href="../#resumen">Resumen</a><a href="../#unidades">Unidades</a><a href="../#ro">RO</a><a href="../#ro26">RO–2.6</a><a href="../#g26">Inversiones</a><a href="../anexos.html">Anexos</a><a class="act" href="#indicadores" aria-current="page">Control diario</a><span class="sep" aria-hidden="true"></span><a class="sub" href="#cuadro">Cuadro</a><a class="sub" href="#ranking">Riesgo</a><a class="sub" href="#evolucion">Evolución</a><a class="sub" href="#proyectos">Proyectos</a><a class="sub" href="#metodo">Método</a></div></nav>
 <main><div class="wrap">
-<div id="vigencia" class="aviso ambar" style="display:none"></div>
+<div id="vigencia" role="status"></div>
 
-<section id="indicadores" style="padding-top:6px">
-<div id="hero" class="hero4"></div>
+<section id="indicadores" style="padding-top:6px" aria-label="Indicadores del corte">
+<div id="hero" class="hero4 hero5"></div>
 <div id="alerta"></div>
+</section>
+
+<section id="cuadro"><h2>Cuadro de seguimiento por unidad ejecutora</h2>
+<p class="sub">Primero, lo que cambió entre cortes. El detalle presupuestal está en la otra vista. Elija una unidad para ver su ficha.</p>
+<div id="aviso-prog"></div>
+<div class="chips" id="chips" role="group" aria-label="Filtros rápidos"></div>
+<div class="buscar"><input id="q" type="search" placeholder="Buscar unidad ejecutora o código…" aria-label="Buscar unidad"><select id="fn" aria-label="Clasificar por nivel de riesgo"><option value="">Nivel de riesgo: todos</option><option value="Alto">Nivel de riesgo: alto</option><option value="Medio">Nivel de riesgo: medio</option><option value="Bajo">Nivel de riesgo: bajo</option></select>
+<span class="vista" role="group" aria-label="Vista del cuadro"><button type="button" id="v-seg" aria-pressed="true">Seguimiento</button><button type="button" id="v-pre" aria-pressed="false">Detalle presupuestal</button></span>
+<button class="btn" id="exp" type="button">Exportar resultados filtrados</button><a class="btn" href="historial.csv" download>Descargar base completa</a></div>
+<p class="criterio" id="criterio" aria-live="polite"></p>
+<div class="tabla alta cuadro"><table><caption class="sr" style="position:absolute;left:-9999px">Cuadro de seguimiento por unidad ejecutora</caption><thead><tr id="cab"></tr></thead><tbody id="cuerpo"></tbody><tfoot id="pie"></tfoot></table></div>
+<div class="tarjetas" id="tarjetas"></div>
+<p class="nota" id="nota-cuadro"></p>
+</section>
+
+<section id="detalle" hidden><div class="panel2" id="det" tabindex="-1"></div></section>
+
+<section id="ranking"><h2>Dónde se concentra el riesgo estimado</h2>
+<p class="sub">Riesgo estimado al cierre: saldo que quedaría sin devengar al 31/12 si cada unidad mantiene su ejecución reciente.</p>
 <div class="rejilla">
-<div class="panel2"><h3>Mayor riesgo estimado de reversión</h3><p class="ps">Las diez unidades con más riesgo, en millones de soles. El color indica el nivel de riesgo. Haga clic para ver el detalle.</p><div id="barras"></div></div>
+<div class="panel2"><h3>Mayor riesgo estimado al cierre</h3><p class="ps">Las diez unidades con más riesgo, en millones de soles. El color indica el nivel de riesgo (riesgo ÷ PIM RO). Elija una para ver su ficha.</p><div id="barras"></div></div>
 <div class="panel2"><h3>Concentración por nivel de riesgo</h3><p class="ps">Parte del riesgo total que corresponde a cada nivel</p><div id="conc"></div></div>
 </div>
-<div class="panel2" style="margin-top:16px"><h3 id="avt">Avance del saldo</h3><p class="ps" id="avs"></p><div class="avz"><div id="avbar"></div><div><div id="avmsg"></div><div class="btns"><a class="btn" href="#cuadro">Cuadro por UE</a><a class="btn lleno" href="#evolucion">Ver evolución</a></div></div></div></div>
-<p class="nota">Riesgo estimado por ritmo; no es una reversión confirmada. En las pruebas con 2024 y 2025 el método sobrestimó el saldo final.</p>
+<div class="panel2" style="margin-top:16px"><h3>Cuánto pesa la estimación</h3><p class="ps">Dos escenarios para el mismo corte y lo que pasó en años anteriores con el escenario principal</p><div id="ctx"></div></div>
+<div class="panel2" style="margin-top:16px"><h3 id="avt">Avance del saldo</h3><p class="ps" id="avs"></p><div class="avz"><div id="avbar"></div><div id="avmsg"></div></div></div>
 </section>
 
 <section id="evolucion"><h2>Evolución y ritmo de ejecución</h2>
-<p class="sub">Cada punto es una fecha de corte del MEF. La serie crece con cada actualización diaria; no se completan días faltantes.</p>
+<p class="sub">Cada punto es una fecha de corte del MEF. No se completan los días sin corte: los intervalos de varios días se marcan con línea discontinua.</p>
 <div class="rejilla">
-<div class="panel2"><h3>Saldo RO y riesgo estimado</h3><p class="ps">Millones de soles, por fecha de corte</p><div id="graf"></div><p class="nota" id="vacio">La serie diaria empieza con el primer corte; desde el segundo día se dibuja la línea.</p></div>
-<div class="panel2"><h3>Ritmo diario frente a lo necesario</h3><p class="ps">Devengado por día hábil, en millones de soles</p><div id="ritmo"></div></div>
+<div class="panel2"><h3>Saldo RO y riesgo estimado</h3><p class="ps">Millones de soles, por fecha de corte</p><div id="graf"></div></div>
+<div class="panel2"><h3>Ejecución reciente frente a lo necesario</h3><p class="ps">Devengado por día hábil, en millones de soles · referencia estadística</p><div id="ritmo"></div></div>
 <div class="panel2"><h3>Devengado mensual de RO</h3><p class="ps" id="notames"></p><div id="mensual"></div></div>
-<div class="panel2"><h3>Avance real frente a lo esperado</h3><p class="ps">Parte del saldo al 31/10 ya devengada, por fecha de corte</p><div id="gav"></div></div>
+<div class="panel2"><h3>Avance real frente a la referencia</h3><p class="ps">Parte del saldo al 31/10 ya devengada, por fecha de corte</p><div id="gav"></div></div>
 </div></section>
-
-<section id="cuadro"><h2>Cuadro por unidad ejecutora</h2>
-<p class="sub">Orden inicial: riesgo de reversión, de mayor a menor. Puede ordenar por cualquier columna y buscar por nombre o código.</p>
-<div class="buscar"><input id="q" type="search" placeholder="Buscar unidad ejecutora o código…" aria-label="Buscar unidad"><select id="fn" aria-label="Filtrar por nivel"><option value="">Todos los niveles</option><option>Alto</option><option>Medio</option><option>Bajo</option></select><span id="cnt"></span></div>
-<div class="tabla"><table><thead><tr id="cab"></tr></thead><tbody id="cuerpo"></tbody><tfoot id="pie"></tfoot></table></div>
-<p class="nota">Nivel de riesgo: <b>alto</b> si el riesgo supera el 15 % del PIM de RO de la unidad; <b>medio</b>, entre 5 % y 15 %; <b>bajo</b>, menos de 5 %. El ranking se ordena por monto. «Devengado del día» compara con el corte anterior.</p>
-</section>
-
-<section id="detalle" hidden><div class="panel2" id="det"></div></section>
 
 <section id="proyectos"><h2>Proyectos de inversión con Recursos Ordinarios</h2>
-<p class="sub" id="psub">Proyectos con código único de inversión (CUI) que tienen RO, de todas las unidades. Elija uno para ver su ficha.</p>
+<p class="sub" id="psub">Proyectos con CUI que tienen RO, de todas las unidades. Elija uno para ver su ficha.</p>
 <div id="phero" class="hero4"></div>
-<div class="ctrl" style="margin-top:14px"><input id="pq" type="search" placeholder="Buscar por CUI, proyecto o unidad…" aria-label="Buscar proyecto"><select id="pfu" aria-label="Unidad ejecutora"><option value="">Unidad: todas</option></select><select id="pord" aria-label="Orden"><option value="ri:-1">Orden: riesgo, de mayor a menor</option><option value="s:-1">Orden: saldo, de mayor a menor</option><option value="pim:-1">Orden: PIM, de mayor a menor</option><option value="ej:1">Orden: ejecución, de menor a mayor</option><option value="avr:1">Orden: avance frente a lo esperado, de menor a mayor</option></select><button class="btn lleno" id="pexp" type="button">Exportar</button><span class="c" id="pcnt"></span></div>
-<div class="exp"><div class="panel2"><h3>Explorador de proyectos</h3><p class="ps">Haga clic en una fila para ver su ficha.</p><div class="tabla" style="max-height:620px"><table><thead><tr id="pcab"></tr></thead><tbody id="pcuerpo"></tbody><tfoot id="ppie"></tfoot></table></div></div>
-<div class="panel2 ficha" id="ficha"><p class="nota">Elija un proyecto.</p></div></div>
-<p class="nota">Riesgo estimado por ritmo. Una ejecución alta del PIM no implica que se haya devengado el saldo pendiente.</p>
+<div class="ctrl" style="margin-top:14px"><input id="pq" type="search" placeholder="Buscar por CUI, proyecto o unidad…" aria-label="Buscar proyecto"><select id="pfu" aria-label="Unidad ejecutora"><option value="">Unidad: todas</option></select><select id="pord" aria-label="Orden"><option value="ri:-1">Orden: riesgo estimado, de mayor a menor</option><option value="s:-1">Orden: saldo por devengar, de mayor a menor</option><option value="pim:-1">Orden: PIM, de mayor a menor</option><option value="ej:1">Orden: ejecución del PIM, de menor a mayor</option><option value="dd:1">Orden: devengado entre cortes, de menor a mayor</option></select><button class="btn lleno" id="pexp" type="button">Exportar resultados filtrados</button><span class="c" id="pcnt"></span></div>
+<div class="exp"><div class="panel2"><h3>Explorador de proyectos</h3><p class="ps">Use las flechas o el ratón; Enter abre la ficha.</p><div class="tabla" style="max-height:620px"><table><thead><tr id="pcab"></tr></thead><tbody id="pcuerpo"></tbody><tfoot id="ppie"></tfoot></table></div></div>
+<div class="panel2 ficha" id="ficha" aria-live="polite"><p class="nota">Elija un proyecto.</p></div></div>
+<p class="nota">La ejecución del PIM es acumulada del año. El avance del saldo mide solo lo devengado desde el 31/10 sobre lo que quedaba por devengar a esa fecha. Riesgo estimado según ejecución reciente.</p>
 </section>
-<section id="metodo"><h2>Método y fuente</h2>
+<section id="metodo"><h2>Método, fórmulas y criterios</h2>
 <div class="metodo">
-<p><b>Fuente.</b> Las cifras del día por unidad ejecutora (PIM, certificado, compromiso, devengado y saldo) salen de la Consulta Amigable del Ministerio de Economía y Finanzas, que se actualiza a diario y suele llevar un día de ventaja a Datos Abiertos. El ritmo de los meses completos y el detalle por genérica salen del archivo diario de Datos Abiertos del mismo ministerio. Si la Consulta Amigable no responde, el cuadro usa solo Datos Abiertos y lo indica arriba. Se actualiza solo, tres veces al día, y toma únicamente la fuente Recursos Ordinarios.</p>
-<p><b>Saldo.</b> PIM menos devengado. <b>No certificado:</b> PIM menos certificado. El saldo es presupuesto, no disponibilidad de caja.</p>
-<p><b>Riesgo estimado de reversión.</b> Para cada meta, producto o proyecto y genérica, se toma el promedio mensual de devengado de los tres últimos meses completos y se multiplica por el tiempo que queda hasta el 31 de diciembre, con tope en su saldo y piso en cero. Cuando las cifras del día vienen de la Consulta Amigable, ese devengado previsto se ajusta al tiempo restante y se limita al saldo de cada unidad. Lo que no alcanza a devengarse con ese ritmo es el riesgo. Es el mismo método del informe de saldos. En las pruebas con 2024 y 2025 este método sobrestimó el saldo final, porque no ve la aceleración de diciembre: sirve para ordenar prioridades, no para fijar un monto exacto.</p>
-<p><b>Avance del saldo.</b> Parte del saldo que la unidad tenía al cierre de octubre (con su PIM actual) que ya devengó desde entonces. Se compara con lo que debería llevar a la fecha: la planilla y las pensiones (2.1 y 2.2), que se devengan una vez al mes, por meses cerrados; el resto, por la parte de los días hábiles de noviembre y diciembre que ya pasó, ponderado por el saldo de cada genérica: verde, al ritmo necesario (90 % o más de lo esperado); ámbar, por debajo (60 % a 90 %); rojo, muy por debajo (menos de 60 %). La línea vertical de la barra marca dónde debería ir.</p>
-<p><b>Por proyecto.</b> El mismo cálculo se hace para cada producto, actividad y proyecto de inversión de cada unidad, con su propio saldo y su propio ritmo. El riesgo de la unidad es la suma del riesgo de sus productos y proyectos. «Proyecto» identifica las inversiones con código único (CUI); «Producto o actividad», el resto del gasto. Los nombres y las cifras del día salen de la Consulta Amigable (opción Producto/Proyecto de cada unidad ejecutora).</p>
-<p><b>Devengado necesario por día hábil.</b> Saldo de RO dividido entre los días hábiles que quedan hasta el 31 de diciembre (lunes a viernes, sin el 8 ni el 25 de diciembre).</p>
+<p><b>Fuentes y fechas.</b> Las cifras del día por unidad (PIM, certificado, compromiso, devengado) salen de la Consulta Amigable del MEF; el ritmo de los meses completos, el detalle por genérica y el devengado mensual salen de Datos Abiertos del MEF, que suele ir un día atrás. Arriba se muestran el corte actual, el corte anterior, la fuente de cada uno y la hora de la última consulta exitosa. Si la consulta falla, se conserva el último dato válido y se avisa su antigüedad. Solo se toma la fuente Recursos Ordinarios.</p>
+<p><b>Fórmulas.</b> Saldo por devengar = PIM − devengado. Sin certificar = PIM − certificado. Devengado entre cortes = devengado actual − devengado del corte anterior (un valor negativo es un ajuste o anulación y se marca para revisión, no se convierte en cero). Variación del saldo = variación del PIM − devengado entre cortes: una baja del saldo puede venir de una rebaja del PIM y no de más ejecución. Las comprobaciones se hacen con los valores originales, antes de redondear; las diferencias de presentación son de redondeo.</p>
+<p><b>Riesgo estimado al cierre (escenario según ejecución reciente).</b> Para cada meta, producto o proyecto y genérica: promedio mensual de devengado de los tres últimos meses completos × meses que faltan al 31/12, con tope en su saldo y piso en cero. Lo que no alcanza a devengarse con ese ritmo es el riesgo. En las pruebas con 2024 y 2025 este escenario sobrestimó el saldo final porque no ve la aceleración de diciembre: sirve para ordenar prioridades, no para fijar un monto.</p>
+<p><b>Escenario según patrones de 2023–2025.</b> Para cada unidad y genérica, la parte del saldo pendiente a la misma fecha que se devengó hasta el 31/12 en cada año cerrado; se aplica al saldo actual. Se publica el valor central (promedio de los tres años) y el rango (año más y menos favorable). Las combinaciones sin historia comparable conservan el escenario según ejecución reciente.</p>
+<p><b>Nivel de riesgo.</b> Riesgo estimado ÷ PIM RO de la unidad: alto, más de 15 %; medio, de 5 % a 15 %; bajo, menos de 5 %. El ranking se ordena por monto absoluto.</p>
+<p><b>Avance del saldo y referencia estadística.</b> Avance = devengado desde el 31/10 ÷ saldo que había al 31/10 (con el PIM actual). Se compara con una <i>referencia estadística</i>, no con una meta de la unidad: la planilla y las pensiones (2.1 y 2.2) y los proyectos de inversión, que se devengan una vez al mes, cuentan por meses cerrados; el resto, por la parte de los días hábiles de noviembre y diciembre que ya pasó. Al ritmo de la referencia: 90 % o más de ella; por debajo: 60 % a 90 %; muy por debajo: menos de 60 %. Para los proyectos, mientras no cierre el primer mes no hay referencia.</p>
+<p><b>Programación documentada.</b> Todavía no se registra la programación de las unidades. Cuando exista, el cuadro mostrará «Programado para el intervalo» y «Brecha frente a programación», y la referencia estadística quedará como dato secundario.</p>
+<p><b>Por producto y proyecto.</b> El mismo cálculo se hace para cada producto, actividad y proyecto de cada unidad; el riesgo de la unidad es la suma del de sus productos y proyectos. «Proyecto» identifica inversiones con CUI.</p>
+<p><b>Ejecución reciente frente a lo necesario.</b> Ejecución reciente por día hábil = promedio mensual de los tres últimos meses completos ÷ 21 días hábiles. Necesario por día hábil = saldo RO ÷ días hábiles que quedan. Es una referencia estadística; no reemplaza la programación de entregas, planillas y valorizaciones. <span id="cal"></span></p>
+<p><b>Estado de actualización.</b> Aviso si el dato tiene más de un día hábil de antigüedad o si la última consulta exitosa tiene más de 12 horas.</p>
 </div></section>
 </div></main>
-<footer><div class="wrap">Ministro al Día · Elaborado con datos del Ministerio de Economía y Finanzas (Consulta Amigable y Datos Abiertos). Importes en soles. El saldo es presupuesto, no caja.</div></footer>
+<footer><div class="wrap">Ministro al Día · Datos del Ministerio de Economía y Finanzas (Consulta Amigable y Datos Abiertos). Importes en soles. El saldo es presupuesto: no equivale a dinero en caja ni a pago.</div></footer>
 <script>
 const GEN={"1":"2.1 Personal y obligaciones sociales","2":"2.2 Pensiones y prestaciones sociales","3":"2.3 Bienes y servicios","4":"2.4 Donaciones y transferencias","5":"2.5 Otros gastos","6":"2.6 Adquisición de activos no financieros","7":"2.7 Adquisición de activos financieros","8":"2.8 Servicio de la deuda"};
 const MESES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Set","Oct","Nov","Dic"];
 const M=v=>{if(v==null||isNaN(v))return'—';const a=Math.abs(v);if(a<0.5)return'S/ 0';if(a<5e4)return(v<0?'−':'')+'< S/ 0.05 M';return(v<0?'−':'')+'S/ '+(a/1e6).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' M'};
+const M2=v=>v!=null&&Math.abs(v)>=0.5&&Math.abs(v)<5e4?(v<0?'−':'')+'S/ '+Math.round(Math.abs(v)).toLocaleString('en-US'):M(v);
 const P=v=>v!=null&&isFinite(v)?(100*v).toFixed(1)+' %':'—';
 const F=s=>{const[y,m,d]=s.split('-');return`${d}/${m}/${y}`};
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const F5=s=>F(s).slice(0,5);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const nivel=u=>{const r=u.pim>0?u.riesgo/u.pim:0;return r>0.15?'Alto':r>=0.05?'Medio':'Bajo'};
 const COLN={Alto:'#c0392b',Medio:'#d99a06',Bajo:'#1f8f6a'};
-const nom=u=>u.sigla||u.ue.replace('Dirección de Redes Integradas de Salud','DIRIS').replace('Instituto Nacional de Salud del Niño - San Borja','INSN San Borja').replace('Instituto Nacional de Salud del Niño','INSN').replace('Hospital Nacional','H.').replace('Hospital','H.').replace('Instituto Nacional','Inst. Nac.');
-const SEM=(av,esp)=>{const r=esp>0?av/esp:1;return r>=0.9?['#1f8f6a','al ritmo necesario','Bajo']:r>=0.6?['#d99a06','por debajo del ritmo necesario','Medio']:['#c0392b','muy por debajo del ritmo necesario','Alto']};
-const AV=(av,esp)=>{const [c,t]=SEM(av,esp);return `<span class="av" title="${P(av)} del saldo al ${F(D.parametros.fecha_base)}; debería ir en ${P(esp)} (${t})"><span class="bar"><i style="width:${Math.min(100,100*av)}%;background:${c}"></i><b style="left:${Math.min(100,100*esp)}%"></b></span><span style="color:${c};font-weight:600">${P(av)}</span></span>`};
-const ICO=(p,c)=>`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const nom=u=>u.sigla||u.ue.replace('Dirección de Redes Integradas de Salud','DIRIS').replace('Instituto Nacional de Salud del Niño - San Borja','INSN San Borja').replace('Instituto Nacional de Salud del Niño','INSN').replace('Hospital Nacional','H.').replace('Hospital','H.').replace('Instituto Nacional','Inst. Nac.').replace(' - MINSA','');
+// Avance frente a la referencia estadística (no es una meta de la unidad)
+const SEM=(av,esp)=>{if(!(esp>0))return['#5f6878','sin referencia todavía','Sin'];const r=av/esp;return r>=0.9?['#1f8f6a','al ritmo de la referencia','Al']:r>=0.6?['#a86a12','por debajo de la referencia','Debajo']:['#c0392b','muy por debajo de la referencia','Muy']};
+const CORTO={Al:'al ritmo',Debajo:'por debajo',Muy:'muy por debajo',Sin:'sin referencia'};
+const AV=(av,esp)=>{const [c,,k]=SEM(av,esp),t=CORTO[k];return `<span class="av"><span class="bar" aria-hidden="true"><i style="width:${Math.min(100,100*av)}%;background:${c}"></i>${esp>0?`<b style="left:${Math.min(100,100*esp)}%"></b>`:''}</span><span style="color:${c};font-weight:600">${P(av)}</span></span><span class="rango">${esp>0?`ref. ${P(esp)} · ${t}`:t}</span>`};
+const ICO=p=>`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
 const I_INFO='<circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/>',I_ALE='<path d="M12 3 2 21h20L12 3z"/><path d="M12 10v5M12 18v.5"/>',I_OK='<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>';
-function escala(mx){if(mx<=0)return[1,0.2];const mag=10**Math.floor(Math.log10(mx/7));for(const k of[1,2,2.5,5,10,20]){const p=k*mag;if(Math.ceil(mx/p-1e-9)<=7)return[Math.ceil(mx/p-1e-9)*p,p]}return[mx,mx/5]}
+const aviso=(t,cl='',ic=I_INFO)=>`<div class="aviso ${cl}">${ICO(ic)}<span>${t}</span></div>`;
+const dlt=(v,inv=true)=>v==null||isNaN(v)?'<span class="d eq">sin corte anterior</span>':Math.abs(v)<0.5?'<span class="d eq">sin variación</span>':`<span class="d ${(inv?v>0:v<0)?'up':'dn'}">${v>0?'▲ +':'▼ '}${M(v).replace('−','−')}</span>`;
+function escala(mx){if(!(mx>0))return[1,0.2];const mag=10**Math.floor(Math.log10(mx/7));for(const k of[1,2,2.5,5,10,20]){const p=k*mag;if(Math.ceil(mx/p-1e-9)<=7)return[Math.ceil(mx/p-1e-9)*p,p]}return[mx,mx/5]}
 function hb(filas,tit){const[top,paso]=escala(Math.max(0,...filas.map(f=>f.v))),n=Math.round(top/paso),d=paso>=1e6?0:(paso>=1e5?1:2);
- let h=filas.map(f=>`<span class="lb" data-s="${f.s||''}" title="${esc(f.t||f.l)}">${esc(f.l)}</span><span class="tr" data-s="${f.s||''}" style="background-size:${100/n}% 100%"><i style="width:${100*Math.max(f.v,0)/top}%;background:${f.c}"></i><b style="left:${100*Math.max(f.v,0)/top}%">${M(f.v)}</b></span>`).join('');
- h+=`<span></span><div class="ej">${Array.from({length:n+1},(_,i)=>`<span style="left:${100*i/n}%">${(i*paso/1e6).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d})}</span>`).join('')}</div><div class="et2">${esc(tit)}</div>`;
+ let h=filas.map(f=>`<button type="button" class="lb" ${f.s?`data-s="${f.s}"`:'tabindex="-1"'} aria-label="${esc(f.t||f.l)}" title="${esc(f.t||f.l)}">${esc(f.l)}</button><span class="tr" ${f.s?`data-s="${f.s}"`:''} style="background-size:${100/n}% 100%" aria-hidden="true"><i style="width:${100*Math.max(f.v,0)/top}%;background:${f.c}"></i><b style="left:${100*Math.max(f.v,0)/top}%">${M(f.v)}</b></span>`).join('');
+ h+=`<span></span><div class="ej" aria-hidden="true">${Array.from({length:n+1},(_,i)=>`<span style="left:${100*i/n}%">${(i*paso/1e6).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d})}</span>`).join('')}</div><div class="et2">${esc(tit)}</div>`;
  return `<div class="hb">${h}</div>`}
-function csv(nombre,cab,filas){const q=v=>{const s=v==null?'':String(v);return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
- const t='﻿'+[cab,...filas].map(f=>f.map(q).join(';')).join('\n');const a=document.createElement('a');
+function csv(nombre,meta,cab,filas){const q=v=>{const s=v==null?'':String(v);return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+ const t='﻿'+[...meta.map(m=>[m]),[],cab,...filas].map(f=>f.map(q).join(';')).join('\n');const a=document.createElement('a');
  a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));a.download=nombre;document.body.appendChild(a);a.click();a.remove()}
-let D,PJ=null;
-fetch('datos.json?'+Date.now()).then(r=>r.json()).then(j=>{D=j;pintar();
- fetch('proyectos.json?'+Date.now()).then(r=>r.json()).then(p=>{PJ=p;proyectos();if(sel)detalle(sel,false)}).catch(()=>{document.getElementById('psub').textContent='No se pudo cargar el detalle por proyecto.'})
-}).catch(()=>{document.getElementById('meta').textContent='No se pudieron cargar los datos.'});
+const metaCSV=(extra)=>[`Ámbito: ${D.pliego}, fuente Recursos Ordinarios`,`Corte: ${F(D.corte)}${D.corte_anterior?` · corte anterior: ${F(D.corte_anterior)}`:''}`,`Fuente de datos: ${D.parametros.fuente} del MEF · consulta: ${(D.parametros.consulta_ok||D.actualizado||'').replace('T',' ')}`,...extra,'Importes en soles, sin redondear'];
+let D,PJ=null,REF=null,sel=null;
+const hoyLima=()=>new Date(new Date().toLocaleString('en-US',{timeZone:'America/Lima'}));
+fetch('datos.json?'+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{D=j;pintar();
+ fetch('referencias.json?'+Date.now()).then(r=>r.ok?r.json():null).then(x=>{REF=x;contexto()}).catch(()=>contexto());
+ fetch('proyectos.json?'+Date.now()).then(r=>r.json()).then(p=>{PJ=p;proyectos();if(sel)detalle(sel,false)}).catch(()=>{document.getElementById('psub').textContent='No se pudo cargar el detalle por proyecto. Intente recargar la página.'})
+}).catch(()=>{document.getElementById('vigencia').innerHTML=aviso('No se pudieron cargar los datos. Revise su conexión e intente recargar la página.','rojo',I_ALE);document.getElementById('cortetx').textContent='Sin datos'});
 
 function pintar(){
- const T=D.total,par=D.parametros,U=D.ues;
- document.getElementById('ent').textContent=`${D.pliego} · Pliego 011`;
+ const T=D.total,par=D.parametros,U=D.ues,ant=D.corte_anterior,i=D.fechas.length-1,fu=D.fuentes||[];
  document.title=`Control diario de RO · ${D.pliego}`;
+ document.getElementById('ent').textContent=`${D.pliego} · Pliego 011`;
  document.getElementById('cortetx').textContent=`Corte: ${F(D.corte)}`;
- document.getElementById('habiles').textContent=`${par.dias_habiles} días hábiles restantes`;
- document.getElementById('meta').innerHTML=`<span>Fuente: ${par.fuente==='Consulta Amigable'?'Consulta Amigable del MEF':'Datos Abiertos del MEF'}</span><span>${U.length} unidades ejecutoras</span><span>Solo Recursos Ordinarios</span>`;
- const hoy=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Lima'}));const ult=new Date(D.corte+'T12:00:00');
- let hab=0;for(let d=new Date(ult);d<hoy;d.setDate(d.getDate()+1)){if(d>ult&&d.getDay()%6!==0)hab++}
- const av=document.getElementById('vigencia');av.style.display=hab>1?'flex':'none';av.innerHTML=`${ICO(I_ALE)}<span>El MEF todavía no publica la ejecución posterior al ${F(D.corte)}. <small>El cuadro se revisa a las 9:47, 15:13 y 19:13 y se actualizará en cuanto aparezca el dato.</small></span>`;
- const ant=D.corte_anterior,i=D.fechas.length-1;
- const dsal=ant?D.serie.saldo[i]-D.serie.saldo[i-1]:null,dri=ant?D.serie.riesgo[i]-D.serie.riesgo[i-1]:null,ddev=ant?D.serie.DEVENGADO[i]-D.serie.DEVENGADO[i-1]:null;
- const vr=v=>v==null?'':`<span class="chip ${v>0?'mal':''}">${v>0?'▲':'▼'} ${M(Math.abs(v))} vs. ${F(ant).slice(0,5)}</span>`;
- const necesario=T.saldo/Math.max(par.dias_habiles,1),ritmoDia=U.reduce((s,u)=>s+u.ritmo,0)/21;
+ document.getElementById('habiles').textContent=`${par.dias_habiles} días hábiles hasta el 31/12`;
+ const cons=par.consulta_ok?new Date(par.consulta_ok+':00-05:00'):null;
+ document.getElementById('fechas').innerHTML=`<span>Corte actual: <b>${F(D.corte)}</b></span><span>Corte anterior: <b>${ant?F(ant):'—'}</b></span><span>Fuente: <b>${esc(par.fuente)} del MEF</b>${ant&&fu[i-1]&&fu[i-1]!==fu[i]?` (corte anterior: ${esc(fu[i-1])})`:''}</span><span>Última consulta exitosa: <b>${cons?cons.toLocaleString('es-PE',{timeZone:'America/Lima',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—'}</b></span><span>Ámbito: <b>Recursos Ordinarios</b></span>`;
+ // estado de actualización
+ const hoy=hoyLima(),ult=new Date(D.corte+'T12:00:00');let hab=0;for(let d=new Date(ult);d<hoy;d.setDate(d.getDate()+1)){if(d>ult&&d.getDay()%6!==0)hab++}
+ const horas=cons?(Date.now()-cons.getTime())/36e5:99;const av=[];
+ if(hab>1)av.push(`Los datos son del ${F(D.corte)}: el MEF aún no publica la ejecución posterior. <small>Se consulta a las 9:47, 15:13 y 19:13.</small>`);
+ if(horas>12)av.push(`La última consulta exitosa fue hace ${Math.round(horas)} horas. <small>Se muestra el último dato válido; puede estar desactualizado.</small>`);
+ document.getElementById('vigencia').innerHTML=av.length?aviso(av.join(' '),'ambar',I_ALE):'';
+ const comp=U.filter(u=>u.dev_ant!=null),dd=u=>u.dev_ant!=null?u.dev-u.dev_ant:null;
+ const conAv=comp.filter(u=>dd(u)>0.5).length,negs=comp.filter(u=>dd(u)<-0.5);
+ const dsal=ant?D.serie.saldo[i]-D.serie.saldo[i-1]:null,dri=ant?D.serie.riesgo[i]-D.serie.riesgo[i-1]:null,ddev=ant?D.serie.DEVENGADO[i]-D.serie.DEVENGADO[i-1]:null,dpim=ant&&D.serie.PIM?D.serie.PIM[i]-D.serie.PIM[i-1]:null;
+ const habE=par.habiles_entre,intv=ant?`del ${F5(ant)} al ${F5(D.corte)}${habE>1?` · ${habE} días hábiles`:''}`:'';
+ const ref=U.filter(u=>u.saldo_ini>0&&(u.esperado??0)>0),muy=ref.filter(u=>u.avance<0.6*u.esperado).length;
+ const vr=(v,inv=true)=>v==null?'':`<span class="chip ${(inv?v>0:v<0)?'mal':''}">${v>0?'▲ +':'▼ '}${M(v)}</span>`;
  document.getElementById('hero').innerHTML=`
- <div><div class="et">Saldo RO</div><div class="num">${M(T.saldo)}</div>${vr(dsal)}<div class="ds">PIM ${M(T.PIM)} · ${P(T.DEVENGADO/T.PIM)} devengado</div></div>
- <div><div class="et">Riesgo estimado al 31/12</div><div class="num">${M(T.riesgo)}</div>${vr(dri)}<div class="ds">${P(T.riesgo/T.saldo)} del saldo, al ritmo de ${par.meses_ritmo.map(m=>MESES[m-1]).join(', ')}</div></div>
- <div><div class="et">Devengado del último día</div><div class="num">${ddev==null?'—':M(ddev)}</div><div class="ds">${ant?`Entre el ${F(ant)} y el ${F(D.corte)}`:'Desde el segundo corte diario'}</div></div>
- <div><div class="et">Necesario por día hábil</div><div class="num">${M(necesario)}</div><div class="ds">Para no dejar saldo. Ritmo reciente: ${M(ritmoDia)} (${P(ritmoDia/necesario)})</div></div>`;
+ <div><div class="et">Devengado entre cortes</div><div class="num">${ddev==null?'—':M(ddev)}</div><div class="ds">${ant?intv:'Desde el segundo corte'}</div></div>
+ <div><div class="et">Saldo por devengar</div><div class="num">${M(T.saldo)}</div>${vr(dsal)}<div class="ds">${dpim&&Math.abs(dpim)>=0.5?`Incluye una variación del PIM de ${M(dpim)}`:'Sin cambios en el PIM entre cortes'}</div></div>
+ <div><div class="et">Unidades con avance entre cortes</div><div class="num">${ant?`${conAv} de ${comp.length}`:'—'}</div><div class="ds">${ant?`${comp.length} con dato comparable${negs.length?` · ${negs.length} con ajuste negativo`:''}`:'Sin corte anterior'}</div></div>
+ <div><div class="et">Riesgo estimado al cierre</div><div class="num">${M(T.riesgo)}</div>${vr(dri)}<div class="ds">Escenario según ejecución reciente.${T.riesgo_hist!=null?` Según patrones 2023–2025: ${M(T.riesgo_hist)} (${M(T.rh_bajo)} a ${M(T.rh_alto)})`:''}</div></div>
+ <div><div class="et">Por debajo de su programación</div><div class="num sm">Sin programación</div><div class="ds">Aún no se registra. Referencia estadística: ${muy} de ${ref.length} unidades muy por debajo.</div></div>`;
  const top5=U.slice(0,5),c5=top5.reduce((s,u)=>s+u.riesgo,0);
- document.getElementById('alerta').innerHTML=`<div class="aviso ambar">${ICO(I_ALE)}<span>Cinco unidades concentran el ${P(c5/T.riesgo)} del riesgo: ${top5.map(u=>`${esc(nom(u))} (${M(u.riesgo)})`).join(', ')}.</span></div>`;
- document.getElementById('barras').innerHTML=hb(U.slice(0,10).map(u=>({l:nom(u),v:u.riesgo,c:COLN[nivel(u)],s:u.sec,t:`${u.ue}: riesgo ${M(u.riesgo)} (nivel ${nivel(u).toLowerCase()})`})),'Riesgo estimado de reversión (millones de soles)')
-  +`<div class="ley"><span style="--c:${COLN.Alto}">Alto</span><span style="--c:${COLN.Medio}">Medio</span><span style="--c:${COLN.Bajo}">Bajo</span></div>`;
+ let al=aviso(`Cinco unidades concentran el ${P(c5/T.riesgo)} del riesgo estimado: ${top5.map(u=>`${esc(nom(u))} (${M(u.riesgo)})`).join(', ')}. <small>Verificar qué parte de su saldo tiene entregas, conformidades o valorizaciones previstas antes del cierre.</small>`,'ambar',I_ALE);
+ if(negs.length)al+=aviso(`Ajuste negativo del devengado entre el ${F5(ant)} y el ${F5(D.corte)} en ${negs.map(u=>`${esc(nom(u))} (${M2(dd(u))})`).join(', ')}. <small>Puede ser una anulación o rebaja de un devengado; se muestra tal cual para su revisión.</small>`,'',I_INFO);
+ document.getElementById('alerta').innerHTML=al;
+ document.getElementById('aviso-prog').innerHTML=aviso('Programación documentada: todavía no registrada. <small>Por eso el cuadro no muestra «Programado para el intervalo» ni «Brecha». La comparación con la referencia estadística no es una meta de la unidad.</small>','',I_INFO);
+ document.getElementById('cal').textContent=par.calendario||'';
+ ranking();evolucion();chips();tabla();
+}
+// ---------- cuadro de seguimiento ----------
+const CHIPS=[['todas','Todas',u=>true],['sinav','Sin avance entre cortes',u=>u.dd!=null&&Math.abs(u.dd)<0.5],['sube','Aumento del riesgo estimado',u=>u.dri!=null&&u.dri>0.5],['debajo','Muy por debajo de la referencia',u=>u.saldo_ini>0&&u.esperado>0&&u.avance<0.6*u.esperado],['neg','Ajuste negativo del devengado',u=>u.dd!=null&&u.dd<-0.5],['sinprog','Sin programación registrada',u=>true],['pend','Datos pendientes de actualización',u=>u.dev_ant==null]];
+const DESC={todas:'todas las unidades',sinav:'sin avance registrado entre cortes (un intervalo sin avance no es por sí solo un incumplimiento)',sube:'con aumento del riesgo estimado entre cortes',debajo:'con avance menor al 60 % de la referencia estadística',neg:'con ajuste negativo del devengado entre cortes',sinprog:'sin programación registrada (todas, por ahora)',pend:'sin dato comparable del corte anterior'};
+let chip='todas',vista='seg',ord='riesgo',dir=-1;
+const COLS_SEG=[['Unidad ejecutora','n','t'],['Devengado entre cortes','dd','m'],['Saldo por devengar','saldo','m'],['Riesgo estimado al cierre','riesgo','m'],['Patrones 2023–2025','riesgo_hist','m'],['Avance del saldo vs. referencia','avr','a'],['Nivel de riesgo','nivr','t']];
+const COLS_PRE=[['Unidad ejecutora','n','t'],['PIM RO','pim','m'],['Variación del PIM','dpim','m'],['Certificado','cert','m'],['Sin certificar','no_cert','m'],['Saldo al 31/10','saldo_ini','m'],['Ejecución del PIM','ej','p'],['% del riesgo','pr','p']];
+function filas(){const T=D.total;return D.ues.map((u,k)=>({...u,i:k+1,n:nom(u),nivel:nivel(u),nivr:{Alto:3,Medio:2,Bajo:1}[nivel(u)],dd:u.dev_ant!=null?u.dev-u.dev_ant:null,dri:u.riesgo_ant!=null?u.riesgo-u.riesgo_ant:null,dsal:u.saldo_ant!=null?u.saldo-u.saldo_ant:null,dpim:u.pim_ant!=null?u.pim-u.pim_ant:null,ej:u.pim?u.dev/u.pim:0,pr:T.riesgo?u.riesgo/T.riesgo:0,avr:u.esperado>0?u.avance/u.esperado:null}))}
+function filtradas(){const q=document.getElementById('q').value.trim().toLowerCase(),fn=document.getElementById('fn').value,f=CHIPS.find(c=>c[0]===chip)[2];
+ let R=filas().filter(u=>f(u)&&(!fn||u.nivel===fn)&&(!q||(u.ue+' '+u.sec+' '+u.sigla).toLowerCase().includes(q)));
+ R.sort((a,b)=>{const x=a[ord],y=b[ord];if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return(typeof x==='string'?x.localeCompare(y,'es'):x-y)*dir});return R}
+function chips(){const A=filas();document.getElementById('chips').innerHTML=CHIPS.map(([k,t,f])=>{const n=A.filter(f).length;return `<button type="button" data-k="${k}" aria-pressed="${k===chip}" ${n||k==='todas'?'':'disabled'}>${t} (${n})</button>`}).join('');
+ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>{chip=b.dataset.k;chips();tabla()})}
+function tabla(){
+ const cols=vista==='seg'?COLS_SEG:COLS_PRE,cab=document.getElementById('cab');
+ if(!cols.some(c=>c[1]===ord)){ord='riesgo';dir=-1}
+ cab.innerHTML=cols.map(([t,k,ty])=>`<th scope="col" class="${ty==='t'?'t':''}" aria-sort="${k===ord?(dir>0?'ascending':'descending'):'none'}"><button type="button" data-k="${k}">${t.replace('31/10',F5(D.parametros.fecha_base))} <span class="fl" aria-hidden="true"></span></button></th>`).join('');
+ cab.querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=b.dataset.k;dir=ord===k?-dir:(k==='n'?1:-1);ord=k;tabla();cab.querySelector(`[data-k="${k}"]`).focus()});
+ const R=filtradas(),rk=u=>`<td class="t"><b>${esc(u.n)}</b> <span style="color:#5f6878;font-size:12px">(${u.sec})</span></td>`;
+ const fila=u=>vista==='seg'?`${rk(u)}<td class="${u.dd<-0.5?'neg':''}">${u.dd==null?'Sin dato':M2(u.dd)}${u.dd<-0.5?'<span class="d up">ajuste negativo</span>':''}</td><td>${M(u.saldo)}${dlt(u.dsal)}</td><td><b>${M(u.riesgo)}</b>${dlt(u.dri)}</td><td>${u.riesgo_hist==null?'—':M(u.riesgo_hist)}<span class="rango">${u.rh_bajo!=null?`${M(u.rh_bajo)} a ${M(u.rh_alto)}`:''}</span></td><td>${u.saldo_ini>0?AV(u.avance,u.esperado):'No aplica'}</td><td class="t"><span class="nivel ${u.nivel}">${u.nivel}</span></td>`
+  :`${rk(u)}<td>${M(u.pim)}</td><td>${u.dpim==null?'Sin dato':Math.abs(u.dpim)<0.5?'Sin variación':M(u.dpim)}</td><td>${M(u.cert)}</td><td>${M(u.no_cert)}</td><td>${M(u.saldo_ini)}</td><td>${P(u.ej)}</td><td>${P(u.pr)}</td>`;
+ document.getElementById('cuerpo').innerHTML=R.length?R.map(u=>`<tr tabindex="0" data-s="${u.sec}" aria-label="${esc(u.ue)}: abrir ficha" class="${u.sec===sel?'sel':''}">${fila(u)}</tr>`).join(''):`<tr><td class="t" colspan="${cols.length}">No hay unidades con este filtro.</td></tr>`;
+ const s=k=>R.reduce((a,u)=>a+(u[k]||0),0),sdd=R.every(u=>u.dd==null)?null:s('dd');
+ document.getElementById('pie').innerHTML=vista==='seg'?`<tr><td class="t">Total (${R.length})</td><td>${sdd==null?'—':M(sdd)}</td><td>${M(s('saldo'))}</td><td>${M(s('riesgo'))}</td><td>${M(s('riesgo_hist'))}</td><td>${s('saldo_ini')>0?P(s('dev_base')/s('saldo_ini')):'—'}</td><td></td></tr>`
+  :`<tr><td class="t">Total (${R.length})</td><td>${M(s('pim'))}</td><td>${M(s('dpim'))}</td><td>${M(s('cert'))}</td><td>${M(s('no_cert'))}</td><td>${M(s('saldo_ini'))}</td><td>${P(s('dev')/s('pim'))}</td><td>${P(s('riesgo')/D.total.riesgo)}</td></tr>`;
+ // tarjetas para celular
+ document.getElementById('tarjetas').innerHTML=R.map(u=>`<div class="tj" tabindex="0" role="button" data-s="${u.sec}" aria-label="${esc(u.ue)}: abrir ficha"><h4><span>${esc(u.n)}</span><span class="nivel ${u.nivel}">${u.nivel}</span></h4><dl><dt>Devengado entre cortes</dt><dd class="${u.dd<-0.5?'neg':''}">${u.dd==null?'Sin dato':M(u.dd)}</dd><dt>Saldo por devengar</dt><dd>${M(u.saldo)}</dd><dt>Riesgo estimado</dt><dd>${M(u.riesgo)}</dd><dt>Avance del saldo</dt><dd>${u.saldo_ini>0?P(u.avance)+(u.esperado>0?` (ref. ${P(u.esperado)})`:''):'No aplica'}</dd></dl></div>`).join('')||'<p class="nota">No hay unidades con este filtro.</p>';
+ const colN=cols.find(c=>c[1]===ord)?.[0]||ord;
+ document.getElementById('criterio').textContent=`Mostrando ${R.length} de ${D.ues.length} unidades · filtro: ${DESC[chip]}${document.getElementById('fn').value?` · nivel de riesgo ${document.getElementById('fn').value.toLowerCase()}`:''}${document.getElementById('q').value?` · búsqueda «${document.getElementById('q').value}»`:''} · orden: ${colN.replace('31/10',F5(D.parametros.fecha_base))}, ${dir>0?'de menor a mayor':'de mayor a menor'}.`;
+ document.getElementById('nota-cuadro').innerHTML=`Nivel de riesgo = riesgo estimado ÷ PIM RO: alto, más de 15 %; medio, 5 % a 15 %; bajo, menos de 5 %. «Patrones 2023–2025»: valor central y rango. «Sin dato»: la unidad no tiene corte anterior comparable; «S/ 0»: no hubo variación. El seguimiento de acciones (responsable, fecha, evidencia) se habilitará cuando exista un registro con usuarios autorizados.`;
+ document.querySelectorAll('#cuerpo tr[data-s],#tarjetas [data-s]').forEach(el=>{el.onclick=()=>detalle(el.dataset.s,true);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();detalle(el.dataset.s,true)}}});
+}
+document.getElementById('q').oninput=tabla;document.getElementById('fn').onchange=tabla;
+document.getElementById('v-seg').onclick=()=>{vista='seg';document.getElementById('v-seg').setAttribute('aria-pressed','true');document.getElementById('v-pre').setAttribute('aria-pressed','false');tabla()};
+document.getElementById('v-pre').onclick=()=>{vista='pre';document.getElementById('v-pre').setAttribute('aria-pressed','true');document.getElementById('v-seg').setAttribute('aria-pressed','false');tabla()};
+document.getElementById('exp').onclick=()=>{const R=filtradas();csv(`control_RO_unidades_${D.corte}.csv`,metaCSV([`Filtros: ${document.getElementById('criterio').textContent}`]),
+ ['Codigo','Unidad ejecutora','Nivel de riesgo','PIM','Variacion del PIM','Certificado','Sin certificar','Devengado','Devengado entre cortes','Saldo por devengar','Variacion del saldo','Riesgo estimado (ejecucion reciente)','Variacion del riesgo','Riesgo segun patrones 2023-2025','Rango bajo','Rango alto','Saldo al 31/10','Avance del saldo','Referencia estadistica'],
+ R.map(u=>[u.sec,u.ue,u.nivel,u.pim,u.dpim,u.cert,u.no_cert,u.dev,u.dd,u.saldo,u.dsal,u.riesgo,u.dri,u.riesgo_hist,u.rh_bajo,u.rh_alto,u.saldo_ini,u.avance,u.esperado]))};
+// ---------- riesgo ----------
+function ranking(){
+ const T=D.total,U=D.ues;
+ document.getElementById('barras').innerHTML=hb(U.slice(0,10).map(u=>({l:nom(u),v:u.riesgo,c:COLN[nivel(u)],s:u.sec,t:`${u.ue}: riesgo estimado ${M(u.riesgo)}, nivel de riesgo ${nivel(u).toLowerCase()}. Abrir ficha`})),'Riesgo estimado al cierre (millones de soles)')
+  +`<div class="ley"><span style="--c:${COLN.Alto}">Nivel alto</span><span style="--c:${COLN.Medio}">Nivel medio</span><span style="--c:${COLN.Bajo}">Nivel bajo</span></div>`;
  document.querySelectorAll('#barras [data-s]').forEach(b=>b.onclick=()=>detalle(b.dataset.s,true));
  const niv={Alto:[0,0],Medio:[0,0],Bajo:[0,0]};U.forEach(u=>{const n=nivel(u);niv[n][0]++;niv[n][1]+=u.riesgo});
- document.getElementById('conc').innerHTML=`<div class="niv">${['Alto','Medio','Bajo'].map(n=>{const w=T.riesgo>0?niv[n][1]/T.riesgo:0;return `<i style="display:block;width:${100*w}%;background:${COLN[n]}" title="${n}: ${P(w)}">${w>=.08?P(w):''}</i>`}).join('')}</div>
- <table class="ttab" style="margin-top:12px"><thead><tr><th>Nivel de riesgo</th><th>Unidades</th><th>Riesgo estimado</th><th>Participación</th></tr></thead><tbody>${['Alto','Medio','Bajo'].map(n=>`<tr><td><span class="nivel ${n}">${n}</span></td><td>${niv[n][0]}</td><td>${M(niv[n][1])}</td><td>${P(T.riesgo>0?niv[n][1]/T.riesgo:0)}</td></tr>`).join('')}</tbody></table>
- <p class="nota">El nivel compara el riesgo con el PIM de RO de cada unidad; el ranking se ordena por monto.</p>`;
- // avance del saldo
- const esp=T.esperado??par.avance_esperado,[ca,ta]=SEM(T.avance||0,esp),bajos=U.filter(u=>u.saldo_ini>0&&u.avance<0.6*(u.esperado??par.avance_esperado)).length;
- document.getElementById('avt').textContent=`Avance del saldo al ${F(par.fecha_base).slice(0,5)}`;
- document.getElementById('avs').textContent=`Se devengaron ${M(T.dev_desde_base)} de ${M(T.saldo+T.dev_desde_base)}. La meta a la fecha pondera la planilla (por mes cerrado) y lo demás (por días hábiles).`;
+ document.getElementById('conc').innerHTML=`<div class="niv" aria-hidden="true">${['Alto','Medio','Bajo'].map(n=>{const w=T.riesgo>0?niv[n][1]/T.riesgo:0;return `<i style="display:block;width:${100*w}%;background:${COLN[n]}">${w>=.08?P(w):''}</i>`}).join('')}</div>
+ <table class="ttab" style="margin-top:12px"><thead><tr><th scope="col">Nivel de riesgo</th><th scope="col">Unidades</th><th scope="col">Riesgo estimado</th><th scope="col">Participación</th></tr></thead><tbody>${['Alto','Medio','Bajo'].map(n=>`<tr><td><span class="nivel ${n}">${n}</span></td><td>${niv[n][0]}</td><td>${M(niv[n][1])}</td><td>${P(T.riesgo>0?niv[n][1]/T.riesgo:0)}</td></tr>`).join('')}</tbody></table>
+ <p class="nota">Nivel según riesgo ÷ PIM RO de cada unidad; el ranking se ordena por monto.</p>`;
+ const par=D.parametros,esp=T.esperado??par.avance_esperado,[ca,ta]=SEM(T.avance||0,esp);
+ document.getElementById('avt').textContent=`Avance del saldo al ${F5(par.fecha_base)} frente a la referencia estadística`;
+ document.getElementById('avs').textContent=`Se devengaron ${M(T.dev_desde_base)} de ${M(T.saldo+T.dev_desde_base)}. La referencia no es una meta: cuenta la planilla, las pensiones y los proyectos por mes cerrado, y lo demás por días hábiles.`;
  const tope=Math.max(0.25,Math.ceil(Math.max(T.avance,esp)*1.25*20)/20);
- document.getElementById('avbar').innerHTML=`<div class="escala"><i style="width:${100*T.avance/tope}%;background:${ca}"></i><span class="mk" style="left:${100*esp/tope}%"></span>
- <span class="et abajo" style="left:${Math.max(6,100*T.avance/tope)}%;background:${ca}22;color:${ca}">Avance real<br>${P(T.avance)}</span><span class="et" style="left:${Math.min(94,100*esp/tope)}%;background:#eef1f6;color:var(--navy)">Esperado<br>${P(esp)}</span></div>
- <div class="ejeP" style="margin-top:48px">${Array.from({length:6},(_,k)=>`<span>${(100*tope*k/5).toFixed(0)} %</span>`).join('')}</div>`;
- document.getElementById('avmsg').innerHTML=`<div class="aviso ${bajos?'rojo':''}" style="margin:0">${ICO(bajos?I_ALE:I_OK)}<span>El pliego va ${ta}. ${bajos} de ${U.length} unidades van muy por debajo.</span></div>`;
- evolucion();tabla();
+ document.getElementById('avbar').innerHTML=`<div class="escala" role="img" aria-label="Avance real ${P(T.avance)}; referencia ${P(esp)}"><i style="width:${100*T.avance/tope}%;background:${ca}"></i><span class="mk" style="left:${100*esp/tope}%"></span>
+ <span class="et abajo" style="left:${Math.max(8,100*T.avance/tope)}%;background:${ca}22;color:${ca}">Avance real<br>${P(T.avance)}</span><span class="et" style="left:${Math.min(92,100*esp/tope)}%;background:#eef1f6;color:var(--navy)">Referencia<br>${P(esp)}</span></div>
+ <div class="ejeP" style="margin-top:48px" aria-hidden="true">${Array.from({length:6},(_,k)=>`<span>${(100*tope*k/5).toFixed(0)} %</span>`).join('')}</div>`;
+ const ref=D.ues.filter(u=>u.saldo_ini>0&&u.esperado>0),bajos=ref.filter(u=>u.avance<0.6*u.esperado).length;
+ document.getElementById('avmsg').innerHTML=aviso(`El pliego va ${ta}. ${bajos} de ${ref.length} unidades van muy por debajo de su referencia. <small>No es un incumplimiento: falta la programación de cada unidad.</small>`,bajos?'ambar':'',bajos?I_ALE:I_OK)+`<div class="btns"><button class="btn lleno" type="button" id="ver-debajo">Ver esas unidades en el cuadro</button></div>`;
+ document.getElementById('ver-debajo').onclick=()=>{chip='debajo';chips();tabla();document.getElementById('cuadro').scrollIntoView({behavior:'smooth'})};
 }
+function contexto(){const T=D.total,el=document.getElementById('ctx');
+ let h=`<div class="ctx"><div><span class="tg">Escenario según ejecución reciente</span><b>${M(T.riesgo)}</b><small>Si cada unidad mantiene el ritmo de ${D.parametros.meses_ritmo.map(m=>MESES[m-1]).join(', ')}. Es el que ordena el ranking.</small></div>`;
+ if(T.riesgo_hist!=null)h+=`<div><span class="tg">Escenario según patrones de 2023–2025</span><b>${M(T.riesgo_hist)}</b><small>Rango: ${M(T.rh_bajo)} a ${M(T.rh_alto)}. Aplica al saldo actual lo que se devengó en esos años entre esta fecha y el 31/12.</small></div>`;
+ if(REF&&REF.pruebas)REF.pruebas.forEach(p=>{h+=`<div><span class="tg">Prueba con ${p.anio}, misma fecha</span><b>${M(p.estimado)} → ${M(p.real)}</b><small>El escenario según ejecución reciente estimó ${M(p.estimado)} de RO sin devengar; el saldo RO real al 31/12 fue ${M(p.real)}.</small></div>`});
+ h+='</div><p class="nota">Ninguno de los dos escenarios es un límite: en 2024 y 2025 el saldo final fue menor. La cifra de cierre debe construirse con la previsión documentada de cada unidad.</p>';
+ el.innerHTML=h}
+// ---------- evolución ----------
 function linea(el,fechas,series,fmt=M,alto=230){
  const W=560,H=alto,pl=58,pr=16,pt=26,pb=34,vals=series.flatMap(s=>s.v).filter(v=>v!=null),[mx,pso]=escala(Math.max(...vals)*1.12||1),nt=Math.round(mx/pso);
  const x=i=>fechas.length<2?pl+(W-pl-pr)/2:pl+i*(W-pl-pr)/(fechas.length-1),y=v=>pt+(H-pt-pb)*(1-v/mx);
+ const gap=fechas.map((f,i)=>i&&((new Date(f)-new Date(fechas[i-1]))/864e5>(new Date(fechas[i-1]).getUTCDay()===5?3:1)));
  let g='';for(let k=0;k<=nt;k++){const v=pso*k;g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="#e6e9f0"/><text x="${pl-8}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="#5f6878">${fmt===M?(v/1e6).toLocaleString('en-US',{maximumFractionDigits:0}):(100*v).toFixed(0)+' %'}</text>`}
- const paso=Math.ceil(fechas.length/7);fechas.forEach((f,i)=>{if(i%paso===0||i===fechas.length-1)g+=`<text x="${x(i)}" y="${H-12}" font-size="11" text-anchor="middle" fill="#5f6878">${F(f).slice(0,5)}</text>`});
- series.forEach(s=>{g+=`<polyline fill="none" stroke="${s.c}" stroke-width="2.5" ${s.dash?'stroke-dasharray="6 5"':''} points="${s.v.map((v,i)=>v==null?'':x(i)+','+y(v)).join(' ')}"/>`+s.v.map((v,i)=>v==null?'':`<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="${s.c}"><title>${s.n} ${F(fechas[i])}: ${fmt(v)}</title></circle>`).join('');
-  const k=s.v.length-1;if(s.v[k]!=null)g+=`<text x="${x(k)}" y="${y(s.v[k])-9}" font-size="11.5" font-weight="600" text-anchor="end" fill="${s.c}">${fmt(s.v[k])}</text>`});
- el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Evolución diaria">${g}<text x="${pl}" y="12" font-size="10.5" fill="#5f6878">${fmt===M?'Millones de soles':'Porcentaje del saldo'}</text></svg><div class="ley">${series.map(s=>`<span style="--c:${s.c}">${s.n}</span>`).join('')}</div>`;
+ const paso=Math.ceil(fechas.length/6);fechas.forEach((f,i)=>{if(i%paso===0||i===fechas.length-1)g+=`<text x="${x(i)}" y="${H-12}" font-size="11" text-anchor="middle" fill="#5f6878">${F5(f)}</text>`});
+ series.forEach(s=>{for(let i=1;i<s.v.length;i++){if(s.v[i]==null||s.v[i-1]==null)continue;g+=`<line x1="${x(i-1)}" y1="${y(s.v[i-1])}" x2="${x(i)}" y2="${y(s.v[i])}" stroke="${s.c}" stroke-width="2.5" ${(s.dash||gap[i])?'stroke-dasharray="6 5"':''}/>`}
+  g+=s.v.map((v,i)=>v==null?'':`<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="${s.c}"><title>${s.n} ${F(fechas[i])}: ${fmt(v)}</title></circle>`).join('');
+  const k=s.v.length-1,si=series.indexOf(s);if(s.v[k]!=null)g+=`<text x="${x(k)}" y="${y(s.v[k])+(si%2?17:-9)}" font-size="11.5" font-weight="600" text-anchor="end" fill="${s.c}">${fmt(s.v[k])}</text>`});
+ const tabla=`<details class="valores"><summary>Ver los valores de cada corte</summary><table class="ttab"><thead><tr><th scope="col">Corte</th>${series.map(s=>`<th scope="col">${s.n}</th>`).join('')}</tr></thead><tbody>${fechas.map((f,i)=>`<tr><td>${F(f)}${gap[i]?' · tras un intervalo sin corte':''}</td>${series.map(s=>`<td>${s.v[i]==null?'Sin dato':fmt(s.v[i])}</td>`).join('')}</tr>`).join('')}</tbody></table></details>`;
+ el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Evolución por fecha de corte; los valores están en la tabla que sigue">${g}<text x="${pl}" y="12" font-size="10.5" fill="#5f6878">${fmt===M?'Millones de soles':'Porcentaje del saldo'}</text></svg><div class="ley">${series.map(s=>`<span style="--c:${s.c}">${s.n}</span>`).join('')}</div>${fechas.length<2?'<p class="nota">La línea se dibuja desde el segundo corte.</p>':''}${tabla}`;
 }
 function evolucion(){
  const T=D.total,par=D.parametros,U=D.ues;
- linea(document.getElementById('graf'),D.fechas,[{n:'Saldo RO',v:D.serie.saldo,c:'#13294b'},{n:'Riesgo estimado (estimación)',v:D.serie.riesgo,c:'#d99a06'}]);
- document.getElementById('vacio').style.display=D.fechas.length<2?'block':'none';
+ const ss=[{n:'Saldo por devengar',v:D.serie.saldo,c:'#13294b'},{n:'Riesgo estimado (ejecución reciente)',v:D.serie.riesgo,c:'#d99a06'}];
+ if(D.serie.riesgo_hist&&D.serie.riesgo_hist.some(v=>v!=null))ss.push({n:'Riesgo según patrones 2023–2025',v:D.serie.riesgo_hist,c:'#2f80ed',dash:1});
+ linea(document.getElementById('graf'),D.fechas,ss);
  const necesario=T.saldo/Math.max(par.dias_habiles,1),ritmoDia=U.reduce((s,u)=>s+u.ritmo,0)/21,r=ritmoDia/necesario,[c,t]=SEM(ritmoDia,necesario);
- document.getElementById('ritmo').innerHTML=`<div class="aviso" style="margin:0 0 14px;background:${c}1f"><span style="color:${c};display:flex">${ICO(r>=0.9?I_OK:I_ALE)}</span><span style="color:${c}">${P(r)} del ritmo necesario <small>(${t})</small></span></div>`
-  +hb([{l:'Ritmo reciente diario',v:ritmoDia,c:c,t:`Promedio de ${par.meses_ritmo.map(m=>MESES[m-1]).join(', ')} entre 21 días hábiles`},{l:'Necesario diario',v:necesario,c:'#13294b',t:'Saldo RO entre los días hábiles que quedan'}],'Millones de soles por día hábil')
-  +`<p class="nota">Ritmo reciente: promedio mensual de ${par.meses_ritmo.map(m=>MESES[m-1]).join(', ')} entre 21 días hábiles. Necesario: saldo RO entre los ${par.dias_habiles} días hábiles que quedan.</p>`;
- // mensual: meses de referencia, mes parcial y otros
+ document.getElementById('ritmo').innerHTML=`<div class="aviso" style="margin:0 0 14px;background:${c}1f"><span style="color:${c};display:flex">${ICO(r>=0.9?I_OK:I_ALE)}</span><span style="color:${c}">${P(r)} de lo necesario <small>(${t})</small></span></div>`
+  +hb([{l:'Ejecución reciente',v:ritmoDia,c:c,t:`Promedio de ${par.meses_ritmo.map(m=>MESES[m-1]).join(', ')} entre 21 días hábiles`},{l:'Necesario',v:necesario,c:'#13294b',t:'Saldo RO entre los días hábiles que quedan'}],'Millones de soles por día hábil')
+  +`<p class="nota">Ejecución reciente: promedio mensual de ${par.meses_ritmo.map(m=>MESES[m-1]).join(', ')} ÷ 21 días hábiles. Necesario: saldo RO ÷ ${par.dias_habiles} días hábiles que quedan. No es una cuota de las unidades: planillas, entregas y valorizaciones se concentran en ciertas fechas.</p>`;
  const m=D.mensual,cd=par.corte_detalle||D.corte,cm=+cd.slice(5,7),W=560,H=220,pl=46,pb=30,pt=12,[mx,pso]=escala(Math.max(...m)||1),bw=(W-pl-10)/12;
  let g='';for(let k=0;k<=Math.round(mx/pso);k++){const v=pso*k,yy=pt+(H-pt-pb)*(1-v/mx);g+=`<line x1="${pl}" x2="${W-6}" y1="${yy}" y2="${yy}" stroke="#e6e9f0"/><text x="${pl-8}" y="${yy+4}" font-size="11" text-anchor="end" fill="#5f6878">${(v/1e6).toFixed(0)}</text>`}
  m.forEach((v,i)=>{const h=(H-pt-pb)*v/mx,xx=pl+i*bw+4,rit=par.meses_ritmo.includes(i+1),parc=i+1===cm;const c=parc?'#e9c98f':rit?'#13294b':'#b9c3d4';
   if(i<cm)g+=`<rect x="${xx}" y="${H-pb-h}" width="${bw-8}" height="${h}" rx="3" fill="${c}" ${parc?'stroke="#a86a12" stroke-dasharray="4 3"':''}><title>${MESES[i]}${parc?' (parcial)':''}: ${M(v)}</title></rect>`;g+=`<text x="${xx+(bw-8)/2}" y="${H-10}" font-size="11" text-anchor="middle" fill="#5f6878">${MESES[i]}</text>`});
- document.getElementById('mensual').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Devengado mensual">${g}<text x="${pl}" y="10" font-size="10.5" fill="#5f6878">Millones de soles</text></svg><div class="ley"><span style="--c:#13294b">Meses de referencia del ritmo (${par.meses_ritmo.map(k=>MESES[k-1]).join(', ')})</span><span style="--c:#e9c98f">${MESES[cm-1]}: parcial, al ${F(cd).slice(0,5)}</span><span style="--c:#b9c3d4">Otros meses</span></div>`;
- document.getElementById('notames').textContent=`Datos Abiertos del MEF, por mes de devengado. Los meses sin datos no se dibujan.`;
- const okA=D.serie.avance&&D.serie.avance.some(v=>v!=null);
- if(okA)linea(document.getElementById('gav'),D.fechas,[{n:'Avance real',v:D.serie.avance,c:'#0f8f72'},{n:'Avance esperado (meta)',v:D.serie.esperado,c:'#13294b',dash:1}],P,220);
+ document.getElementById('mensual').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Devengado mensual de RO; valores en la tabla que sigue">${g}<text x="${pl}" y="10" font-size="10.5" fill="#5f6878">Millones de soles</text></svg><div class="ley"><span style="--c:#b9c3d4">Meses completos</span><span style="--c:#13294b">Meses de referencia de la ejecución reciente (${par.meses_ritmo.map(k=>MESES[k-1]).join(', ')})</span><span style="--c:#e9c98f">${MESES[cm-1]}: parcial, al ${F5(cd)}</span></div>
+ <details class="valores"><summary>Ver los valores de cada mes</summary><table class="ttab"><thead><tr><th scope="col">Mes</th><th scope="col">Devengado</th></tr></thead><tbody>${m.slice(0,cm).map((v,i)=>`<tr><td>${MESES[i]}${i+1===cm?` (parcial, al ${F5(cd)})`:''}</td><td>${M(v)}</td></tr>`).join('')}</tbody></table></details>`;
+ document.getElementById('notames').textContent=`Datos Abiertos del MEF, por mes de devengado. Los meses posteriores al corte no se dibujan.`;
+ if(D.serie.avance&&D.serie.avance.some(v=>v!=null))linea(document.getElementById('gav'),D.fechas,[{n:'Avance real',v:D.serie.avance,c:'#0f8f72'},{n:'Referencia estadística',v:D.serie.esperado,c:'#13294b',dash:1}],P,220);
  else document.getElementById('gav').innerHTML='<p class="nota">La serie de avance empieza con el primer corte que la registra.</p>';
 }
-const COLS=[['#','i','n'],['Unidad ejecutora','ue','t'],['Nivel','nivel','t'],['Riesgo estimado','riesgo','m'],['% del riesgo','pr','p'],['PIM RO','pim','m'],['Saldo al 31/10','saldo_ini','m'],['Avance del saldo','avance','a'],['Saldo actual','saldo','m'],['Devengado del día','ddia','m'],['No certificado','no_cert','m'],['Ejecución del PIM','ej','p']];
-let ord='riesgo',dir=-1,sel=null;
-function filas(){const T=D.total;return D.ues.map((u,k)=>({...u,i:k+1,nivel:nivel(u),ej:u.pim?u.dev/u.pim:0,pr:T.riesgo?u.riesgo/T.riesgo:0,ddia:u.dev_ant!=null?u.dev-u.dev_ant:null}))}
-function tabla(){
- const cab=document.getElementById('cab');cab.innerHTML=COLS.map(([t,k,ty])=>[t.replace('31/10',F(D.parametros.fecha_base).slice(0,5)),k,ty]).map(([t,k,ty])=>`<th class="${ty==='t'?'t':''} ${k===ord?(dir>0?'asc':'desc'):''}" data-k="${k}">${t}</th>`).join('');
- cab.querySelectorAll('th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;dir=ord===k?-dir:(k==='ue'||k==='i'?1:-1);ord=k;tabla()});
- const q=document.getElementById('q').value.trim().toLowerCase(),fn=document.getElementById('fn').value;
- let R=filas().filter(u=>(!q||(u.ue+' '+u.sec+' '+u.sigla).toLowerCase().includes(q))&&(!fn||u.nivel===fn));
- R.sort((a,b)=>{const x=a[ord],y=b[ord];return(typeof x==='string'?x.localeCompare(y,'es'):(x??-1e18)-(y??-1e18))*dir});
- document.getElementById('cuerpo').innerHTML=R.map(u=>`<tr data-s="${u.sec}" class="${u.sec===sel?'sel':''}"><td>${u.i}</td><td class="t">${esc(u.ue)} <span style="color:#5f6878;font-size:12.5px">(${u.sec})</span></td><td class="t" style="min-width:0"><span class="nivel ${u.nivel}">${u.nivel}</span></td><td><b>${M(u.riesgo)}</b></td><td>${P(u.pr)}</td><td>${M(u.pim)}</td><td>${M(u.saldo_ini)}</td><td>${u.avance==null?'—':AV(u.avance,u.esperado??D.parametros.avance_esperado)}</td><td>${M(u.saldo)}</td><td>${u.ddia==null?'—':M(u.ddia)}</td><td>${M(u.no_cert)}</td><td>${P(u.ej)}</td></tr>`).join('');
- const s=k=>R.reduce((a,u)=>a+(u[k]||0),0);
- document.getElementById('pie').innerHTML=`<tr><td></td><td class="t">Total (${R.length} unidades)</td><td></td><td>${M(s('riesgo'))}</td><td>${P(s('riesgo')/D.total.riesgo)}</td><td>${M(s('pim'))}</td><td>${M(s('saldo_ini'))}</td><td>${s('saldo_ini')>0?AV(s('dev_base')/s('saldo_ini'),R.reduce((a,u)=>a+(u.esperado||0)*(u.saldo_ini||0),0)/s('saldo_ini')):'—'}</td><td>${M(s('saldo'))}</td><td>${D.corte_anterior?M(s('ddia')):'—'}</td><td>${M(s('no_cert'))}</td><td>${P(s('dev')/s('pim'))}</td></tr>`;
- document.getElementById('cnt').textContent=`${R.length} de ${D.ues.length} unidades`;
- document.querySelectorAll('#cuerpo tr').forEach(tr=>tr.onclick=()=>detalle(tr.dataset.s,true));
+// ---------- ficha de la unidad ----------
+function detalle(s,ir){
+ const u=filas().find(x=>x.sec===s);if(!u)return;if(sel!==s){uq='';uver=15;usolo=false;uord='ri';udir=-1}sel=s;tabla();
+ const sec=document.getElementById('detalle');sec.hidden=false;const S=D.serie_ue[s]||{saldo:[],riesgo:[]};
+ const gens=Object.entries(u.gen).sort((a,b)=>b[1][3]-a[1][3]),ant=D.corte_anterior;
+ const et=[['Sin certificar',u.pim-u.cert],['Certificado sin compromiso',u.cert-u.comp],['Comprometido sin devengar',u.comp-u.dev]];
+ document.getElementById('det').innerHTML=`<p class="volver"><button class="btn" type="button" id="volver">← Volver al cuadro</button></p>
+ <div class="det-cab"><h3>${esc(u.ue)}</h3><span class="nivel ${u.nivel}">Nivel de riesgo ${u.nivel.toLowerCase()}</span></div>
+ <p class="ps" style="margin:4px 0 0">Código ${u.sec} · Recursos Ordinarios · corte ${F(D.corte)}${ant?` (anterior: ${F(ant)})`:''} · fuente: ${esc(D.parametros.fuente)}</p>
+ <div class="mini"><div><b>${M(u.saldo)}</b><small>Saldo por devengar</small>${dlt(u.dsal)}</div><div><b>${u.dd==null?'Sin dato':M(u.dd)}</b><small>Devengado entre cortes${u.dd<-0.5?' (ajuste negativo)':''}</small></div><div><b>${u.dpim==null?'Sin dato':Math.abs(u.dpim)<0.5?'Sin variación':M(u.dpim)}</b><small>Variación del PIM entre cortes</small></div><div><b style="color:#a86a12">${M(u.riesgo)}</b><small>Riesgo estimado (ejecución reciente)</small>${dlt(u.dri)}</div><div><b>${u.riesgo_hist==null?'—':M(u.riesgo_hist)}</b><small>Según patrones 2023–2025${u.rh_bajo!=null?` (${M(u.rh_bajo)} a ${M(u.rh_alto)})`:''}</small></div><div><b>${u.saldo_ini>0?P(u.avance):'No aplica'}</b><small>Avance del saldo al ${F5(D.parametros.fecha_base)}${u.esperado>0?` · referencia ${P(u.esperado)}`:''}</small></div></div>
+ <h4 style="margin:6px 0;color:var(--navy)">Saldo por etapa presupuestaria</h4>
+ <table class="ttab"><thead><tr><th scope="col">Etapa</th><th scope="col">Monto</th><th scope="col">% del saldo</th><th scope="col">Qué verificar</th></tr></thead><tbody>
+ ${et.map(([n,v],k)=>`<tr><td>${n}</td><td>${M(v)}</td><td>${P(u.saldo?v/u.saldo:0)}</td><td style="text-align:left;white-space:normal">${['Si se certificará este año o si corresponde sincerar el PIM.','Si los procesos de selección o contratos se firmarán antes del cierre; anular lo que no se use.','Si las entregas, conformidades o valorizaciones llegarán antes del 31/12.'][k]}</td></tr>`).join('')}</tbody></table>
+ <p class="nota">Programación de la unidad: no registrada. Cuando exista, aquí se comparará lo programado con lo ejecutado.</p>
+ <div class="dos" style="margin-top:12px"><div><h4 style="margin:6px 0;color:var(--navy)">Evolución entre cortes</h4><div id="gue"></div></div>
+ <div><h4 style="margin:6px 0;color:var(--navy)">Por genérica (orden: riesgo estimado)${D.parametros.corte_detalle&&D.parametros.corte_detalle!==D.corte?` · datos al ${F(D.parametros.corte_detalle)}`:''}</h4><div class="tabla" style="max-height:none"><table><thead><tr><th class="t" scope="col">Genérica</th><th scope="col">PIM</th><th scope="col">Saldo por devengar</th><th scope="col">Riesgo estimado</th></tr></thead><tbody>${gens.map(([g,v])=>`<tr style="cursor:default"><td class="t" style="min-width:170px">${GEN[g]||g}</td><td>${M(v[0])}</td><td>${M(v[2])}</td><td>${M(v[3])}</td></tr>`).join('')}</tbody></table></div></div></div>
+ <div id="pue"></div>
+ <p class="nota">La unidad ocupa el puesto ${u.i} de ${D.ues.length} por riesgo estimado.</p>`;
+ linea(document.getElementById('gue'),D.fechas,[{n:'Saldo por devengar',v:S.saldo,c:'#13294b'},{n:'Riesgo estimado',v:S.riesgo,c:'#d99a06'}],M,200);
+ document.getElementById('volver').onclick=()=>{document.getElementById('cuadro').scrollIntoView({behavior:'smooth'});const r=document.querySelector(`#cuerpo tr[data-s="${s}"]`)||document.querySelector(`#tarjetas [data-s="${s}"]`);if(r)setTimeout(()=>r.focus({preventScroll:true}),400)};
+ proyUE(s);
+ if(ir){sec.scrollIntoView({behavior:'smooth'});setTimeout(()=>document.getElementById('det').focus({preventScroll:true}),350)}
 }
-// ---- Productos y proyectos ----
-const PCOLS=[['Producto o proyecto','n','t'],['Riesgo de reversión','ri','m'],['PIM RO','pim','m'],['Saldo al 31/10','si','m'],['Avance del saldo','av','a'],['Saldo actual','s','m'],['Devengado del día','dd','m'],['Ejecución del PIM','ej','p']];
+// ---------- productos y proyectos de la unidad ----------
+const PCOLS=[['Producto o proyecto','n','t'],['Riesgo estimado','ri','m'],['PIM RO','pim','m'],['Saldo al 31/10','si','m'],['Avance del saldo vs. referencia','av','a'],['Saldo por devengar','s','m'],['Devengado entre cortes','dd','m'],['Ejecución del PIM','ej','p']];
 const TIPO=t=>t==='P'?'<span class="tipo P">Proyecto</span>':'<span class="tipo">Producto o actividad</span>';
-const ordenar=(R,k,d)=>R.sort((a,b)=>{const x=a[k],y=b[k];return(typeof x==='string'?x.localeCompare(y,'es'):(x??-1e18)-(y??-1e18))*d});
-const cabecera=(el,cols,o,d,fn)=>{el.innerHTML=cols.map(([t,k,ty])=>`<th class="${ty==='t'?'t':''} ${k===o?(d>0?'asc':'desc'):''}" data-k="${k}">${t.replace('31/10',F(D.parametros.fecha_base).slice(0,5))}</th>`).join('');el.querySelectorAll('th').forEach(th=>th.onclick=()=>fn(th.dataset.k))};
-const celdas=x=>`<td><b>${M(x.ri)}</b></td><td>${M(x.pim)}</td><td>${M(x.si)}</td><td>${x.si>0.5?AV(x.av,x.esp):'—'}</td><td>${M(x.s)}</td><td>${x.dd==null?'—':M(x.dd)}</td><td>${P(x.pim?x.dev/x.pim:0)}</td>`;
-const pieP=(R,etq)=>{const s=k=>R.reduce((a,x)=>a+(x[k]||0),0),si=s('si'),db=R.reduce((a,x)=>a+(x.si-x.s),0),esp=si>0?R.reduce((a,x)=>a+x.esp*Math.max(x.si,0),0)/si:0;
- return `<tr><td class="t">${etq}</td><td>${M(s('ri'))}</td><td>${M(s('pim'))}</td><td>${M(si)}</td><td>${si>0.5?AV(db/si,esp):'—'}</td><td>${M(s('s'))}</td><td>${PJ.corte_anterior?M(s('dd')):'—'}</td><td>${P(s('dev')/s('pim'))}</td></tr>`};
-let pord='ri',pdir=-1,psel=null;
-function listaP(){if(!PJ)return[];const uenom=Object.fromEntries(D.ues.map(u=>[u.sec,u]));
- return Object.entries(PJ.ues).flatMap(([ue,l])=>l.filter(x=>x.t==='P').map(x=>({...x,ue,uen:uenom[ue]?nom(uenom[ue]):ue,uef:uenom[ue]?.ue||ue,ej:x.pim?x.dev/x.pim:0,avr:x.esp>0?x.av/x.esp:1})))}
-function filtP(){const q=document.getElementById('pq').value.trim().toLowerCase(),fu=document.getElementById('pfu').value;
- let R=listaP().filter(x=>(!fu||x.ue===fu)&&(!q||(x.n+' '+x.c+' '+x.ue+' '+x.uen+' '+x.uef).toLowerCase().includes(q)));return ordenar(R,pord,pdir)}
-function proyectos(){
- if(!PJ)return;const A=listaP();
- const s=k=>A.reduce((a,x)=>a+(x[k]||0),0);
- document.getElementById('phero').innerHTML=`<div><div class="et">Proyectos</div><div class="num">${A.length}</div><div class="ds">Con CUI y Recursos Ordinarios</div></div>
- <div><div class="et">PIM RO</div><div class="num">${M(s('pim'))}</div><div class="ds">De esos proyectos</div></div>
- <div><div class="et">Saldo actual</div><div class="num">${M(s('s'))}</div><div class="ds">PIM − devengado</div></div>
- <div><div class="et">Riesgo estimado</div><div class="num">${M(s('ri'))}</div><div class="ds">Al 31/12, por ritmo</div></div>`;
- const sel_=document.getElementById('pfu');if(sel_.options.length<2){[...new Set(A.map(x=>x.ue))].map(u=>[u,A.find(x=>x.ue===u).uen]).sort((a,b)=>a[1].localeCompare(b[1],'es')).forEach(([u,n])=>sel_.insertAdjacentHTML('beforeend',`<option value="${u}">${esc(n)}</option>`))}
- const R=filtP(),cols=[['Proyecto / CUI','n','t'],['UE','uen','t'],['Saldo','s','m'],['Riesgo','ri','m'],['Ejecución','ej','p']];
- cabecera(document.getElementById('pcab'),cols,pord,pdir,k=>{pdir=pord===k?-pdir:(cols.find(c=>c[1]===k)[2]==='t'?1:-1);pord=k;document.getElementById('pord').value='';proyectos()});
- document.getElementById('pcuerpo').innerHTML=R.map(x=>`<tr data-k="${x.ue}|${x.c}" class="${psel===x.ue+'|'+x.c?'sel':''}"><td class="t" style="min-width:200px"><b>${esc(x.n.length>64?x.n.slice(0,62)+'…':x.n)}</b> <span style="color:#5f6878;font-size:12.5px">· ${x.c}</span></td><td class="t" style="min-width:90px">${esc(x.uen)}</td><td>${M(x.s)}</td><td><b>${M(x.ri)}</b></td><td>${P(x.ej)}<span class="bar2" style="display:block;width:64px;margin:4px 0 0 auto"><i style="width:${Math.min(100,100*x.ej)}%;background:#0f8f72"></i></span></td></tr>`).join('');
- const t=k=>R.reduce((a,x)=>a+(x[k]||0),0);
- document.getElementById('ppie').innerHTML=`<tr><td class="t" colspan="2">Total (${R.length} proyectos)</td><td>${M(t('s'))}</td><td>${M(t('ri'))}</td><td>${P(t('dev')/t('pim'))}</td></tr>`;
- document.getElementById('pcnt').textContent=`${R.length} de ${A.length} proyectos`;
- document.querySelectorAll('#pcuerpo tr').forEach(tr=>tr.onclick=()=>{psel=tr.dataset.k;proyectos()});
- if(!psel||!R.some(x=>x.ue+'|'+x.c===psel))psel=R.length?R[0].ue+'|'+R[0].c:null;
- document.querySelectorAll('#pcuerpo tr').forEach(tr=>tr.classList.toggle('sel',tr.dataset.k===psel));
- ficha(R.find(x=>x.ue+'|'+x.c===psel));
-}
-function ficha(x){const el=document.getElementById('ficha');if(!x){el.innerHTML='<p class="nota">No hay proyectos con ese filtro.</p>';return}
- const [c,t]=SEM(x.av,x.esp),top=Math.max(0.25,Math.ceil(Math.max(x.av,x.esp)*1.25*20)/20);
- el.innerHTML=`<h3>${esc(x.n)}</h3><p class="ps" style="margin:4px 0 0">CUI ${x.c} · ${esc(x.uef)} · RO</p>
- <div class="fm"><div><small>PIM</small><b>${M(x.pim)}</b></div><div><small>Saldo</small><b>${M(x.s)}</b></div><div><small>Riesgo</small><b style="color:#a86a12">${M(x.ri)}</b></div></div>
- <div style="display:flex;justify-content:space-between;font-weight:600;color:var(--navy)"><span>Ejecución del PIM</span><span>${P(x.ej)}</span></div><div class="bar2"><i style="width:${Math.min(100,100*x.ej)}%;background:#0f8f72"></i></div>
- <div style="border:1px solid var(--line);border-radius:12px;padding:12px 14px"><div style="font-weight:700;color:var(--navy)">Avance del saldo al ${F(D.parametros.fecha_base).slice(0,5)}</div>
- ${x.si>0.5?`<div class="ley" style="margin:4px 0 0"><span style="--c:${c}">Avance real: ${P(x.av)}</span><span style="--c:#13294b">Esperado: ${P(x.esp)}</span></div>
- <div class="escala" style="margin:14px 0 6px"><i style="width:${100*Math.min(x.av,top)/top}%;background:${c}"></i><span class="mk" style="left:${100*Math.min(x.esp,top)/top}%"></span></div>
- <div class="ejeP">${Array.from({length:6},(_,k)=>`<span>${(100*top*k/5).toFixed(0)} %</span>`).join('')}</div>
- <div class="estado" style="background:${c}1f;color:${c}">${ICO(c==='#1f8f6a'?I_OK:I_ALE)}<span>${t[0].toUpperCase()+t.slice(1)}</span></div>`:'<p class="nota">Sin saldo al cierre de octubre: no aplica.</p>'}
- <p class="nota">Datos del corte ${F(PJ.corte)}; solo Recursos Ordinarios.</p></div>
- <div class="enl"><a data-ue="${x.ue}">Ver unidad ejecutora</a><a href="#metodo">Ver método</a></div>`;
- el.querySelector('[data-ue]').onclick=()=>detalle(x.ue,true)}
-document.getElementById('pq').oninput=proyectos;document.getElementById('pfu').onchange=proyectos;
-document.getElementById('pord').onchange=e=>{if(e.target.value){const[k,d]=e.target.value.split(':');pord=k;pdir=+d}proyectos()};
-document.getElementById('pexp').onclick=()=>{const R=filtP();csv(`proyectos_RO_${PJ.corte}.csv`,['CUI','Proyecto','Unidad ejecutora','PIM','Devengado','Saldo','Riesgo estimado','Ejecucion %','Avance del saldo %','Avance esperado %'],R.map(x=>[x.c,x.n,x.uef,x.pim,x.dev,x.s,x.ri,(100*x.ej).toFixed(1),(100*x.av).toFixed(1),(100*x.esp).toFixed(1)]))};
+const ordenar=(R,k,d)=>R.sort((a,b)=>{const x=a[k],y=b[k];if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return(typeof x==='string'?x.localeCompare(y,'es'):x-y)*d});
+const cabecera=(el,cols,o,d,fn)=>{el.innerHTML=cols.map(([t,k,ty])=>`<th scope="col" class="${ty==='t'?'t':''}" aria-sort="${k===o?(d>0?'ascending':'descending'):'none'}"><button type="button" data-k="${k}">${t.replace('31/10',F5(D.parametros.fecha_base))} <span class="fl" aria-hidden="true"></span></button></th>`).join('');el.querySelectorAll('button').forEach(b=>b.onclick=()=>fn(b.dataset.k))};
+const AVP=x=>x.si>0.5?(x.t==='P'&&!(x.esp>0)?`<span class="av"><span style="font-weight:600">${P(x.av)}</span></span><span class="rango">referencia mensual: desde el cierre de noviembre</span>`:AV(x.av,x.esp)):'No aplica';
+const celdas=x=>`<td><b>${M(x.ri)}</b></td><td>${M(x.pim)}</td><td>${M(x.si)}</td><td>${AVP(x)}</td><td>${M(x.s)}</td><td class="${x.dd<-0.5?'neg':''}">${x.dd==null?'Sin dato':M(x.dd)}</td><td>${P(x.pim?x.dev/x.pim:0)}</td>`;
+const pieP=(R,etq)=>{const s=k=>R.reduce((a,x)=>a+(x[k]||0),0),si=s('si'),db=R.reduce((a,x)=>a+(x.si-x.s),0);
+ return `<tr><td class="t">${etq}</td><td>${M(s('ri'))}</td><td>${M(s('pim'))}</td><td>${M(si)}</td><td>${si>0.5?P(db/si):'—'}</td><td>${M(s('s'))}</td><td>${PJ.corte_anterior?M(s('dd')):'—'}</td><td>${P(s('dev')/s('pim'))}</td></tr>`};
 let uord='ri',udir=-1,usolo=false,uver=15,uq='';
 function proyUE(s){
  const el=document.getElementById('pue');if(!el)return;
  if(!PJ){el.innerHTML='<p class="nota">Cargando el detalle por producto y proyecto…</p>';return}
  const L=(PJ.ues[s]||[]).map(x=>({...x,ej:x.pim?x.dev/x.pim:0}));const np=L.filter(x=>x.t==='P').length;
  let R=L.filter(x=>(!usolo||x.t==='P')&&(!uq||(x.n+' '+x.c).toLowerCase().includes(uq)));ordenar(R,uord,udir);
- el.innerHTML=`<h3 style="font-size:16px;margin-top:18px">Productos, actividades y proyectos de la unidad (orden: ${uord==='ri'&&udir<0?'riesgo, de mayor a menor':'según la columna elegida'})${PJ.corte!==D.corte?` · datos al ${F(PJ.corte)}`:''}</h3>
+ el.innerHTML=`<h4 style="margin:18px 0 6px;color:var(--navy)">Productos, actividades y proyectos que explican el saldo${PJ.corte!==D.corte?` · datos al ${F(PJ.corte)}`:''}</h4>
  <div class="buscar"><input id="uq" type="search" placeholder="Buscar producto, proyecto o CUI…" aria-label="Buscar en la unidad" value="${esc(uq)}"><label class="chk"><input type="checkbox" id="usolo" ${usolo?'checked':''} ${np?'':'disabled'}> Solo proyectos de inversión (${np})</label><span>${R.length} de ${L.length}</span></div>
- <div class="tabla"><table><thead><tr id="ucab"></tr></thead><tbody>${R.length?'':`<tr style="cursor:default"><td class="t" colspan="8">${usolo?'Esta unidad no tiene proyectos de inversión con Recursos Ordinarios.':'Sin resultados para la búsqueda.'}</td></tr>`}${R.slice(0,uver).map(x=>`<tr style="cursor:default"><td class="t" style="min-width:280px">${TIPO(x.t)}${esc(x.n)} <span style="color:#5f6878;font-size:12.5px">(${x.t==='P'?'CUI ':''}${x.c})</span></td>${celdas(x)}</tr>`).join('')}</tbody><tfoot>${pieP(R,`Total (${R.length})`)}</tfoot></table></div>
- ${R.length>uver?`<button class="mas" id="umas">Ver los ${R.length}</button>`:''}
- <p class="nota">La suma de los productos y proyectos coincide con el total de la unidad. El riesgo de la unidad es la suma del riesgo de cada uno.</p>`;
+ <div class="tabla"><table><thead><tr id="ucab"></tr></thead><tbody>${R.length?'':`<tr><td class="t" colspan="8">${usolo?'Esta unidad no tiene proyectos de inversión con Recursos Ordinarios.':'Sin resultados para la búsqueda.'}</td></tr>`}${R.slice(0,uver).map(x=>`<tr style="cursor:default"><td class="t" style="min-width:260px">${TIPO(x.t)}${esc(x.n)} <span style="color:#5f6878;font-size:12.5px">(${x.t==='P'?'CUI ':''}${x.c})</span></td>${celdas(x)}</tr>`).join('')}</tbody><tfoot>${pieP(R,`Total (${R.length})`)}</tfoot></table></div>
+ ${R.length>uver?`<button class="mas" id="umas" type="button">Ver los ${R.length}</button>`:''}
+ <p class="nota">La suma de productos y proyectos coincide con el total de la unidad. Orden: ${uord==='ri'&&udir<0?'riesgo estimado, de mayor a menor':'según la columna elegida'}.</p>`;
  cabecera(document.getElementById('ucab'),PCOLS,uord,udir,k=>{udir=uord===k?-udir:(k==='n'?1:-1);uord=k;proyUE(s)});
  const qi=document.getElementById('uq');qi.oninput=()=>{uq=qi.value.trim().toLowerCase();uver=15;proyUE(s);const n=document.getElementById('uq');n.focus();n.setSelectionRange(n.value.length,n.value.length)};
  document.getElementById('usolo').onchange=e=>{usolo=e.target.checked;uver=15;proyUE(s)};
  const m=document.getElementById('umas');if(m)m.onclick=()=>{uver=1e9;proyUE(s)};
 }
-document.getElementById('q').oninput=tabla;document.getElementById('fn').onchange=tabla;
-
-function detalle(s,ir){
- const u=D.ues.find(x=>x.sec===s);if(!u)return;if(sel!==s){uq='';uver=15;usolo=false;uord='ri';udir=-1}sel=s;tabla();
- const sec=document.getElementById('detalle');sec.hidden=false;const S=D.serie_ue[s]||{saldo:[],riesgo:[]};
- const gens=Object.entries(u.gen).sort((a,b)=>b[1][3]-a[1][3]);
- const nec=u.saldo/Math.max(D.parametros.dias_habiles,1);
- document.getElementById('det').innerHTML=`<div class="det-cab"><h3>${esc(u.ue)} (${u.sec})</h3><span class="nivel ${nivel(u)}">Riesgo ${nivel(u).toLowerCase()}</span></div>
- <div class="mini"><div><b>${M(u.saldo)}</b><small>Saldo RO (${P(u.pim?u.dev/u.pim:0)} ejecutado)</small></div><div><b style="color:#9e2a2b">${M(u.riesgo)}</b><small>Riesgo de reversión</small></div><div><b>${M(u.no_cert)}</b><small>No certificado</small></div><div><b>${M(u.cert-u.comp)}</b><small>Certificado sin compromiso</small></div><div><b>${M(u.comp-u.dev)}</b><small>Comprometido sin devengar</small></div><div><b>${M(nec)}</b><small>Necesario por día hábil · ritmo: ${M(u.ritmo/21)}</small></div><div><b style="color:${SEM(u.avance||0,u.esperado??D.parametros.avance_esperado)[0]}">${P(u.avance)}</b><small>Avance del saldo al ${F(D.parametros.fecha_base)} (debería ir en ${P(u.esperado??D.parametros.avance_esperado)})</small></div></div>
- <div class="dos"><div><h3 style="font-size:16px">Evolución diaria</h3><div id="gue"></div></div>
- <div><h3 style="font-size:16px">Por genérica (orden: riesgo)${D.parametros.corte_detalle&&D.parametros.corte_detalle!==D.corte?` · datos al ${F(D.parametros.corte_detalle)}`:''}</h3><div class="tabla" style="max-height:none"><table><thead><tr><th class="t" style="cursor:default">Genérica</th><th style="cursor:default">PIM</th><th style="cursor:default">Saldo</th><th style="cursor:default">Riesgo</th></tr></thead><tbody>${gens.map(([g,v])=>`<tr style="cursor:default"><td class="t" style="min-width:180px">${GEN[g]||g}</td><td>${M(v[0])}</td><td>${M(v[2])}</td><td>${M(v[3])}</td></tr>`).join('')}</tbody></table></div></div></div>
- <div id="pue"></div>
- <p class="nota">La unidad ocupa el puesto ${D.ues.indexOf(u)+1} de ${D.ues.length} por riesgo de reversión.</p>`;
- linea(document.getElementById('gue'),D.fechas,[{n:'Saldo RO',v:S.saldo,c:'#13294b'},{n:'Riesgo estimado',v:S.riesgo,c:'#d99a06'}],M,200);
- proyUE(s);
- if(ir)sec.scrollIntoView({behavior:'smooth'});
+// ---------- explorador de proyectos ----------
+let pord='ri',pdir=-1,psel=null;
+function listaP(){if(!PJ)return[];const uenom=Object.fromEntries(D.ues.map(u=>[u.sec,u]));
+ return Object.entries(PJ.ues).flatMap(([ue,l])=>l.filter(x=>x.t==='P').map(x=>({...x,ue,uen:uenom[ue]?nom(uenom[ue]):ue,uef:uenom[ue]?.ue||ue,ej:x.pim?x.dev/x.pim:0})))}
+function filtP(){const q=document.getElementById('pq').value.trim().toLowerCase(),fu=document.getElementById('pfu').value;
+ return ordenar(listaP().filter(x=>(!fu||x.ue===fu)&&(!q||(x.n+' '+x.c+' '+x.ue+' '+x.uen+' '+x.uef).toLowerCase().includes(q))),pord,pdir)}
+function proyectos(){
+ if(!PJ)return;const A=listaP(),s=k=>A.reduce((a,x)=>a+(x[k]||0),0);
+ document.getElementById('phero').innerHTML=`<div><div class="et">Proyectos</div><div class="num">${A.length}</div><div class="ds">Con CUI y Recursos Ordinarios</div></div>
+ <div><div class="et">PIM RO</div><div class="num">${M(s('pim'))}</div><div class="ds">De esos proyectos</div></div>
+ <div><div class="et">Saldo por devengar</div><div class="num">${M(s('s'))}</div><div class="ds">PIM − devengado</div></div>
+ <div><div class="et">Riesgo estimado</div><div class="num">${M(s('ri'))}</div><div class="ds">Al 31/12, según ejecución reciente</div></div>`;
+ const sel_=document.getElementById('pfu');if(sel_.options.length<2){[...new Set(A.map(x=>x.ue))].map(u=>[u,A.find(x=>x.ue===u).uen]).sort((a,b)=>a[1].localeCompare(b[1],'es')).forEach(([u,n])=>sel_.insertAdjacentHTML('beforeend',`<option value="${u}">${esc(n)}</option>`))}
+ const R=filtP(),cols=[['Proyecto / CUI','n','t'],['Unidad','uen','t'],['Saldo por devengar','s','m'],['Riesgo estimado','ri','m'],['Ejecución del PIM','ej','p']];
+ cabecera(document.getElementById('pcab'),cols,pord,pdir,k=>{pdir=pord===k?-pdir:(cols.find(c=>c[1]===k)[2]==='t'?1:-1);pord=k;document.getElementById('pord').value='';proyectos()});
+ document.getElementById('pcuerpo').innerHTML=R.length?R.map(x=>`<tr tabindex="0" data-k="${x.ue}|${x.c}" aria-label="${esc(x.n)}, CUI ${x.c}: ver ficha"><td class="t" style="min-width:200px"><b title="${esc(x.n)}">${esc(x.n.length>64?x.n.slice(0,62)+'…':x.n)}</b> <span style="color:#5f6878;font-size:12.5px">· ${x.c}</span></td><td class="t" style="min-width:90px">${esc(x.uen)}</td><td>${M(x.s)}</td><td><b>${M(x.ri)}</b></td><td>${P(x.ej)}<span class="bar2" style="display:block;width:64px;margin:4px 0 0 auto" aria-hidden="true"><i style="width:${Math.min(100,100*x.ej)}%;background:#0f8f72"></i></span></td></tr>`).join(''):'<tr><td class="t" colspan="5">No hay proyectos con este filtro.</td></tr>';
+ const t=k=>R.reduce((a,x)=>a+(x[k]||0),0);
+ document.getElementById('ppie').innerHTML=`<tr><td class="t" colspan="2">Total (${R.length} proyectos)</td><td>${M(t('s'))}</td><td>${M(t('ri'))}</td><td>${R.length?P(t('dev')/t('pim')):'—'}</td></tr>`;
+ document.getElementById('pcnt').textContent=`${R.length} de ${A.length} proyectos`;
+ const rows=[...document.querySelectorAll('#pcuerpo tr[data-k]')];
+ rows.forEach((tr,i)=>{tr.onclick=()=>{psel=tr.dataset.k;marcar()};tr.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();psel=tr.dataset.k;marcar();document.getElementById('ficha').focus()}else if(e.key==='ArrowDown'&&rows[i+1]){e.preventDefault();rows[i+1].focus()}else if(e.key==='ArrowUp'&&rows[i-1]){e.preventDefault();rows[i-1].focus()}}});
+ if(!psel||!R.some(x=>x.ue+'|'+x.c===psel))psel=R.length?R[0].ue+'|'+R[0].c:null;
+ function marcar(){rows.forEach(tr=>{tr.classList.toggle('sel',tr.dataset.k===psel);tr.setAttribute('aria-selected',tr.dataset.k===psel)});ficha(R.find(x=>x.ue+'|'+x.c===psel))}
+ marcar();
 }
+function ficha(x){const el=document.getElementById('ficha');el.setAttribute('tabindex','-1');if(!x){el.innerHTML='<p class="nota">No hay proyectos con ese filtro.</p>';return}
+ const sinRef=!(x.esp>0),[c,t]=SEM(x.av,x.esp),top=Math.max(0.25,Math.ceil(Math.max(x.av,x.esp||0)*1.25*20)/20);
+ el.innerHTML=`<h3>${esc(x.n)}</h3><p class="ps" style="margin:4px 0 0">CUI ${x.c} · ${esc(x.uef)} · Recursos Ordinarios</p>
+ <div class="fm"><div><small>PIM RO</small><b>${M(x.pim)}</b></div><div><small>Saldo por devengar</small><b>${M(x.s)}</b></div><div><small>Riesgo estimado</small><b style="color:#a86a12">${M(x.ri)}</b></div></div>
+ <div style="display:flex;justify-content:space-between;font-weight:600;color:var(--navy)"><span>Ejecución acumulada del PIM</span><span>${P(x.ej)}</span></div><div class="bar2" aria-hidden="true"><i style="width:${Math.min(100,100*x.ej)}%;background:#0f8f72"></i></div>
+ <div style="border:1px solid var(--line);border-radius:12px;padding:12px 14px"><div style="font-weight:700;color:var(--navy)">Avance del saldo pendiente al ${F5(D.parametros.fecha_base)}</div>
+ ${x.si>0.5?`<p class="nota" style="margin:2px 0 0">Devengado desde el ${F5(D.parametros.fecha_base)}: ${M(x.si-x.s)} de ${M(x.si)} (${P(x.av)}).${x.dd!=null?` Entre cortes: ${M(x.dd)}.`:''}</p>
+ ${sinRef?`<div class="estado" style="background:#eef1f6;color:var(--navy)">${ICO(I_INFO)}<span>Sin referencia todavía: los proyectos se devengan por valorizaciones mensuales y se comparan por mes cerrado, desde el cierre de noviembre.</span></div>`
+ :`<div class="ley" style="margin:6px 0 0"><span style="--c:${c}">Avance real: ${P(x.av)}</span><span style="--c:#13294b">Referencia: ${P(x.esp)}</span></div>
+ <div class="escala" style="margin:14px 0 6px" role="img" aria-label="Avance ${P(x.av)}; referencia ${P(x.esp)}"><i style="width:${100*Math.min(x.av,top)/top}%;background:${c}"></i><span class="mk" style="left:${100*Math.min(x.esp,top)/top}%"></span></div>
+ <div class="ejeP" aria-hidden="true">${Array.from({length:6},(_,k)=>`<span>${(100*top*k/5).toFixed(0)} %</span>`).join('')}</div>
+ <div class="estado" style="background:${c}1f;color:${c}">${ICO(c==='#1f8f6a'?I_OK:I_ALE)}<span>${t[0].toUpperCase()+t.slice(1)} (estadística, no meta)</span></div>`}`:'<p class="nota">Sin saldo pendiente al cierre de octubre: no aplica.</p>'}
+ <p class="nota">Corte ${F(PJ.corte)}; solo Recursos Ordinarios. Programación F12B: ver la sección de inversiones del informe.</p></div>
+ <div class="enl"><button class="btn" type="button" data-ue="${x.ue}">Ver la unidad ejecutora</button><a class="btn" href="#metodo">Ver el método</a></div>`;
+ el.querySelector('[data-ue]').onclick=()=>detalle(x.ue,true)}
+document.getElementById('pq').oninput=proyectos;document.getElementById('pfu').onchange=proyectos;
+document.getElementById('pord').onchange=e=>{if(e.target.value){const[k,d]=e.target.value.split(':');pord=k;pdir=+d}proyectos()};
+document.getElementById('pexp').onclick=()=>{const R=filtP();csv(`proyectos_RO_${PJ.corte}.csv`,metaCSV([`Filtros: unidad ${document.getElementById('pfu').selectedOptions[0].text}; búsqueda «${document.getElementById('pq').value}»; ${document.getElementById('pord').selectedOptions[0]?.text||''}`]),['CUI','Proyecto','Unidad ejecutora','PIM','Devengado','Saldo por devengar','Devengado entre cortes','Riesgo estimado','Ejecucion del PIM','Saldo al 31/10','Avance del saldo','Referencia estadistica'],R.map(x=>[x.c,x.n,x.uef,x.pim,x.dev,x.s,x.dd,x.ri,x.ej,x.si,x.av,x.esp]))};
 </script>
 </body>
 </html>
