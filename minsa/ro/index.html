@@ -4,211 +4,277 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Control diario de RO</title>
-<meta name="description" content="Cuadro de control diario de los saldos de Recursos Ordinarios por unidad ejecutora y riesgo de reversión al 31 de diciembre.">
+<meta name="description" content="Cuadro de control diario de los saldos de Recursos Ordinarios por unidad ejecutora y riesgo estimado de reversión al 31 de diciembre.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;600&family=Source+Serif+4:wght@600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
 <style>
-:root{--bg:#faf8f3;--card:#fff;--ink:#1d2433;--muted:#5f6878;--line:#e3dccd;--soft:#f5f1e8;--navy:#13294b;--gold:#d7a03a;--ro:#a86a12;--ro-t:#fbf3e4;
---alto:#9e2a2b;--alto-t:#f9ecec;--medio:#b7791f;--medio-t:#fdf3e1;--bajo:#1f6f68;--bajo-t:#e8f3f1;
---f-d:"Source Serif 4",Georgia,serif;--f-t:"IBM Plex Sans","Segoe UI",Arial,sans-serif;--f-m:"IBM Plex Mono",Consolas,monospace;color-scheme:light}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--f-t)}
+:root{--bg:#faf8f3;--card:#fff;--ink:#1d2433;--muted:#5f6878;--line:#e3dccd;--soft:#f5f1e8;--navy:#13294b;--turq:#19c39c;--turq-d:#0f8f72;--turq-s:#e3f4ef;
+--alto:#c0392b;--alto-t:#fde3e0;--medio:#d99a06;--medio-t:#fbeccc;--bajo:#1f8f6a;--bajo-t:#d8f5ec;
+--f-t:"IBM Plex Sans","Segoe UI",Arial,sans-serif;--f-m:"IBM Plex Mono",Consolas,monospace;color-scheme:light}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:70px}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--f-t);-webkit-text-size-adjust:100%}
 .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
-header{background:linear-gradient(135deg,#3d2706 0%,#7a4d0e 55%,#a86a12 100%);color:#fff;padding:40px 0 34px;position:relative}
-header:after{content:"";position:absolute;left:0;right:0;bottom:0;height:5px;background:linear-gradient(90deg,var(--alto) 0 33%,var(--medio) 33% 66%,var(--bajo) 66%)}
-.eyebrow{font:500 11.5px/1.4 var(--f-m);letter-spacing:.12em;text-transform:uppercase;color:#f6dca8}
-h1{font:700 clamp(28px,4.4vw,44px)/1.1 var(--f-d);margin:8px 0 10px}
-.meta{font:500 13px var(--f-m);color:#f3e6cc;display:flex;flex-wrap:wrap;gap:6px 18px}
-.meta a{color:#fff}
-nav.top{background:#fff;border-bottom:1px solid var(--line)}
-nav.top .wrap{display:flex;gap:8px;overflow-x:auto;padding:10px 20px}
-nav.top a{flex:none;text-decoration:none;color:var(--navy);font-weight:600;font-size:14px;padding:8px 13px;border:1px solid var(--line);border-radius:999px;min-height:40px;display:flex;align-items:center}
-section{padding:30px 0 4px}
-h2{font:700 clamp(21px,2.8vw,26px)/1.2 var(--f-d);color:var(--navy);margin:0 0 6px}
-h2::before{content:"";display:block;width:40px;height:3px;background:var(--ro);margin:0 0 12px}
+header{padding:26px 0 8px}
+.eyebrow{font:700 12.5px/1.4 var(--f-t);letter-spacing:.04em;text-transform:uppercase;color:var(--navy)}
+.hcab{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+h1{font:700 clamp(28px,4vw,40px)/1.12 var(--f-t);color:var(--navy);margin:4px 0 2px;letter-spacing:-.01em}
+.sub0{color:var(--muted);margin:0;font-size:16px}
+.corte{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+.corte b{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;font:600 15px var(--f-t);color:var(--navy)}
+.corte .hab{font:600 13px var(--f-t);background:var(--turq-s);color:#0b5e4a;border-radius:10px;padding:6px 12px}
+.meta{font:500 12.5px var(--f-m);color:var(--muted);margin-top:10px;display:flex;flex-wrap:wrap;gap:4px 16px}
+nav.top{position:sticky;top:0;z-index:5;background:rgba(250,248,243,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);margin-top:14px}
+nav.top .wrap{display:flex;gap:6px;overflow-x:auto;padding:10px 20px;scrollbar-width:none}
+nav.top a{flex:none;text-decoration:none;color:var(--navy);font:600 13.5px var(--f-t);padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;min-height:40px;display:flex;align-items:center}
+nav.top a.act{background:var(--turq-s);border-color:var(--turq);color:#0b5e4a}
+nav.top .sep{flex:none;width:1px;background:var(--line);margin:4px 4px}
+nav.top a.sub{border-style:dashed}
+section{padding:26px 0 4px}
+h2{font:700 clamp(21px,2.6vw,25px)/1.2 var(--f-t);color:var(--navy);margin:0 0 4px}
 .sub{color:var(--muted);margin:0 0 14px;font-size:14.5px}
-.av{display:flex;align-items:center;gap:8px;justify-content:flex-end}.av .bar{width:70px;height:8px;background:#ece6d8;border-radius:4px;position:relative;overflow:visible}.av .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}.av .bar b{position:absolute;top:-3px;bottom:-3px;width:2px;background:#13294b}
-.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:14px;margin-top:22px}
-.k{background:var(--card);border:1px solid var(--line);border-top:4px solid var(--ro);border-radius:12px;padding:18px 20px;box-shadow:0 8px 24px -20px rgba(19,41,75,.4)}
-.k:nth-child(2){border-top-color:var(--alto)}.k:nth-child(3){border-top-color:var(--navy)}.k:nth-child(4){border-top-color:var(--bajo)}
-.k .l{font-weight:600;font-size:14px}
-.k .v{font:700 clamp(26px,3.2vw,34px)/1.1 var(--f-d);margin:6px 0 4px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
-.k:nth-child(1) .v{color:var(--ro)}.k:nth-child(2) .v{color:var(--alto)}.k:nth-child(3) .v{color:var(--navy)}.k:nth-child(4) .v{color:var(--bajo)}
-.k small{display:block;color:var(--muted);font-size:13px;line-height:1.45}
-.var{font:600 12.5px var(--f-m)}.var.sube{color:var(--alto)}.var.baja{color:var(--bajo)}
-.alerta{margin:18px 0 0;background:var(--alto-t);border:1px solid #ecc9c9;border-left:5px solid var(--alto);border-radius:12px;padding:14px 18px;font-size:15px}
-.dos{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px}
-.panel{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px 20px;box-shadow:0 8px 24px -22px rgba(19,41,75,.45)}
-.panel h3{font:700 17px/1.3 var(--f-d);color:var(--navy);margin:0 0 12px}
-.barra{display:grid;grid-template-columns:minmax(110px,210px) 1fr 96px;gap:10px;align-items:center;margin:7px 0;font-size:13.5px;cursor:pointer}
-.barra:hover .lbl{color:var(--ro)}
-.barra .b{height:16px;background:var(--soft);border-radius:4px;overflow:hidden;display:flex}
-.barra .b i{display:block;height:100%}
-.barra .n{text-align:right;font:600 13px var(--f-m)}
-.ley{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:12.5px;color:var(--muted);margin-top:10px}
-.ley span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:6px;vertical-align:-1px;background:var(--c)}
+.hero4{background:linear-gradient(135deg,#0f2240,#13294b 60%,#183560);color:#fff;border-radius:16px;padding:22px 24px;display:grid;grid-template-columns:repeat(4,1fr);margin-top:16px}
+.hero4>div{padding:4px 20px;border-left:1px solid rgba(255,255,255,.18);min-width:0}.hero4>div:first-child{border-left:0;padding-left:4px}
+.hero4 .et{font:700 13px/1.3 var(--f-t);color:#dbe3ef}
+.hero4 .num{font:700 clamp(24px,3vw,34px)/1.15 var(--f-t);margin:8px 0 4px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.hero4 .ds{font-size:13px;color:#cfd8e6;line-height:1.4}
+.chip{display:inline-flex;align-items:center;gap:5px;font:600 12.5px var(--f-t);padding:3px 10px;border-radius:999px;background:var(--bajo-t);color:#0b5e4a;margin-top:6px}
+.chip.mal{background:var(--alto-t);color:#8c231a}
+.aviso{display:flex;align-items:center;gap:12px;border-radius:12px;padding:12px 16px;margin:14px 0 0;font:600 15px var(--f-t);color:var(--navy);background:var(--turq-s)}
+.aviso svg{flex:none;color:var(--turq-d)}.aviso small{font-weight:400;font-size:13.5px;color:var(--ink)}
+.aviso.ambar{background:var(--medio-t)}.aviso.ambar svg{color:#a86a12}
+.aviso.rojo{background:var(--alto-t)}.aviso.rojo svg{color:var(--alto)}
+.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(460px,100%),1fr));gap:16px;margin-top:16px}
+.panel2{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:0 8px 24px -22px rgba(19,41,75,.45);min-width:0}
+.panel2 h3{margin:0;font:700 18.5px/1.25 var(--f-t);color:var(--navy)}
+.panel2 .ps{color:var(--muted);font-size:13.5px;margin:3px 0 14px}
+.hb{display:grid;grid-template-columns:minmax(80px,max-content) 1fr;column-gap:12px;row-gap:6px;align-items:center;font-size:13.5px;padding-right:62px}
+.hb .lb{text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;cursor:pointer}
+.hb .lb:hover{color:var(--turq-d);text-decoration:underline}
+.hb .tr{position:relative;height:22px;background-image:linear-gradient(90deg,#e6e9f0 1px,transparent 1px);background-repeat:repeat-x;cursor:pointer}
+.hb .tr i{position:absolute;left:0;height:14px;top:4px;border-radius:0 3px 3px 0}
+.hb .tr b{position:absolute;top:2px;font:600 12.5px var(--f-t);white-space:nowrap;color:var(--navy);padding-left:6px}
+.hb .ej{grid-column:2;position:relative;height:18px;border-top:1px solid #c9cfda;font:12px var(--f-t);color:var(--muted)}
+.hb .ej span{position:absolute;top:3px;transform:translateX(-50%);white-space:nowrap}.hb .ej span:first-child{transform:none}
+.hb .et2{grid-column:2;text-align:center;font-size:12.5px;color:var(--muted)}
+.ley{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--ink);margin-top:10px}
+.ley span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
 svg text{font-family:var(--f-t)}
-.buscar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:4px 0 10px}
-.buscar input{flex:1;min-width:0;width:100%;font:15px var(--f-t);padding:11px 14px;border:1px solid var(--line);border-radius:10px;background:#fff}
-.buscar select{font:15px var(--f-t);padding:10px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;min-height:44px}
-.buscar span{font:500 13px var(--f-m);color:var(--muted)}
+.niv{display:flex;height:30px;border-radius:8px;overflow:hidden;font:700 13px/30px var(--f-t);color:#fff;text-align:center}
+.ttab{width:100%;border-collapse:collapse;font-size:13.5px}
+.ttab th{background:#eef1f6;color:var(--navy);font:600 12.5px/1.3 var(--f-t);padding:9px 10px;text-align:right;white-space:nowrap}
+.ttab th:first-child,.ttab td:first-child{text-align:left}
+.ttab td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.avz{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:22px;align-items:center}
+.escala{position:relative;height:16px;background:#e6e9f0;border-radius:999px;margin:44px 0 8px}
+.escala i{position:absolute;left:0;top:0;bottom:0;border-radius:999px}
+.escala .mk{position:absolute;top:-6px;bottom:-6px;width:3px;background:var(--navy);border-radius:2px}
+.escala .et.abajo{bottom:auto;top:22px}
+.escala .et{position:absolute;bottom:22px;transform:translateX(-50%);font:600 12.5px/1.25 var(--f-t);padding:3px 8px;border-radius:8px;white-space:nowrap;text-align:center}
+.ejeP{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
+.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 16px;border-radius:10px;font:600 14.5px var(--f-t);text-decoration:none;border:1px solid var(--navy);color:var(--navy);background:#fff;cursor:pointer}
+.btn.lleno{background:var(--turq-d);border-color:var(--turq-d);color:#fff}
+.av{display:flex;align-items:center;gap:8px;justify-content:flex-end}.av .bar{width:70px;height:8px;background:#e6e9f0;border-radius:4px;position:relative}.av .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}.av .bar b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--navy)}
+.buscar,.ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:4px 0 10px}
+.buscar input,.ctrl input{flex:1;min-width:200px;font:15px var(--f-t);padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:#fff}
+.buscar select,.ctrl select{font:15px var(--f-t);padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;min-height:44px;max-width:280px}
+.buscar span,.ctrl span.c{font:500 13px var(--f-m);color:var(--muted)}
 .tabla{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:auto;max-height:640px}
 table{border-collapse:collapse;width:100%;font-size:14px}
-th{background:var(--ro);color:#fff;font:600 12.5px/1.3 var(--f-t);text-align:right;padding:10px 12px;position:sticky;top:0;white-space:nowrap;cursor:pointer;z-index:1}
-th.t,td.t{text-align:left}th::after{content:" ↕";opacity:.5}th.asc::after{content:" ↑";opacity:1}th.desc::after{content:" ↓";opacity:1}
-td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tabla th{background:#eef1f6;color:var(--navy);font:600 12.5px/1.3 var(--f-t);text-align:right;padding:10px 12px;position:sticky;top:0;white-space:nowrap;cursor:pointer;z-index:1}
+.tabla th.t,.tabla td.t{text-align:left}.tabla th::after{content:" ↕";opacity:.45}.tabla th.asc::after{content:" ↑";opacity:1}.tabla th.desc::after{content:" ↓";opacity:1}
+.tabla td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 td.t{white-space:normal;min-width:220px}
-main,section,.panel{min-width:0}.panel{overflow:hidden}
-tbody tr{cursor:pointer}tbody tr:nth-child(even) td{background:#fdfaf3}tbody tr:hover td{background:var(--ro-t)}
-tr.sel td{background:#f6e6c4 !important}
+main,section,.panel2{min-width:0}
+.tabla tbody tr{cursor:pointer}.tabla tbody tr:nth-child(even) td{background:#fbfbfd}.tabla tbody tr:hover td{background:var(--turq-s)}
+tr.sel td{background:#d4f1e8 !important}
 .tipo{display:inline-block;font:600 11px var(--f-m);padding:2px 7px;border-radius:999px;background:#eef1f6;color:var(--navy);margin-right:6px;white-space:nowrap}
-.tipo.P{background:#efe7f6;color:#5b2f86}
+.tipo.P{background:#d8f5ec;color:#0b5e4a}
 .mas{margin-top:10px;font:600 14px var(--f-t);padding:9px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--navy);cursor:pointer;min-height:42px}
 .chk{display:flex;align-items:center;gap:6px;font:14px var(--f-t);color:var(--ink)}
 tfoot td{font-weight:700;background:var(--soft);position:sticky;bottom:0}
 .nivel{display:inline-block;font:600 12px var(--f-t);padding:3px 10px;border-radius:999px}
-.nivel.Alto{background:var(--alto-t);color:var(--alto)}.nivel.Medio{background:var(--medio-t);color:var(--medio)}.nivel.Bajo{background:var(--bajo-t);color:var(--bajo)}
-#detalle{scroll-margin-top:20px}
+.nivel.Alto{background:var(--alto-t);color:#8c231a}.nivel.Medio{background:var(--medio-t);color:#7a5200}.nivel.Bajo{background:var(--bajo-t);color:#0b5e4a}
+#detalle{scroll-margin-top:70px}
 .det-cab{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 20px;align-items:baseline}
 .det-cab h3{font-size:20px;margin:0}
 .mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:10px;margin:14px 0}
-.mini div{background:var(--soft);border-radius:10px;padding:10px 12px}.mini b{display:block;font:700 19px var(--f-d);color:var(--navy)}.mini small{color:var(--muted);font-size:12.5px}
+.mini div{background:var(--soft);border-radius:10px;padding:10px 12px}.mini b{display:block;font:700 19px var(--f-t);color:var(--navy)}.mini small{color:var(--muted);font-size:12.5px}
+.dos{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px}
 .nota{font-size:13px;color:var(--muted);margin:8px 0 0}
-.metodo{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--gold);border-radius:12px;padding:18px 22px;font-size:14.5px}
+.exp{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start;margin-top:12px}
+.ficha{position:sticky;top:76px}
+.ficha h3{font-size:20px !important}
+.ficha .fm{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
+.ficha .fm div{border:1px solid var(--line);border-radius:10px;padding:9px 10px}.ficha .fm small{display:block;color:var(--muted);font-size:12px}.ficha .fm b{font:700 18px var(--f-t);color:var(--navy);white-space:nowrap}
+.bar2{height:10px;background:#e6e9f0;border-radius:999px;overflow:hidden;margin:6px 0 12px}.bar2 i{display:block;height:100%;border-radius:999px}
+.estado{display:flex;gap:8px;align-items:center;border-radius:10px;padding:9px 12px;font:600 14px var(--f-t);margin-top:10px}
+.enl{display:flex;justify-content:space-around;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
+.enl a{color:var(--turq-d);font-weight:600;text-decoration:none;cursor:pointer}
+.metodo{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--turq);border-radius:12px;padding:18px 22px;font-size:14.5px}
 .metodo p{margin:0 0 10px;text-align:justify}.metodo p:last-child{margin:0}
 footer{margin-top:36px;border-top:1px solid var(--line);padding:20px 0 36px;color:var(--muted);font-size:13px}
 #vacio{display:none}
-@media (max-width:900px){.dos{grid-template-columns:1fr}}
-@media (max-width:640px){.barra{grid-template-columns:1fr 84px}.barra .lbl{grid-column:1/-1}.metodo p{text-align:left}}
+@media (max-width:900px){.dos,.exp,.avz{grid-template-columns:1fr}.hero4{grid-template-columns:1fr 1fr}.hero4>div{border-left:0;padding:10px 8px}.ficha{position:static}.corte{align-items:flex-start}}
+@media (max-width:640px){.metodo p{text-align:left}.hb .lb{max-width:120px}.ficha .fm{grid-template-columns:1fr 1fr 1fr}}
+@media (max-width:460px){.hero4{grid-template-columns:1fr}}
+@media(max-width:640px){.hb .ej span:nth-child(even){display:none}.hb{padding-right:58px}}
 </style>
 </head>
 <body>
 <header><div class="wrap">
-<div class="eyebrow" id="ent">Recursos Ordinarios · Control diario</div>
-<h1>Saldos de Recursos Ordinarios y riesgo de reversión por unidad ejecutora</h1>
-<div class="meta" id="meta">Cargando datos…</div>
+<div class="hcab"><div><div class="eyebrow" id="ent">Ministerio de Salud · Pliego 011</div>
+<h1>Control diario de RO</h1><p class="sub0">Saldo de Recursos Ordinarios y riesgo estimado de reversión al 31 de diciembre</p></div>
+<div class="corte"><b id="cortebox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="cortetx">Cargando…</span></b><span class="hab" id="habiles"></span></div></div>
+<div class="meta" id="meta"></div>
 </div></header>
-<nav class="top"><div class="wrap"><a href="../">← Informe de saldos</a><a href="#ranking">Ranking de riesgo</a><a href="#evolucion">Evolución</a><a href="#cuadro">Cuadro por UE</a><a href="#proyectos">Proyectos de inversión</a><a href="#metodo">Método</a><a href="historial.csv" download>Descargar historial (CSV)</a></div></nav>
+<nav class="top" aria-label="Secciones"><div class="wrap"><a href="../#resumen">Resumen</a><a href="../#unidades">Unidades</a><a href="../#ro">RO</a><a href="../#ro26">RO–2.6</a><a href="../#g26">Inversiones</a><a href="../anexos.html">Anexos</a><a class="act" href="#indicadores" aria-current="page">Control diario</a><span class="sep"></span><a class="sub" href="#evolucion">Evolución</a><a class="sub" href="#cuadro">Cuadro por UE</a><a class="sub" href="#proyectos">Proyectos</a><a class="sub" href="#metodo">Método</a><a class="sub" href="historial.csv" download>Historial (CSV)</a></div></nav>
 <main><div class="wrap">
-<div id="vigencia" class="alerta" style="display:none;margin-top:18px"></div>
-<div class="kpis" id="kpis"></div>
-<div class="alerta" id="alerta"></div>
+<div id="vigencia" class="aviso ambar" style="display:none"></div>
 
-<section id="ranking"><h2>Unidades con mayor riesgo de reversión</h2>
-<p class="sub">Saldo de Recursos Ordinarios que quedaría sin devengar al 31 de diciembre si cada unidad mantiene su ritmo reciente. Haga clic en una unidad para ver su detalle.</p>
-<div class="dos">
-<div class="panel"><h3>Diez unidades con mayor riesgo</h3><div id="barras"></div>
-<div class="ley"><span style="--c:#9e2a2b">Riesgo de reversión</span><span style="--c:#e9c98f">Devengado adicional previsto</span></div></div>
-<div class="panel"><h3>Concentración del riesgo</h3><div id="conc"></div></div>
-</div></section>
+<section id="indicadores" style="padding-top:6px">
+<div id="hero" class="hero4"></div>
+<div id="alerta"></div>
+<div class="rejilla">
+<div class="panel2"><h3>Mayor riesgo estimado de reversión</h3><p class="ps">Las diez unidades con más riesgo, en millones de soles. El color indica el nivel de riesgo. Haga clic para ver el detalle.</p><div id="barras"></div></div>
+<div class="panel2"><h3>Concentración por nivel de riesgo</h3><p class="ps">Parte del riesgo total que corresponde a cada nivel</p><div id="conc"></div></div>
+</div>
+<div class="panel2" style="margin-top:16px"><h3 id="avt">Avance del saldo</h3><p class="ps" id="avs"></p><div class="avz"><div id="avbar"></div><div><div id="avmsg"></div><div class="btns"><a class="btn" href="#cuadro">Cuadro por UE</a><a class="btn lleno" href="#evolucion">Ver evolución</a></div></div></div></div>
+<p class="nota">Riesgo estimado por ritmo; no es una reversión confirmada. En las pruebas con 2024 y 2025 el método sobrestimó el saldo final.</p>
+</section>
 
-<section id="evolucion"><h2>Evolución diaria</h2>
-<p class="sub">Cada punto es una fecha de corte del MEF. La serie crece con cada actualización diaria.</p>
-<div class="dos">
-<div class="panel"><h3>Saldo de RO y riesgo de reversión del pliego</h3><div id="graf"></div><p class="nota" id="vacio">La serie diaria empieza con el primer corte; desde el segundo día se dibuja la línea.</p></div>
-<div class="panel"><h3>Devengado mensual en Recursos Ordinarios</h3><div id="mensual"></div><p class="nota" id="notames"></p></div>
+<section id="evolucion"><h2>Evolución y ritmo de ejecución</h2>
+<p class="sub">Cada punto es una fecha de corte del MEF. La serie crece con cada actualización diaria; no se completan días faltantes.</p>
+<div class="rejilla">
+<div class="panel2"><h3>Saldo RO y riesgo estimado</h3><p class="ps">Millones de soles, por fecha de corte</p><div id="graf"></div><p class="nota" id="vacio">La serie diaria empieza con el primer corte; desde el segundo día se dibuja la línea.</p></div>
+<div class="panel2"><h3>Ritmo diario frente a lo necesario</h3><p class="ps">Devengado por día hábil, en millones de soles</p><div id="ritmo"></div></div>
+<div class="panel2"><h3>Devengado mensual de RO</h3><p class="ps" id="notames"></p><div id="mensual"></div></div>
+<div class="panel2"><h3>Avance real frente a lo esperado</h3><p class="ps">Parte del saldo al 31/10 ya devengada, por fecha de corte</p><div id="gav"></div></div>
 </div></section>
 
 <section id="cuadro"><h2>Cuadro por unidad ejecutora</h2>
 <p class="sub">Orden inicial: riesgo de reversión, de mayor a menor. Puede ordenar por cualquier columna y buscar por nombre o código.</p>
 <div class="buscar"><input id="q" type="search" placeholder="Buscar unidad ejecutora o código…" aria-label="Buscar unidad"><select id="fn" aria-label="Filtrar por nivel"><option value="">Todos los niveles</option><option>Alto</option><option>Medio</option><option>Bajo</option></select><span id="cnt"></span></div>
 <div class="tabla"><table><thead><tr id="cab"></tr></thead><tbody id="cuerpo"></tbody><tfoot id="pie"></tfoot></table></div>
-<p class="nota">Nivel de riesgo: <b>alto</b> si el riesgo supera el 15 % del PIM de RO de la unidad; <b>medio</b>, entre 5 % y 15 %; <b>bajo</b>, menos de 5 %. «Devengado del día» compara con el corte anterior.</p>
+<p class="nota">Nivel de riesgo: <b>alto</b> si el riesgo supera el 15 % del PIM de RO de la unidad; <b>medio</b>, entre 5 % y 15 %; <b>bajo</b>, menos de 5 %. El ranking se ordena por monto. «Devengado del día» compara con el corte anterior.</p>
 </section>
 
-<section id="detalle" hidden><div class="panel" id="det"></div></section>
+<section id="detalle" hidden><div class="panel2" id="det"></div></section>
 
 <section id="proyectos"><h2>Proyectos de inversión con Recursos Ordinarios</h2>
-<p class="sub" id="psub">Todos los proyectos de inversión (con código único de inversión, CUI) que tienen Recursos Ordinarios en el pliego, de todas las unidades ejecutoras. Orden inicial: riesgo de reversión, de mayor a menor. Haga clic en un proyecto para ver su unidad.</p>
-<div class="buscar"><input id="pq" type="search" placeholder="Buscar proyecto, CUI o unidad…" aria-label="Buscar proyecto"><span id="pcnt"></span></div>
-<div class="tabla"><table><thead><tr id="pcab"></tr></thead><tbody id="pcuerpo"></tbody><tfoot id="ppie"></tfoot></table></div>
-<button class="mas" id="pmas" hidden></button>
+<p class="sub" id="psub">Proyectos con código único de inversión (CUI) que tienen RO, de todas las unidades. Elija uno para ver su ficha.</p>
+<div id="phero" class="hero4"></div>
+<div class="ctrl" style="margin-top:14px"><input id="pq" type="search" placeholder="Buscar por CUI, proyecto o unidad…" aria-label="Buscar proyecto"><select id="pfu" aria-label="Unidad ejecutora"><option value="">Unidad: todas</option></select><select id="pord" aria-label="Orden"><option value="ri:-1">Orden: riesgo, de mayor a menor</option><option value="s:-1">Orden: saldo, de mayor a menor</option><option value="pim:-1">Orden: PIM, de mayor a menor</option><option value="ej:1">Orden: ejecución, de menor a mayor</option><option value="avr:1">Orden: avance frente a lo esperado, de menor a mayor</option></select><button class="btn lleno" id="pexp" type="button">Exportar</button><span class="c" id="pcnt"></span></div>
+<div class="exp"><div class="panel2"><h3>Explorador de proyectos</h3><p class="ps">Haga clic en una fila para ver su ficha.</p><div class="tabla" style="max-height:620px"><table><thead><tr id="pcab"></tr></thead><tbody id="pcuerpo"></tbody><tfoot id="ppie"></tfoot></table></div></div>
+<div class="panel2 ficha" id="ficha"><p class="nota">Elija un proyecto.</p></div></div>
+<p class="nota">Riesgo estimado por ritmo. Una ejecución alta del PIM no implica que se haya devengado el saldo pendiente.</p>
 </section>
-
 <section id="metodo"><h2>Método y fuente</h2>
 <div class="metodo">
 <p><b>Fuente.</b> Las cifras del día por unidad ejecutora (PIM, certificado, compromiso, devengado y saldo) salen de la Consulta Amigable del Ministerio de Economía y Finanzas, que se actualiza a diario y suele llevar un día de ventaja a Datos Abiertos. El ritmo de los meses completos y el detalle por genérica salen del archivo diario de Datos Abiertos del mismo ministerio. Si la Consulta Amigable no responde, el cuadro usa solo Datos Abiertos y lo indica arriba. Se actualiza solo, tres veces al día, y toma únicamente la fuente Recursos Ordinarios.</p>
 <p><b>Saldo.</b> PIM menos devengado. <b>No certificado:</b> PIM menos certificado. El saldo es presupuesto, no disponibilidad de caja.</p>
-<p><b>Riesgo de reversión.</b> Para cada meta, producto o proyecto y genérica, se toma el promedio mensual de devengado de los tres últimos meses completos y se multiplica por el tiempo que queda hasta el 31 de diciembre, con tope en su saldo y piso en cero. Cuando las cifras del día vienen de la Consulta Amigable, ese devengado previsto se ajusta al tiempo restante y se limita al saldo de cada unidad. Lo que no alcanza a devengarse con ese ritmo es el riesgo. Es el mismo método del informe de saldos. En las pruebas con 2024 y 2025 este método sobrestimó el saldo final, porque no ve la aceleración de diciembre: sirve para ordenar prioridades, no para fijar un monto exacto.</p>
+<p><b>Riesgo estimado de reversión.</b> Para cada meta, producto o proyecto y genérica, se toma el promedio mensual de devengado de los tres últimos meses completos y se multiplica por el tiempo que queda hasta el 31 de diciembre, con tope en su saldo y piso en cero. Cuando las cifras del día vienen de la Consulta Amigable, ese devengado previsto se ajusta al tiempo restante y se limita al saldo de cada unidad. Lo que no alcanza a devengarse con ese ritmo es el riesgo. Es el mismo método del informe de saldos. En las pruebas con 2024 y 2025 este método sobrestimó el saldo final, porque no ve la aceleración de diciembre: sirve para ordenar prioridades, no para fijar un monto exacto.</p>
 <p><b>Avance del saldo.</b> Parte del saldo que la unidad tenía al cierre de octubre (con su PIM actual) que ya devengó desde entonces. Se compara con lo que debería llevar a la fecha: la planilla y las pensiones (2.1 y 2.2), que se devengan una vez al mes, por meses cerrados; el resto, por la parte de los días hábiles de noviembre y diciembre que ya pasó, ponderado por el saldo de cada genérica: verde, al ritmo necesario (90 % o más de lo esperado); ámbar, por debajo (60 % a 90 %); rojo, muy por debajo (menos de 60 %). La línea vertical de la barra marca dónde debería ir.</p>
 <p><b>Por proyecto.</b> El mismo cálculo se hace para cada producto, actividad y proyecto de inversión de cada unidad, con su propio saldo y su propio ritmo. El riesgo de la unidad es la suma del riesgo de sus productos y proyectos. «Proyecto» identifica las inversiones con código único (CUI); «Producto o actividad», el resto del gasto. Los nombres y las cifras del día salen de la Consulta Amigable (opción Producto/Proyecto de cada unidad ejecutora).</p>
 <p><b>Devengado necesario por día hábil.</b> Saldo de RO dividido entre los días hábiles que quedan hasta el 31 de diciembre (lunes a viernes, sin el 8 ni el 25 de diciembre).</p>
 </div></section>
 </div></main>
-<footer><div class="wrap">Ministro al Día · Elaborado con datos abiertos del Ministerio de Economía y Finanzas. Importes en soles.</div></footer>
+<footer><div class="wrap">Ministro al Día · Elaborado con datos del Ministerio de Economía y Finanzas (Consulta Amigable y Datos Abiertos). Importes en soles. El saldo es presupuesto, no caja.</div></footer>
 <script>
 const GEN={"1":"2.1 Personal y obligaciones sociales","2":"2.2 Pensiones y prestaciones sociales","3":"2.3 Bienes y servicios","4":"2.4 Donaciones y transferencias","5":"2.5 Otros gastos","6":"2.6 Adquisición de activos no financieros","7":"2.7 Adquisición de activos financieros","8":"2.8 Servicio de la deuda"};
 const MESES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Set","Oct","Nov","Dic"];
 const M=v=>{if(v==null||isNaN(v))return'—';const a=Math.abs(v);if(a<0.5)return'S/ 0';if(a<5e4)return(v<0?'−':'')+'< S/ 0.05 M';return(v<0?'−':'')+'S/ '+(a/1e6).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' M'};
-const P=v=>isFinite(v)?(100*v).toFixed(1)+' %':'—';
+const P=v=>v!=null&&isFinite(v)?(100*v).toFixed(1)+' %':'—';
 const F=s=>{const[y,m,d]=s.split('-');return`${d}/${m}/${y}`};
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const nivel=u=>{const r=u.pim>0?u.riesgo/u.pim:0;return r>0.15?'Alto':r>=0.05?'Medio':'Bajo'};
-const nom=u=>u.sigla?`${u.sigla}`:u.ue;
-const SEM=(av,esp)=>{const r=esp>0?av/esp:1;return r>=0.9?['#1f6f68','al ritmo necesario']:r>=0.6?['#b7791f','por debajo del ritmo necesario']:['#9e2a2b','muy por debajo del ritmo necesario']};
+const COLN={Alto:'#c0392b',Medio:'#d99a06',Bajo:'#1f8f6a'};
+const nom=u=>u.sigla||u.ue.replace('Dirección de Redes Integradas de Salud','DIRIS').replace('Instituto Nacional de Salud del Niño - San Borja','INSN San Borja').replace('Instituto Nacional de Salud del Niño','INSN').replace('Hospital Nacional','H.').replace('Hospital','H.').replace('Instituto Nacional','Inst. Nac.');
+const SEM=(av,esp)=>{const r=esp>0?av/esp:1;return r>=0.9?['#1f8f6a','al ritmo necesario','Bajo']:r>=0.6?['#d99a06','por debajo del ritmo necesario','Medio']:['#c0392b','muy por debajo del ritmo necesario','Alto']};
 const AV=(av,esp)=>{const [c,t]=SEM(av,esp);return `<span class="av" title="${P(av)} del saldo al ${F(D.parametros.fecha_base)}; debería ir en ${P(esp)} (${t})"><span class="bar"><i style="width:${Math.min(100,100*av)}%;background:${c}"></i><b style="left:${Math.min(100,100*esp)}%"></b></span><span style="color:${c};font-weight:600">${P(av)}</span></span>`};
-let D;
-let PJ=null;
+const ICO=(p,c)=>`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
+const I_INFO='<circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/>',I_ALE='<path d="M12 3 2 21h20L12 3z"/><path d="M12 10v5M12 18v.5"/>',I_OK='<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>';
+function escala(mx){if(mx<=0)return[1,0.2];const mag=10**Math.floor(Math.log10(mx/7));for(const k of[1,2,2.5,5,10,20]){const p=k*mag;if(Math.ceil(mx/p-1e-9)<=7)return[Math.ceil(mx/p-1e-9)*p,p]}return[mx,mx/5]}
+function hb(filas,tit){const[top,paso]=escala(Math.max(0,...filas.map(f=>f.v))),n=Math.round(top/paso),d=paso>=1e6?0:(paso>=1e5?1:2);
+ let h=filas.map(f=>`<span class="lb" data-s="${f.s||''}" title="${esc(f.t||f.l)}">${esc(f.l)}</span><span class="tr" data-s="${f.s||''}" style="background-size:${100/n}% 100%"><i style="width:${100*Math.max(f.v,0)/top}%;background:${f.c}"></i><b style="left:${100*Math.max(f.v,0)/top}%">${M(f.v)}</b></span>`).join('');
+ h+=`<span></span><div class="ej">${Array.from({length:n+1},(_,i)=>`<span style="left:${100*i/n}%">${(i*paso/1e6).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d})}</span>`).join('')}</div><div class="et2">${esc(tit)}</div>`;
+ return `<div class="hb">${h}</div>`}
+function csv(nombre,cab,filas){const q=v=>{const s=v==null?'':String(v);return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+ const t='﻿'+[cab,...filas].map(f=>f.map(q).join(';')).join('\n');const a=document.createElement('a');
+ a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));a.download=nombre;document.body.appendChild(a);a.click();a.remove()}
+let D,PJ=null;
 fetch('datos.json?'+Date.now()).then(r=>r.json()).then(j=>{D=j;pintar();
  fetch('proyectos.json?'+Date.now()).then(r=>r.json()).then(p=>{PJ=p;proyectos();if(sel)detalle(sel,false)}).catch(()=>{document.getElementById('psub').textContent='No se pudo cargar el detalle por proyecto.'})
 }).catch(()=>{document.getElementById('meta').textContent='No se pudieron cargar los datos.'});
 
 function pintar(){
  const T=D.total,par=D.parametros,U=D.ues;
- document.getElementById('ent').textContent=`${D.pliego} · Recursos Ordinarios · Control diario`;
+ document.getElementById('ent').textContent=`${D.pliego} · Pliego 011`;
  document.title=`Control diario de RO · ${D.pliego}`;
- document.getElementById('meta').innerHTML=`<span>Datos al ${F(D.corte)}</span><span>Fuente: ${par.fuente==='Consulta Amigable'?'Consulta Amigable del MEF':'Datos Abiertos del MEF'}</span><span>${U.length} unidades ejecutoras</span><span>Quedan ${par.dias_habiles} días hábiles</span>`;
- // aviso de vigencia: si el último dato tiene más de un día hábil de antigüedad
+ document.getElementById('cortetx').textContent=`Corte: ${F(D.corte)}`;
+ document.getElementById('habiles').textContent=`${par.dias_habiles} días hábiles restantes`;
+ document.getElementById('meta').innerHTML=`<span>Fuente: ${par.fuente==='Consulta Amigable'?'Consulta Amigable del MEF':'Datos Abiertos del MEF'}</span><span>${U.length} unidades ejecutoras</span><span>Solo Recursos Ordinarios</span>`;
  const hoy=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Lima'}));const ult=new Date(D.corte+'T12:00:00');
  let hab=0;for(let d=new Date(ult);d<hoy;d.setDate(d.getDate()+1)){if(d>ult&&d.getDay()%6!==0)hab++}
- const av=document.getElementById('vigencia');if(av){av.style.display=hab>1?'block':'none';av.innerHTML=`<b>Aviso.</b> El MEF todavía no publica la ejecución posterior al ${F(D.corte)}. El cuadro se revisa automáticamente a las 9:47, 15:13 y 19:13 y se actualizará en cuanto aparezca el dato.`}
+ const av=document.getElementById('vigencia');av.style.display=hab>1?'flex':'none';av.innerHTML=`${ICO(I_ALE)}<span>El MEF todavía no publica la ejecución posterior al ${F(D.corte)}. <small>El cuadro se revisa a las 9:47, 15:13 y 19:13 y se actualizará en cuanto aparezca el dato.</small></span>`;
  const ant=D.corte_anterior,i=D.fechas.length-1;
  const dsal=ant?D.serie.saldo[i]-D.serie.saldo[i-1]:null,dri=ant?D.serie.riesgo[i]-D.serie.riesgo[i-1]:null,ddev=ant?D.serie.DEVENGADO[i]-D.serie.DEVENGADO[i-1]:null;
- const vr=(v,inv)=>v==null?'':`<span class="var ${(inv?-v:v)>0?'sube':'baja'}">${v>0?'▲':'▼'} ${M(Math.abs(v))} vs. ${F(ant)}</span>`;
- const necesario=T.saldo/Math.max(par.dias_habiles,1);
- const ritmoDia=U.reduce((s,u)=>s+u.ritmo,0)/21;
- document.getElementById('kpis').innerHTML=`
- <div class="k"><div class="l">Saldo de Recursos Ordinarios</div><div class="v">${M(T.saldo)}</div><small>PIM ${M(T.PIM)} · devengado ${M(T.DEVENGADO)} (${P(T.DEVENGADO/T.PIM)})</small>${vr(dsal,false)}</div>
- <div class="k"><div class="l">Riesgo de reversión al 31/12</div><div class="v">${M(T.riesgo)}</div><small>${P(T.riesgo/T.saldo)} del saldo, si se mantiene el ritmo de ${par.meses_ritmo.map(m=>MESES[m-1]).join(', ')}</small>${vr(dri,false)}</div>
- <div class="k"><div class="l">Devengado del último día</div><div class="v">${ddev==null?'—':M(ddev)}</div><small>${ant?`Entre el ${F(ant)} y el ${F(D.corte)}`:'Se calcula desde el segundo corte diario'} · No certificado: ${M(T.no_certificado)}</small></div>
- <div class="k"><div class="l">Devengado necesario por día hábil</div><div class="v">${M(necesario)}</div><small>Para no revertir nada. Ritmo reciente: ${M(ritmoDia)} por día hábil (${P(ritmoDia/necesario)} de lo necesario)</small></div>
- ${T.avance!=null?`<div class="k"><div class="l">Avance sobre el saldo al ${F(par.fecha_base)}</div><div class="v" style="color:${SEM(T.avance,T.esperado??par.avance_esperado)[0]}">${P(T.avance)}</div><small>Se devengaron ${M(T.dev_desde_base)} de ${M(T.saldo+T.dev_desde_base)}. Para terminar el 31/12 debería ir en ${P(T.esperado??par.avance_esperado)} (planilla por mes cerrado; lo demás, por días hábiles).</small></div>`:''}`;
+ const vr=v=>v==null?'':`<span class="chip ${v>0?'mal':''}">${v>0?'▲':'▼'} ${M(Math.abs(v))} vs. ${F(ant).slice(0,5)}</span>`;
+ const necesario=T.saldo/Math.max(par.dias_habiles,1),ritmoDia=U.reduce((s,u)=>s+u.ritmo,0)/21;
+ document.getElementById('hero').innerHTML=`
+ <div><div class="et">Saldo RO</div><div class="num">${M(T.saldo)}</div>${vr(dsal)}<div class="ds">PIM ${M(T.PIM)} · ${P(T.DEVENGADO/T.PIM)} devengado</div></div>
+ <div><div class="et">Riesgo estimado al 31/12</div><div class="num">${M(T.riesgo)}</div>${vr(dri)}<div class="ds">${P(T.riesgo/T.saldo)} del saldo, al ritmo de ${par.meses_ritmo.map(m=>MESES[m-1]).join(', ')}</div></div>
+ <div><div class="et">Devengado del último día</div><div class="num">${ddev==null?'—':M(ddev)}</div><div class="ds">${ant?`Entre el ${F(ant)} y el ${F(D.corte)}`:'Desde el segundo corte diario'}</div></div>
+ <div><div class="et">Necesario por día hábil</div><div class="num">${M(necesario)}</div><div class="ds">Para no dejar saldo. Ritmo reciente: ${M(ritmoDia)} (${P(ritmoDia/necesario)})</div></div>`;
  const top5=U.slice(0,5),c5=top5.reduce((s,u)=>s+u.riesgo,0);
- const _bajo=U.filter(u=>u.saldo_ini>0&&u.avance<0.6*(u.esperado??par.avance_esperado)).length;
- document.getElementById('alerta').innerHTML=`<b>Atención.</b> Cinco unidades concentran el ${P(c5/T.riesgo)} del riesgo de reversión: ${top5.map(u=>`<b>${esc(nom(u))}</b> (${M(u.riesgo)})`).join(', ')}.`+(T.avance!=null?` Desde el ${F(par.fecha_base)} el pliego ha ejecutado el ${P(T.avance)} de su saldo, cuando debería ir en ${P(T.esperado??par.avance_esperado)}; ${_bajo} de ${U.length} unidades van muy por debajo del ritmo necesario.`:'');
- // barras
- const t10=U.slice(0,10),mx=Math.max(...t10.map(u=>u.riesgo+u.adicional));
- document.getElementById('barras').innerHTML=t10.map(u=>`<div class="barra" data-s="${u.sec}"><span class="lbl">${esc(nom(u))}</span><span class="b"><i style="width:${100*u.riesgo/mx}%;background:#9e2a2b"></i><i style="width:${100*u.adicional/mx}%;background:#e9c98f"></i></span><span class="n">${M(u.riesgo)}</span></div>`).join('');
- document.querySelectorAll('.barra').forEach(b=>b.onclick=()=>detalle(b.dataset.s,true));
- // concentración
+ document.getElementById('alerta').innerHTML=`<div class="aviso ambar">${ICO(I_ALE)}<span>Cinco unidades concentran el ${P(c5/T.riesgo)} del riesgo: ${top5.map(u=>`${esc(nom(u))} (${M(u.riesgo)})`).join(', ')}.</span></div>`;
+ document.getElementById('barras').innerHTML=hb(U.slice(0,10).map(u=>({l:nom(u),v:u.riesgo,c:COLN[nivel(u)],s:u.sec,t:`${u.ue}: riesgo ${M(u.riesgo)} (nivel ${nivel(u).toLowerCase()})`})),'Riesgo estimado de reversión (millones de soles)')
+  +`<div class="ley"><span style="--c:${COLN.Alto}">Alto</span><span style="--c:${COLN.Medio}">Medio</span><span style="--c:${COLN.Bajo}">Bajo</span></div>`;
+ document.querySelectorAll('#barras [data-s]').forEach(b=>b.onclick=()=>detalle(b.dataset.s,true));
  const niv={Alto:[0,0],Medio:[0,0],Bajo:[0,0]};U.forEach(u=>{const n=nivel(u);niv[n][0]++;niv[n][1]+=u.riesgo});
- const col={Alto:'#9e2a2b',Medio:'#b7791f',Bajo:'#1f6f68'};
- let acc=0;const seg=['Alto','Medio','Bajo'].map(n=>{const w=T.riesgo>0?niv[n][1]/T.riesgo:0;const s=`<i style="width:${100*w}%;background:${col[n]}"></i>`;acc+=w;return s}).join('');
- document.getElementById('conc').innerHTML=`<div class="barra" style="grid-template-columns:1fr;cursor:default"><span class="b" style="height:26px">${seg}</span></div>
- <table style="margin-top:10px"><thead><tr><th class="t" style="cursor:default">Nivel</th><th style="cursor:default">Unidades</th><th style="cursor:default">Riesgo</th><th style="cursor:default">% del riesgo</th></tr></thead><tbody>${['Alto','Medio','Bajo'].map(n=>`<tr style="cursor:default"><td class="t" style="min-width:0"><span class="nivel ${n}">${n}</span></td><td>${niv[n][0]}</td><td>${M(niv[n][1])}</td><td>${P(T.riesgo>0?niv[n][1]/T.riesgo:0)}</td></tr>`).join('')}</tbody></table>
- <p class="nota">El nivel compara el riesgo con el PIM de RO de cada unidad; el monto absoluto ordena el ranking.</p>`;
- document.querySelectorAll('#conc th').forEach(t=>t.style.setProperty('--x','0'));
- linea(document.getElementById('graf'),D.fechas,[{n:'Saldo RO',v:D.serie.saldo,c:'#a86a12'},{n:'Riesgo de reversión',v:D.serie.riesgo,c:'#9e2a2b'}]);
- document.getElementById('vacio').style.display=D.fechas.length<2?'block':'none';
- mensual();
- tabla();
+ document.getElementById('conc').innerHTML=`<div class="niv">${['Alto','Medio','Bajo'].map(n=>{const w=T.riesgo>0?niv[n][1]/T.riesgo:0;return `<i style="display:block;width:${100*w}%;background:${COLN[n]}" title="${n}: ${P(w)}">${w>=.08?P(w):''}</i>`}).join('')}</div>
+ <table class="ttab" style="margin-top:12px"><thead><tr><th>Nivel de riesgo</th><th>Unidades</th><th>Riesgo estimado</th><th>Participación</th></tr></thead><tbody>${['Alto','Medio','Bajo'].map(n=>`<tr><td><span class="nivel ${n}">${n}</span></td><td>${niv[n][0]}</td><td>${M(niv[n][1])}</td><td>${P(T.riesgo>0?niv[n][1]/T.riesgo:0)}</td></tr>`).join('')}</tbody></table>
+ <p class="nota">El nivel compara el riesgo con el PIM de RO de cada unidad; el ranking se ordena por monto.</p>`;
+ // avance del saldo
+ const esp=T.esperado??par.avance_esperado,[ca,ta]=SEM(T.avance||0,esp),bajos=U.filter(u=>u.saldo_ini>0&&u.avance<0.6*(u.esperado??par.avance_esperado)).length;
+ document.getElementById('avt').textContent=`Avance del saldo al ${F(par.fecha_base).slice(0,5)}`;
+ document.getElementById('avs').textContent=`Se devengaron ${M(T.dev_desde_base)} de ${M(T.saldo+T.dev_desde_base)}. La meta a la fecha pondera la planilla (por mes cerrado) y lo demás (por días hábiles).`;
+ const tope=Math.max(0.25,Math.ceil(Math.max(T.avance,esp)*1.25*20)/20);
+ document.getElementById('avbar').innerHTML=`<div class="escala"><i style="width:${100*T.avance/tope}%;background:${ca}"></i><span class="mk" style="left:${100*esp/tope}%"></span>
+ <span class="et abajo" style="left:${Math.max(6,100*T.avance/tope)}%;background:${ca}22;color:${ca}">Avance real<br>${P(T.avance)}</span><span class="et" style="left:${Math.min(94,100*esp/tope)}%;background:#eef1f6;color:var(--navy)">Esperado<br>${P(esp)}</span></div>
+ <div class="ejeP" style="margin-top:48px">${Array.from({length:6},(_,k)=>`<span>${(100*tope*k/5).toFixed(0)} %</span>`).join('')}</div>`;
+ document.getElementById('avmsg').innerHTML=`<div class="aviso ${bajos?'rojo':''}" style="margin:0">${ICO(bajos?I_ALE:I_OK)}<span>El pliego va ${ta}. ${bajos} de ${U.length} unidades van muy por debajo.</span></div>`;
+ evolucion();tabla();
 }
-function linea(el,fechas,series,alto=230){
- const W=560,H=alto,pl=64,pr=14,pt=14,pb=34,vals=series.flatMap(s=>s.v),mx=Math.max(...vals)*1.08||1;
+function linea(el,fechas,series,fmt=M,alto=230){
+ const W=560,H=alto,pl=58,pr=16,pt=26,pb=34,vals=series.flatMap(s=>s.v).filter(v=>v!=null),[mx,pso]=escala(Math.max(...vals)*1.12||1),nt=Math.round(mx/pso);
  const x=i=>fechas.length<2?pl+(W-pl-pr)/2:pl+i*(W-pl-pr)/(fechas.length-1),y=v=>pt+(H-pt-pb)*(1-v/mx);
- let g='';for(let k=0;k<=4;k++){const v=mx*k/4;g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="#ece6d8"/><text x="${pl-8}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="#5f6878">${(v/1e6).toLocaleString('en-US',{maximumFractionDigits:0})}</text>`}
+ let g='';for(let k=0;k<=nt;k++){const v=pso*k;g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="#e6e9f0"/><text x="${pl-8}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="#5f6878">${fmt===M?(v/1e6).toLocaleString('en-US',{maximumFractionDigits:0}):(100*v).toFixed(0)+' %'}</text>`}
  const paso=Math.ceil(fechas.length/7);fechas.forEach((f,i)=>{if(i%paso===0||i===fechas.length-1)g+=`<text x="${x(i)}" y="${H-12}" font-size="11" text-anchor="middle" fill="#5f6878">${F(f).slice(0,5)}</text>`});
- series.forEach(s=>{g+=`<polyline fill="none" stroke="${s.c}" stroke-width="2.5" points="${s.v.map((v,i)=>x(i)+','+y(v)).join(' ')}"/>`+s.v.map((v,i)=>`<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="${s.c}"><title>${s.n} ${F(fechas[i])}: ${M(v)}</title></circle>`).join('')});
- el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Evolución diaria">${g}<text x="${pl}" y="10" font-size="10.5" fill="#5f6878">S/ millones</text></svg><div class="ley">${series.map(s=>`<span style="--c:${s.c}">${s.n}</span>`).join('')}</div>`;
+ series.forEach(s=>{g+=`<polyline fill="none" stroke="${s.c}" stroke-width="2.5" ${s.dash?'stroke-dasharray="6 5"':''} points="${s.v.map((v,i)=>v==null?'':x(i)+','+y(v)).join(' ')}"/>`+s.v.map((v,i)=>v==null?'':`<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="${s.c}"><title>${s.n} ${F(fechas[i])}: ${fmt(v)}</title></circle>`).join('');
+  const k=s.v.length-1;if(s.v[k]!=null)g+=`<text x="${x(k)}" y="${y(s.v[k])-9}" font-size="11.5" font-weight="600" text-anchor="end" fill="${s.c}">${fmt(s.v[k])}</text>`});
+ el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Evolución diaria">${g}<text x="${pl}" y="12" font-size="10.5" fill="#5f6878">${fmt===M?'Millones de soles':'Porcentaje del saldo'}</text></svg><div class="ley">${series.map(s=>`<span style="--c:${s.c}">${s.n}</span>`).join('')}</div>`;
 }
-function mensual(){
- const m=D.mensual,cm=+D.corte.slice(5,7),W=560,H=230,pl=56,pb=30,pt=12,mx=Math.max(...m)*1.1||1,bw=(W-pl-10)/12;
- let g='';for(let k=0;k<=4;k++){const v=mx*k/4,yy=pt+(H-pt-pb)*(1-v/mx);g+=`<line x1="${pl}" x2="${W-6}" y1="${yy}" y2="${yy}" stroke="#ece6d8"/><text x="${pl-8}" y="${yy+4}" font-size="11" text-anchor="end" fill="#5f6878">${(v/1e6).toFixed(0)}</text>`}
- m.forEach((v,i)=>{const h=(H-pt-pb)*v/mx,xx=pl+i*bw+4,rit=D.parametros.meses_ritmo.includes(i+1);const c=i+1===cm?'#e9c98f':rit?'#a86a12':'#d9c8a6';
-  if(i<cm)g+=`<rect x="${xx}" y="${H-pb-h}" width="${bw-8}" height="${h}" rx="3" fill="${c}"><title>${MESES[i]}: ${M(v)}</title></rect>`;g+=`<text x="${xx+(bw-8)/2}" y="${H-10}" font-size="11" text-anchor="middle" fill="#5f6878">${MESES[i]}</text>`});
- document.getElementById('mensual').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Devengado mensual">${g}<text x="${pl}" y="10" font-size="10.5" fill="#5f6878">S/ millones</text></svg><div class="ley"><span style="--c:#a86a12">Meses que definen el ritmo</span><span style="--c:#e9c98f">Mes en curso (parcial)</span><span style="--c:#d9c8a6">Otros meses</span></div>`;
+function evolucion(){
+ const T=D.total,par=D.parametros,U=D.ues;
+ linea(document.getElementById('graf'),D.fechas,[{n:'Saldo RO',v:D.serie.saldo,c:'#13294b'},{n:'Riesgo estimado (estimación)',v:D.serie.riesgo,c:'#d99a06'}]);
+ document.getElementById('vacio').style.display=D.fechas.length<2?'block':'none';
+ const necesario=T.saldo/Math.max(par.dias_habiles,1),ritmoDia=U.reduce((s,u)=>s+u.ritmo,0)/21,r=ritmoDia/necesario,[c,t]=SEM(ritmoDia,necesario);
+ document.getElementById('ritmo').innerHTML=`<div class="aviso" style="margin:0 0 14px;background:${c}1f"><span style="color:${c};display:flex">${ICO(r>=0.9?I_OK:I_ALE)}</span><span style="color:${c}">${P(r)} del ritmo necesario <small>(${t})</small></span></div>`
+  +hb([{l:'Ritmo reciente diario',v:ritmoDia,c:c,t:`Promedio de ${par.meses_ritmo.map(m=>MESES[m-1]).join(', ')} entre 21 días hábiles`},{l:'Necesario diario',v:necesario,c:'#13294b',t:'Saldo RO entre los días hábiles que quedan'}],'Millones de soles por día hábil')
+  +`<p class="nota">Ritmo reciente: promedio mensual de ${par.meses_ritmo.map(m=>MESES[m-1]).join(', ')} entre 21 días hábiles. Necesario: saldo RO entre los ${par.dias_habiles} días hábiles que quedan.</p>`;
+ // mensual: meses de referencia, mes parcial y otros
+ const m=D.mensual,cd=par.corte_detalle||D.corte,cm=+cd.slice(5,7),W=560,H=220,pl=46,pb=30,pt=12,[mx,pso]=escala(Math.max(...m)||1),bw=(W-pl-10)/12;
+ let g='';for(let k=0;k<=Math.round(mx/pso);k++){const v=pso*k,yy=pt+(H-pt-pb)*(1-v/mx);g+=`<line x1="${pl}" x2="${W-6}" y1="${yy}" y2="${yy}" stroke="#e6e9f0"/><text x="${pl-8}" y="${yy+4}" font-size="11" text-anchor="end" fill="#5f6878">${(v/1e6).toFixed(0)}</text>`}
+ m.forEach((v,i)=>{const h=(H-pt-pb)*v/mx,xx=pl+i*bw+4,rit=par.meses_ritmo.includes(i+1),parc=i+1===cm;const c=parc?'#e9c98f':rit?'#13294b':'#b9c3d4';
+  if(i<cm)g+=`<rect x="${xx}" y="${H-pb-h}" width="${bw-8}" height="${h}" rx="3" fill="${c}" ${parc?'stroke="#a86a12" stroke-dasharray="4 3"':''}><title>${MESES[i]}${parc?' (parcial)':''}: ${M(v)}</title></rect>`;g+=`<text x="${xx+(bw-8)/2}" y="${H-10}" font-size="11" text-anchor="middle" fill="#5f6878">${MESES[i]}</text>`});
+ document.getElementById('mensual').innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Devengado mensual">${g}<text x="${pl}" y="10" font-size="10.5" fill="#5f6878">Millones de soles</text></svg><div class="ley"><span style="--c:#13294b">Meses de referencia del ritmo (${par.meses_ritmo.map(k=>MESES[k-1]).join(', ')})</span><span style="--c:#e9c98f">${MESES[cm-1]}: parcial, al ${F(cd).slice(0,5)}</span><span style="--c:#b9c3d4">Otros meses</span></div>`;
+ document.getElementById('notames').textContent=`Datos Abiertos del MEF, por mes de devengado. Los meses sin datos no se dibujan.`;
+ const okA=D.serie.avance&&D.serie.avance.some(v=>v!=null);
+ if(okA)linea(document.getElementById('gav'),D.fechas,[{n:'Avance real',v:D.serie.avance,c:'#0f8f72'},{n:'Avance esperado (meta)',v:D.serie.esperado,c:'#13294b',dash:1}],P,220);
+ else document.getElementById('gav').innerHTML='<p class="nota">La serie de avance empieza con el primer corte que la registra.</p>';
 }
-const COLS=[['#','i','n'],['Unidad ejecutora','ue','t'],['Nivel','nivel','t'],['Riesgo de reversión','riesgo','m'],['% del riesgo','pr','p'],['PIM RO','pim','m'],['Saldo al 31/10','saldo_ini','m'],['Avance del saldo','avance','a'],['Saldo actual','saldo','m'],['Devengado del día','ddia','m'],['No certificado','no_cert','m'],['Ejecución del PIM','ej','p']];
+const COLS=[['#','i','n'],['Unidad ejecutora','ue','t'],['Nivel','nivel','t'],['Riesgo estimado','riesgo','m'],['% del riesgo','pr','p'],['PIM RO','pim','m'],['Saldo al 31/10','saldo_ini','m'],['Avance del saldo','avance','a'],['Saldo actual','saldo','m'],['Devengado del día','ddia','m'],['No certificado','no_cert','m'],['Ejecución del PIM','ej','p']];
 let ord='riesgo',dir=-1,sel=null;
 function filas(){const T=D.total;return D.ues.map((u,k)=>({...u,i:k+1,nivel:nivel(u),ej:u.pim?u.dev/u.pim:0,pr:T.riesgo?u.riesgo/T.riesgo:0,ddia:u.dev_ant!=null?u.dev-u.dev_ant:null}))}
 function tabla(){
@@ -231,23 +297,46 @@ const cabecera=(el,cols,o,d,fn)=>{el.innerHTML=cols.map(([t,k,ty])=>`<th class="
 const celdas=x=>`<td><b>${M(x.ri)}</b></td><td>${M(x.pim)}</td><td>${M(x.si)}</td><td>${x.si>0.5?AV(x.av,x.esp):'—'}</td><td>${M(x.s)}</td><td>${x.dd==null?'—':M(x.dd)}</td><td>${P(x.pim?x.dev/x.pim:0)}</td>`;
 const pieP=(R,etq)=>{const s=k=>R.reduce((a,x)=>a+(x[k]||0),0),si=s('si'),db=R.reduce((a,x)=>a+(x.si-x.s),0),esp=si>0?R.reduce((a,x)=>a+x.esp*Math.max(x.si,0),0)/si:0;
  return `<tr><td class="t">${etq}</td><td>${M(s('ri'))}</td><td>${M(s('pim'))}</td><td>${M(si)}</td><td>${si>0.5?AV(db/si,esp):'—'}</td><td>${M(s('s'))}</td><td>${PJ.corte_anterior?M(s('dd')):'—'}</td><td>${P(s('dev')/s('pim'))}</td></tr>`};
-let pord='ri',pdir=-1,pver=25;
+let pord='ri',pdir=-1,psel=null;
+function listaP(){if(!PJ)return[];const uenom=Object.fromEntries(D.ues.map(u=>[u.sec,u]));
+ return Object.entries(PJ.ues).flatMap(([ue,l])=>l.filter(x=>x.t==='P').map(x=>({...x,ue,uen:uenom[ue]?nom(uenom[ue]):ue,uef:uenom[ue]?.ue||ue,ej:x.pim?x.dev/x.pim:0,avr:x.esp>0?x.av/x.esp:1})))}
+function filtP(){const q=document.getElementById('pq').value.trim().toLowerCase(),fu=document.getElementById('pfu').value;
+ let R=listaP().filter(x=>(!fu||x.ue===fu)&&(!q||(x.n+' '+x.c+' '+x.ue+' '+x.uen+' '+x.uef).toLowerCase().includes(q)));return ordenar(R,pord,pdir)}
 function proyectos(){
- if(!PJ)return;const q=document.getElementById('pq').value.trim().toLowerCase();
- const uenom=Object.fromEntries(D.ues.map(u=>[u.sec,u]));
- let R=Object.entries(PJ.ues).flatMap(([ue,l])=>l.filter(x=>x.t==='P').map(x=>({...x,ue,uen:uenom[ue]?nom(uenom[ue]):ue,ej:x.pim?x.dev/x.pim:0})));
- const tot=R.length;if(q)R=R.filter(x=>(x.n+' '+x.c+' '+x.ue+' '+x.uen+' '+(uenom[x.ue]?.ue||'')).toLowerCase().includes(q));
- ordenar(R,pord,pdir);
- const cols=[PCOLS[0],['Unidad ejecutora','uen','t'],...PCOLS.slice(1)];
- cabecera(document.getElementById('pcab'),cols,pord,pdir,k=>{pdir=pord===k?-pdir:(cols.find(c=>c[1]===k)[2]==='t'?1:-1);pord=k;proyectos()});
- const V=R.slice(0,pver);
- document.getElementById('pcuerpo').innerHTML=V.map(x=>`<tr data-s="${x.ue}"><td class="t" style="min-width:280px">${esc(x.n)} <span style="color:#5f6878;font-size:12.5px">(CUI ${x.c})</span></td><td class="t" style="min-width:110px">${esc(x.uen)}</td>${celdas(x)}</tr>`).join('');
- document.getElementById('ppie').innerHTML=pieP(R,`Total (${R.length} proyectos)`).replace('<td class="t">','<td class="t" colspan="2">');
- document.getElementById('pcnt').textContent=`${R.length} de ${tot} proyectos con RO`;
- const b=document.getElementById('pmas');b.hidden=R.length<=pver;b.textContent=`Ver los ${R.length} proyectos`;b.onclick=()=>{pver=1e9;proyectos()};
- document.querySelectorAll('#pcuerpo tr').forEach(tr=>tr.onclick=()=>detalle(tr.dataset.s,true));
+ if(!PJ)return;const A=listaP();
+ const s=k=>A.reduce((a,x)=>a+(x[k]||0),0);
+ document.getElementById('phero').innerHTML=`<div><div class="et">Proyectos</div><div class="num">${A.length}</div><div class="ds">Con CUI y Recursos Ordinarios</div></div>
+ <div><div class="et">PIM RO</div><div class="num">${M(s('pim'))}</div><div class="ds">De esos proyectos</div></div>
+ <div><div class="et">Saldo actual</div><div class="num">${M(s('s'))}</div><div class="ds">PIM − devengado</div></div>
+ <div><div class="et">Riesgo estimado</div><div class="num">${M(s('ri'))}</div><div class="ds">Al 31/12, por ritmo</div></div>`;
+ const sel_=document.getElementById('pfu');if(sel_.options.length<2){[...new Set(A.map(x=>x.ue))].map(u=>[u,A.find(x=>x.ue===u).uen]).sort((a,b)=>a[1].localeCompare(b[1],'es')).forEach(([u,n])=>sel_.insertAdjacentHTML('beforeend',`<option value="${u}">${esc(n)}</option>`))}
+ const R=filtP(),cols=[['Proyecto / CUI','n','t'],['UE','uen','t'],['Saldo','s','m'],['Riesgo','ri','m'],['Ejecución','ej','p']];
+ cabecera(document.getElementById('pcab'),cols,pord,pdir,k=>{pdir=pord===k?-pdir:(cols.find(c=>c[1]===k)[2]==='t'?1:-1);pord=k;document.getElementById('pord').value='';proyectos()});
+ document.getElementById('pcuerpo').innerHTML=R.map(x=>`<tr data-k="${x.ue}|${x.c}" class="${psel===x.ue+'|'+x.c?'sel':''}"><td class="t" style="min-width:200px"><b>${esc(x.n.length>64?x.n.slice(0,62)+'…':x.n)}</b> <span style="color:#5f6878;font-size:12.5px">· ${x.c}</span></td><td class="t" style="min-width:90px">${esc(x.uen)}</td><td>${M(x.s)}</td><td><b>${M(x.ri)}</b></td><td>${P(x.ej)}<span class="bar2" style="display:block;width:64px;margin:4px 0 0 auto"><i style="width:${Math.min(100,100*x.ej)}%;background:#0f8f72"></i></span></td></tr>`).join('');
+ const t=k=>R.reduce((a,x)=>a+(x[k]||0),0);
+ document.getElementById('ppie').innerHTML=`<tr><td class="t" colspan="2">Total (${R.length} proyectos)</td><td>${M(t('s'))}</td><td>${M(t('ri'))}</td><td>${P(t('dev')/t('pim'))}</td></tr>`;
+ document.getElementById('pcnt').textContent=`${R.length} de ${A.length} proyectos`;
+ document.querySelectorAll('#pcuerpo tr').forEach(tr=>tr.onclick=()=>{psel=tr.dataset.k;proyectos()});
+ if(!psel||!R.some(x=>x.ue+'|'+x.c===psel))psel=R.length?R[0].ue+'|'+R[0].c:null;
+ document.querySelectorAll('#pcuerpo tr').forEach(tr=>tr.classList.toggle('sel',tr.dataset.k===psel));
+ ficha(R.find(x=>x.ue+'|'+x.c===psel));
 }
-document.getElementById('pq').oninput=()=>{pver=25;proyectos()};
+function ficha(x){const el=document.getElementById('ficha');if(!x){el.innerHTML='<p class="nota">No hay proyectos con ese filtro.</p>';return}
+ const [c,t]=SEM(x.av,x.esp),top=Math.max(0.25,Math.ceil(Math.max(x.av,x.esp)*1.25*20)/20);
+ el.innerHTML=`<h3>${esc(x.n)}</h3><p class="ps" style="margin:4px 0 0">CUI ${x.c} · ${esc(x.uef)} · RO</p>
+ <div class="fm"><div><small>PIM</small><b>${M(x.pim)}</b></div><div><small>Saldo</small><b>${M(x.s)}</b></div><div><small>Riesgo</small><b style="color:#a86a12">${M(x.ri)}</b></div></div>
+ <div style="display:flex;justify-content:space-between;font-weight:600;color:var(--navy)"><span>Ejecución del PIM</span><span>${P(x.ej)}</span></div><div class="bar2"><i style="width:${Math.min(100,100*x.ej)}%;background:#0f8f72"></i></div>
+ <div style="border:1px solid var(--line);border-radius:12px;padding:12px 14px"><div style="font-weight:700;color:var(--navy)">Avance del saldo al ${F(D.parametros.fecha_base).slice(0,5)}</div>
+ ${x.si>0.5?`<div class="ley" style="margin:4px 0 0"><span style="--c:${c}">Avance real: ${P(x.av)}</span><span style="--c:#13294b">Esperado: ${P(x.esp)}</span></div>
+ <div class="escala" style="margin:14px 0 6px"><i style="width:${100*Math.min(x.av,top)/top}%;background:${c}"></i><span class="mk" style="left:${100*Math.min(x.esp,top)/top}%"></span></div>
+ <div class="ejeP">${Array.from({length:6},(_,k)=>`<span>${(100*top*k/5).toFixed(0)} %</span>`).join('')}</div>
+ <div class="estado" style="background:${c}1f;color:${c}">${ICO(c==='#1f8f6a'?I_OK:I_ALE)}<span>${t[0].toUpperCase()+t.slice(1)}</span></div>`:'<p class="nota">Sin saldo al cierre de octubre: no aplica.</p>'}
+ <p class="nota">Datos del corte ${F(PJ.corte)}; solo Recursos Ordinarios.</p></div>
+ <div class="enl"><a data-ue="${x.ue}">Ver unidad ejecutora</a><a href="#metodo">Ver método</a></div>`;
+ el.querySelector('[data-ue]').onclick=()=>detalle(x.ue,true)}
+document.getElementById('pq').oninput=proyectos;document.getElementById('pfu').onchange=proyectos;
+document.getElementById('pord').onchange=e=>{if(e.target.value){const[k,d]=e.target.value.split(':');pord=k;pdir=+d}proyectos()};
+document.getElementById('pexp').onclick=()=>{const R=filtP();csv(`proyectos_RO_${PJ.corte}.csv`,['CUI','Proyecto','Unidad ejecutora','PIM','Devengado','Saldo','Riesgo estimado','Ejecucion %','Avance del saldo %','Avance esperado %'],R.map(x=>[x.c,x.n,x.uef,x.pim,x.dev,x.s,x.ri,(100*x.ej).toFixed(1),(100*x.av).toFixed(1),(100*x.esp).toFixed(1)]))};
 let uord='ri',udir=-1,usolo=false,uver=15,uq='';
 function proyUE(s){
  const el=document.getElementById('pue');if(!el)return;
@@ -265,6 +354,7 @@ function proyUE(s){
  const m=document.getElementById('umas');if(m)m.onclick=()=>{uver=1e9;proyUE(s)};
 }
 document.getElementById('q').oninput=tabla;document.getElementById('fn').onchange=tabla;
+
 function detalle(s,ir){
  const u=D.ues.find(x=>x.sec===s);if(!u)return;if(sel!==s){uq='';uver=15;usolo=false;uord='ri';udir=-1}sel=s;tabla();
  const sec=document.getElementById('detalle');sec.hidden=false;const S=D.serie_ue[s]||{saldo:[],riesgo:[]};
@@ -276,7 +366,7 @@ function detalle(s,ir){
  <div><h3 style="font-size:16px">Por genérica (orden: riesgo)${D.parametros.corte_detalle&&D.parametros.corte_detalle!==D.corte?` · datos al ${F(D.parametros.corte_detalle)}`:''}</h3><div class="tabla" style="max-height:none"><table><thead><tr><th class="t" style="cursor:default">Genérica</th><th style="cursor:default">PIM</th><th style="cursor:default">Saldo</th><th style="cursor:default">Riesgo</th></tr></thead><tbody>${gens.map(([g,v])=>`<tr style="cursor:default"><td class="t" style="min-width:180px">${GEN[g]||g}</td><td>${M(v[0])}</td><td>${M(v[2])}</td><td>${M(v[3])}</td></tr>`).join('')}</tbody></table></div></div></div>
  <div id="pue"></div>
  <p class="nota">La unidad ocupa el puesto ${D.ues.indexOf(u)+1} de ${D.ues.length} por riesgo de reversión.</p>`;
- linea(document.getElementById('gue'),D.fechas,[{n:'Saldo RO',v:S.saldo,c:'#a86a12'},{n:'Riesgo de reversión',v:S.riesgo,c:'#9e2a2b'}],200);
+ linea(document.getElementById('gue'),D.fechas,[{n:'Saldo RO',v:S.saldo,c:'#13294b'},{n:'Riesgo estimado',v:S.riesgo,c:'#d99a06'}],M,200);
  proyUE(s);
  if(ir)sec.scrollIntoView({behavior:'smooth'});
 }
