@@ -100,7 +100,7 @@ def dias_habiles(desde, hasta):
     return n
 
 
-def calcular(df, publicado, anio):
+def calcular(df, publicado, anio, mes_base=10):
     """El archivo se publica en la mañana (hora de Lima) con datos hasta el día anterior."""
     lima = parsedate_to_datetime(publicado) - dt.timedelta(hours=5)
     corte = lima.date() - dt.timedelta(days=1)
@@ -123,12 +123,32 @@ def calcular(df, publicado, anio):
                                   DEVENGADO=("DEVENGADO", "sum"), saldo=("saldo", "sum"), adicional=("adicional", "sum"), riesgo=("riesgo", "sum"))
     g["no_certificado"] = g.PIM - g.CERTIFICADO
     g["dev_mes_corte"] = U.groupby("SEC_EJEC")[M].sum()
+    # Control del saldo: lo devengado desde el cierre del mes base (p. ej., 31/10) sobre el saldo que había a esa fecha
+    _post = [m for m in range(mes_base + 1, M + 1)]
+    U["dev_desde_base"] = U[_post].sum(axis=1) if _post else 0.0
+    g["dev_desde_base"] = U.groupby("SEC_EJEC").dev_desde_base.sum()
+    # Avance esperado: la planilla y las pensiones (2.1 y 2.2) se devengan una vez al mes, así que su meta avanza por mes cerrado;
+    # el resto, por días hábiles transcurridos. La meta de cada unidad pondera ambas por su saldo al cierre del mes base.
+    fin_b = dt.date(anio, mes_base, calendar.monthrange(anio, mes_base)[1])
+    _ht = dias_habiles(fin_b + dt.timedelta(days=1), dt.date(anio, 12, 31))
+    esp_lin = dias_habiles(fin_b + dt.timedelta(days=1), corte) / _ht if _ht else 0.0
+    _mc = (M - mes_base - 1) + (1 if dia == dmes else 0)          # meses completos cerrados después del mes base
+    esp_mes = max(0, _mc) / (12 - mes_base)
+    U["saldo_ini"] = U.saldo + U.dev_desde_base
+    U["esp_w"] = U.saldo_ini.clip(lower=0) * U.GENERICA.astype(str).isin(["1", "2"]).map({True: esp_mes, False: esp_lin})
+    _w = U.groupby("SEC_EJEC")[["saldo_ini", "esp_w"]].sum()
+    g["esperado"] = (_w.esp_w / U.assign(si=U.saldo_ini.clip(lower=0)).groupby("SEC_EJEC").si.sum()).fillna(0.0)
     g["ritmo_mensual"] = U.groupby("SEC_EJEC")[completos].sum().mean(axis=1)
     gen = U.groupby(["SEC_EJEC", "GENERICA"])[["PIM", "DEVENGADO", "saldo", "riesgo"]].sum().reset_index()
     mensual = df[df.MES_EJE > 0].groupby("MES_EJE").DEVENGADO.sum().reindex(range(1, 13)).fillna(0.0)
     hab = dias_habiles(corte + dt.timedelta(days=1), dt.date(anio, 12, 31))
+    fin_base = dt.date(anio, mes_base, calendar.monthrange(anio, mes_base)[1])
+    hab_tot = dias_habiles(fin_base + dt.timedelta(days=1), dt.date(anio, 12, 31))
+    hab_pas = dias_habiles(fin_base + dt.timedelta(days=1), corte)
     return corte, g[g.PIM > 0].reset_index(), gen, mensual, {"meses_ritmo": completos, "meses_restantes": round(meses_rest, 4),
-                                                              "dias_habiles": hab, "publicado_lima": lima.strftime("%d/%m/%Y %H:%M")}
+                                                              "dias_habiles": hab, "publicado_lima": lima.strftime("%d/%m/%Y %H:%M"),
+                                                              "fecha_base": fin_base.isoformat(), "habiles_desde_base": hab_pas,
+                                                              "habiles_total": hab_tot, "avance_esperado": round(hab_pas / hab_tot, 4) if hab_tot else 0}
 
 
 def main():
@@ -137,7 +157,7 @@ def main():
     out = os.path.join(RAIZ, eid, "ro")
     os.makedirs(out, exist_ok=True)
     df, nombres, publicado = desde_json(sys.argv[3], cfg.get("excluir_json", [])) if "--json" in sys.argv else descargar(cfg)
-    corte, g, gen, mensual, par = calcular(df, publicado, cfg["anio"])
+    corte, g, gen, mensual, par = calcular(df, publicado, cfg["anio"], cfg.get("mes_base", 10))
     fc = corte.isoformat()
     g.insert(0, "fecha_corte", fc)
     g["UE"] = g.SEC_EJEC.map(lambda x: nombre(nombres.get(x, x)))
@@ -145,7 +165,8 @@ def main():
     # historial: una fila por corte y UE
     fh = os.path.join(out, "historial.csv")
     H = pd.read_csv(fh, dtype={"SEC_EJEC": str}) if os.path.isfile(fh) else pd.DataFrame()
-    cols = ["fecha_corte", "SEC_EJEC", "UE", "PIM", "CERTIFICADO", "COMPROMETIDO", "DEVENGADO", "saldo", "no_certificado", "adicional", "riesgo"]
+    g["esp_monto"] = g.esperado * (g.saldo + g.dev_desde_base).clip(lower=0)
+    cols = ["fecha_corte", "SEC_EJEC", "UE", "PIM", "CERTIFICADO", "COMPROMETIDO", "DEVENGADO", "saldo", "no_certificado", "adicional", "riesgo", "dev_desde_base", "esp_monto"]
     if len(H):
         H = H[H.fecha_corte != fc]
     H = pd.concat([H, g[cols]], ignore_index=True).sort_values(["fecha_corte", "riesgo"], ascending=[True, False])
@@ -160,15 +181,24 @@ def main():
         d = {"sec": r.SEC_EJEC, "ue": nombre(nombres.get(r.SEC_EJEC) or r.SEC_EJEC), "sigla": sig.get(r.SEC_EJEC, ""),
              "pim": r.PIM, "cert": r.CERTIFICADO, "comp": r.COMPROMETIDO, "dev": r.DEVENGADO, "saldo": r.saldo,
              "no_cert": r.no_certificado, "adicional": r.adicional, "riesgo": r.riesgo, "dev_mes": r.dev_mes_corte, "ritmo": r.ritmo_mensual,
+             "dev_base": r.dev_desde_base, "saldo_ini": r.saldo + r.dev_desde_base,
+             "avance": (r.dev_desde_base / (r.saldo + r.dev_desde_base)) if (r.saldo + r.dev_desde_base) > 0 else 0.0,
+             "esperado": r.esperado,
              "gen": {x.GENERICA: [x.PIM, x.DEVENGADO, x.saldo, x.riesgo] for x in gen[gen.SEC_EJEC == r.SEC_EJEC].itertuples() if abs(x.PIM) > 0.5}}
         if P is not None and r.SEC_EJEC in P.index:
             d["dev_ant"], d["riesgo_ant"] = float(P.loc[r.SEC_EJEC, "DEVENGADO"]), float(P.loc[r.SEC_EJEC, "riesgo"])
-        ues.append({k: (round(v, 2) if isinstance(v, float) else v) for k, v in d.items()})
-    serie = H.groupby("fecha_corte")[["PIM", "DEVENGADO", "saldo", "riesgo", "no_certificado"]].sum().round(2)
+        ues.append({k: (round(v, 4 if k in ("avance", "esperado") else 2) if isinstance(v, float) else v) for k, v in d.items()})
+    for c_ in ("dev_desde_base", "esp_monto"):
+        if c_ not in H.columns:
+            H[c_] = float("nan")
+    serie = H.groupby("fecha_corte")[["PIM", "DEVENGADO", "saldo", "riesgo", "no_certificado", "dev_desde_base", "esp_monto"]].sum(min_count=1).round(2)
+    serie["avance"] = (serie.dev_desde_base / (serie.saldo + serie.dev_desde_base)).round(4)
+    serie["esperado"] = (serie.esp_monto / (serie.saldo + serie.dev_desde_base)).round(4)
     J = {"pliego": cfg["nombre"], "anio": cfg["anio"], "corte": fc, "corte_anterior": prev, "parametros": par,
          "actualizado": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-         "total": serie.loc[fc].to_dict(), "serie": {k: serie[k].tolist() for k in serie.columns}, "fechas": list(serie.index),
-         "serie_ue": {s: H[H.SEC_EJEC == s].set_index("fecha_corte")[["saldo", "riesgo", "DEVENGADO"]].reindex(serie.index).round(2)
+         "total": {k: (None if pd.isna(v) else v) for k, v in serie.loc[fc].to_dict().items()},
+         "serie": {k: [None if pd.isna(x) else x for x in serie[k].tolist()] for k in serie.columns}, "fechas": list(serie.index),
+         "serie_ue": {s: H[H.SEC_EJEC == s].set_index("fecha_corte")[["saldo", "riesgo", "DEVENGADO", "dev_desde_base"]].reindex(serie.index).round(2)
                       .fillna(0).to_dict("list") for s in g.SEC_EJEC},
          "mensual": mensual.round(2).tolist(), "ues": ues}
     json.dump(J, open(os.path.join(out, "datos.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
