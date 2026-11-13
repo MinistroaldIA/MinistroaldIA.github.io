@@ -114,22 +114,50 @@ def tiempo(corte, anio, mes_base=10):
             "esp_mes": max(0, mc) / (12 - mes_base)}
 
 
+def por_proyecto(PDA, prod, t0, t1):
+    """Cuadro por unidad × producto/proyecto. prod = cifras del día de la Consulta Amigable (o None: solo Datos Abiertos)."""
+    f = (t1["meses_rest"] / t0["meses_rest"]) if t0["meses_rest"] > 0 else 0.0
+    base = PDA.set_index(["SEC_EJEC", "PRODUCTO_PROYECTO"])
+    filas = []
+    claves = [(ue, k) for ue, d in prod.items() for k in d] if prod else list(base.index)
+    for ue, k in claves:
+        da = base.loc[(ue, k)] if (ue, k) in base.index else None
+        if prod:
+            m = prod[ue][k]; pim, dev, nom = m["PIM"], m["DEVENGADO"], m.get("nombre", k)
+        else:
+            pim, dev, nom = float(da.PIM), float(da.DEVENGADO), k
+        if abs(pim) < 0.5 and abs(dev) < 0.5:
+            continue
+        saldo = pim - dev
+        adic_da = float(da.adicional) if da is not None else 0.0
+        adic = max(0.0, min(saldo, adic_da * f))
+        hb = float(da.hasta_base) if da is not None else dev
+        w = float(da.w_planilla) if da is not None else 0.0
+        tipo = (str(da.tipo) if da is not None else ("2" if len(k) == 7 and k.startswith("2") else "3"))
+        dbase = dev - hb
+        si = saldo + dbase
+        filas.append({"SEC_EJEC": ue, "cod": k, "nombre": nom, "tipo": tipo, "PIM": pim, "DEVENGADO": dev, "saldo": saldo,
+                      "adicional": adic, "riesgo": saldo - adic, "dev_desde_base": dbase, "saldo_ini": si,
+                      "avance": (dbase / si) if si > 0 else 0.0, "esperado": w * t1["esp_mes"] + (1 - w) * t1["esp_lin"]})
+    return pd.DataFrame(filas)
+
+
 def con_consulta_amigable(g, par, corte_da, cfg):
     """Reemplaza las cifras del día por las de la Consulta Amigable si trae un corte más reciente.
     El ritmo de los meses completos y el detalle por genérica siguen saliendo de Datos Abiertos."""
     try:
         import consulta_amigable as CA
-        filas, fecha = CA.por_ejecutora(cfg["anio"], cfg["nivel"], cfg["sector"], cfg["pliego"], "1")
+        filas, fecha, prod = CA.por_ejecutora(cfg["anio"], cfg["nivel"], cfg["sector"], cfg["pliego"], "1", productos=True)
     except Exception as e:                                   # sin acceso o cambió la página: se sigue con Datos Abiertos
         print(f"Consulta Amigable no disponible ({e}); se usa Datos Abiertos")
-        return g, par, corte_da, "Datos Abiertos"
+        return g, par, corte_da, "Datos Abiertos", None
     if not fecha or fecha <= corte_da:
         print(f"Consulta Amigable al {fecha}: no es más reciente que Datos Abiertos ({corte_da})")
-        return g, par, corte_da, "Datos Abiertos"
+        return g, par, corte_da, "Datos Abiertos", None
     falt = sorted(set(g.SEC_EJEC) - set(filas))
     if falt:
         print(f"Consulta Amigable sin las UE {falt}; se usa Datos Abiertos")
-        return g, par, corte_da, "Datos Abiertos"
+        return g, par, corte_da, "Datos Abiertos", None
     t0, t1 = tiempo(corte_da, cfg["anio"], cfg.get("mes_base", 10)), tiempo(fecha, cfg["anio"], cfg.get("mes_base", 10))
     g = g.copy()
     dev_da = g.DEVENGADO.copy()
@@ -144,11 +172,22 @@ def con_consulta_amigable(g, par, corte_da, cfg):
     g["adicional"] = pd.concat([g.adicional * f, g.saldo.clip(lower=0)], axis=1).min(axis=1)
     g["riesgo"] = g.saldo - g.adicional
     g["esperado"] = g.w_planilla * t1["esp_mes"] + (1 - g.w_planilla) * t1["esp_lin"]
+    # Riesgo por proyecto con cifras del día: cada proyecto con su propio tope. Si los proyectos suman el total de la unidad,
+    # el riesgo de la unidad es la suma de sus proyectos.
+    PR = por_proyecto(calcular.PDA, prod, t0, t1) if prod else None
+    if PR is not None and len(PR):
+        sp = PR.groupby("SEC_EJEC")[["PIM", "DEVENGADO", "riesgo", "adicional"]].sum()
+        ok = (sp.PIM.reindex(g.SEC_EJEC).values - g.PIM.values)
+        cuadra = pd.Series(abs(ok) < 1.0, index=g.index)
+        g.loc[cuadra, "riesgo"] = g.loc[cuadra, "SEC_EJEC"].map(sp.riesgo)
+        g.loc[cuadra, "adicional"] = g.loc[cuadra, "SEC_EJEC"].map(sp.adicional)
+        if (~cuadra).any():
+            print(f"proyectos no cuadran con el total en {list(g.loc[~cuadra, 'SEC_EJEC'])}: se mantiene el riesgo por unidad")
     par = dict(par, meses_restantes=round(t1["meses_rest"], 4), dias_habiles=t1["habiles_rest"], habiles_desde_base=t1["habiles_pasados"],
                avance_esperado=round(t1["esp_lin"], 4), corte_detalle=corte_da.isoformat(),
                publicado_lima=f"Consulta Amigable, actualizada al {fecha.strftime('%d/%m/%Y')}")
     print(f"Consulta Amigable al {fecha}: devengado RO S/ {g.DEVENGADO.sum() / 1e6:,.1f} M (Datos Abiertos al {corte_da}: S/ {dev_da.sum() / 1e6:,.1f} M)")
-    return g, par, fecha, "Consulta Amigable"
+    return g, par, fecha, "Consulta Amigable", PR
 
 
 def calcular(df, publicado, anio, mes_base=10):
@@ -198,10 +237,51 @@ def calcular(df, publicado, anio, mes_base=10):
     fin_base = dt.date(anio, mes_base, calendar.monthrange(anio, mes_base)[1])
     hab_tot = dias_habiles(fin_base + dt.timedelta(days=1), dt.date(anio, 12, 31))
     hab_pas = dias_habiles(fin_base + dt.timedelta(days=1), corte)
+    _U = U.assign(si=U.saldo_ini.clip(lower=0), pl=U.GENERICA.astype(str).isin(["1", "2"]),
+                  rit=U[completos].mean(axis=1), hb=U.DEVENGADO - U.dev_desde_base)
+    _U["si_pl"] = _U.si.where(_U.pl, 0.0)
+    PDA = _U.groupby(["SEC_EJEC", "PRODUCTO_PROYECTO"]).agg(tipo=("TIPO_ACT_PROY", "first"), PIM=("PIM", "sum"), DEVENGADO=("DEVENGADO", "sum"),
+                                                          adicional=("adicional", "sum"), ritmo=("rit", "sum"), hasta_base=("hb", "sum"),
+                                                          si=("si", "sum"), si_pl=("si_pl", "sum")).reset_index()
+    PDA["w_planilla"] = (PDA.si_pl / PDA.si).where(PDA.si > 0, 0.0)
+    calcular.PDA = PDA
     return corte, g[g.PIM > 0].reset_index(), gen, mensual, {"meses_ritmo": completos, "meses_restantes": round(meses_rest, 4),
                                                               "dias_habiles": hab, "publicado_lima": lima.strftime("%d/%m/%Y %H:%M"),
                                                               "fecha_base": fin_base.isoformat(), "habiles_desde_base": hab_pas,
                                                               "habiles_total": hab_tot, "avance_esperado": round(hab_pas / hab_tot, 4) if hab_tot else 0}
+
+
+def guardar_proyectos(PR, fc, out):
+    """proyectos.json: por unidad, sus productos y proyectos en RO ordenados por riesgo; historial_proyectos.csv: una fila por día."""
+    os.makedirs(out, exist_ok=True)
+    fh = os.path.join(out, "historial_proyectos.csv")
+    cols = ["fecha_corte", "SEC_EJEC", "cod", "DEVENGADO"]          # basta el devengado: el del día sale de la resta
+    PR = PR.copy()
+    fj = os.path.join(out, "proyectos.json")
+    previos = {}                                    # Datos Abiertos no trae nombres: se conservan los de la última consulta
+    if os.path.isfile(fj):
+        try:
+            for lst in json.load(open(fj, encoding="utf-8"))["ues"].values():
+                previos.update({x["c"]: x["n"] for x in lst if x["n"] != x["c"]})
+        except (ValueError, KeyError):
+            pass
+    PR["nombre"] = [previos.get(c, n) if n == c else nombre(n) for c, n in zip(PR.cod, PR.nombre)]
+    H = pd.read_csv(fh, dtype={"SEC_EJEC": str, "cod": str}) if os.path.isfile(fh) else pd.DataFrame(columns=cols)
+    H = H[H.fecha_corte != fc]
+    prev = sorted(H.fecha_corte.unique())[-1] if len(H) else None
+    ant = H[H.fecha_corte == prev].set_index(["SEC_EJEC", "cod"]).DEVENGADO if prev else None
+    H = pd.concat([H, PR.assign(fecha_corte=fc)[cols]], ignore_index=True)
+    fechas = sorted(H.fecha_corte.unique())[-20:]                      # se guardan los últimos 20 cortes
+    H[H.fecha_corte.isin(fechas)].round(2).to_csv(fh, index=False, quoting=csv.QUOTE_NONNUMERIC)
+    J = {"corte": fc, "corte_anterior": prev, "ues": {}}
+    for ue, d in PR.sort_values("riesgo", ascending=False).groupby("SEC_EJEC", sort=False):
+        J["ues"][ue] = [{"c": r.cod, "n": r.nombre, "t": "P" if str(r.tipo) == "2" else "A", "pim": round(r.PIM, 2), "dev": round(r.DEVENGADO, 2),
+                         "s": round(r.saldo, 2), "si": round(r.saldo_ini, 2), "av": round(r.avance, 4), "esp": round(r.esperado, 4),
+                         "ri": round(r.riesgo, 2),
+                         "dd": (round(r.DEVENGADO - float(ant.get((ue, r.cod), r.DEVENGADO)), 2) if ant is not None else None)}
+                        for r in d.itertuples() if abs(r.PIM) >= 0.5 or abs(r.DEVENGADO) >= 0.5]
+    json.dump(J, open(fj, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    print(f"proyectos: {sum(len(v) for v in J['ues'].values())} en {len(J['ues'])} unidades")
 
 
 def main():
@@ -212,11 +292,16 @@ def main():
     df, nombres, publicado = desde_json(sys.argv[3], cfg.get("excluir_json", [])) if "--json" in sys.argv else descargar(cfg)
     corte, g, gen, mensual, par = calcular(df, publicado, cfg["anio"], cfg.get("mes_base", 10))
     par["corte_detalle"] = corte.isoformat()
-    fuente = "Datos Abiertos"
+    fuente, PR = "Datos Abiertos", None
+    corte_da = corte
     if "--sin-ca" not in sys.argv:
-        g, par, corte, fuente = con_consulta_amigable(g, par, corte, cfg)
+        g, par, corte, fuente, PR = con_consulta_amigable(g, par, corte, cfg)
+    if PR is None:                       # sin Consulta Amigable: los proyectos salen de Datos Abiertos al mismo corte
+        t = tiempo(corte, cfg["anio"], cfg.get("mes_base", 10))
+        PR = por_proyecto(calcular.PDA, None, t, t)
     par["fuente"] = fuente
     fc = corte.isoformat()
+    guardar_proyectos(PR, fc, os.path.join(RAIZ, eid, "ro"))
     g.insert(0, "fecha_corte", fc)
     g["UE"] = g.SEC_EJEC.map(lambda x: nombre(nombres.get(x, x)))
 

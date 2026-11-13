@@ -31,8 +31,8 @@ jobs:
         run: |
           git config user.name "MinistroaldIA"
           git config user.email "noreply@users.noreply.github.com"
-          git add minsa/ro/historial.csv minsa/ro/datos.json
-          if git diff --cached --quiet -- minsa/ro/historial.csv; then
+          git add minsa/ro/historial.csv minsa/ro/datos.json minsa/ro/proyectos.json minsa/ro/historial_proyectos.csv
+          if git diff --cached --quiet -- minsa/ro/historial.csv minsa/ro/proyectos.json; then
             echo "Sin corte nuevo; no se publica."
           else
             git commit -m "Control RO MINSA: corte $(python -c "import json;print(json.load(open('minsa/ro/datos.json'))['corte'])")"

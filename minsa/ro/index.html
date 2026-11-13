@@ -61,6 +61,10 @@ td.t{white-space:normal;min-width:220px}
 main,section,.panel{min-width:0}.panel{overflow:hidden}
 tbody tr{cursor:pointer}tbody tr:nth-child(even) td{background:#fdfaf3}tbody tr:hover td{background:var(--ro-t)}
 tr.sel td{background:#f6e6c4 !important}
+.tipo{display:inline-block;font:600 11px var(--f-m);padding:2px 7px;border-radius:999px;background:#eef1f6;color:var(--navy);margin-right:6px;white-space:nowrap}
+.tipo.P{background:#efe7f6;color:#5b2f86}
+.mas{margin-top:10px;font:600 14px var(--f-t);padding:9px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--navy);cursor:pointer;min-height:42px}
+.chk{display:flex;align-items:center;gap:6px;font:14px var(--f-t);color:var(--ink)}
 tfoot td{font-weight:700;background:var(--soft);position:sticky;bottom:0}
 .nivel{display:inline-block;font:600 12px var(--f-t);padding:3px 10px;border-radius:999px}
 .nivel.Alto{background:var(--alto-t);color:var(--alto)}.nivel.Medio{background:var(--medio-t);color:var(--medio)}.nivel.Bajo{background:var(--bajo-t);color:var(--bajo)}
@@ -84,7 +88,7 @@ footer{margin-top:36px;border-top:1px solid var(--line);padding:20px 0 36px;colo
 <h1>Saldos de Recursos Ordinarios y riesgo de reversión por unidad ejecutora</h1>
 <div class="meta" id="meta">Cargando datos…</div>
 </div></header>
-<nav class="top"><div class="wrap"><a href="../">← Informe de saldos</a><a href="#ranking">Ranking de riesgo</a><a href="#evolucion">Evolución</a><a href="#cuadro">Cuadro por UE</a><a href="#metodo">Método</a><a href="historial.csv" download>Descargar historial (CSV)</a></div></nav>
+<nav class="top"><div class="wrap"><a href="../">← Informe de saldos</a><a href="#ranking">Ranking de riesgo</a><a href="#evolucion">Evolución</a><a href="#cuadro">Cuadro por UE</a><a href="#proyectos">Proyectos de inversión</a><a href="#metodo">Método</a><a href="historial.csv" download>Descargar historial (CSV)</a></div></nav>
 <main><div class="wrap">
 <div id="vigencia" class="alerta" style="display:none;margin-top:18px"></div>
 <div class="kpis" id="kpis"></div>
@@ -114,12 +118,20 @@ footer{margin-top:36px;border-top:1px solid var(--line);padding:20px 0 36px;colo
 
 <section id="detalle" hidden><div class="panel" id="det"></div></section>
 
+<section id="proyectos"><h2>Proyectos de inversión con Recursos Ordinarios</h2>
+<p class="sub" id="psub">Todos los proyectos de inversión (con código único de inversión, CUI) que tienen Recursos Ordinarios en el pliego, de todas las unidades ejecutoras. Orden inicial: riesgo de reversión, de mayor a menor. Haga clic en un proyecto para ver su unidad.</p>
+<div class="buscar"><input id="pq" type="search" placeholder="Buscar proyecto, CUI o unidad…" aria-label="Buscar proyecto"><span id="pcnt"></span></div>
+<div class="tabla"><table><thead><tr id="pcab"></tr></thead><tbody id="pcuerpo"></tbody><tfoot id="ppie"></tfoot></table></div>
+<button class="mas" id="pmas" hidden></button>
+</section>
+
 <section id="metodo"><h2>Método y fuente</h2>
 <div class="metodo">
 <p><b>Fuente.</b> Las cifras del día por unidad ejecutora (PIM, certificado, compromiso, devengado y saldo) salen de la Consulta Amigable del Ministerio de Economía y Finanzas, que se actualiza a diario y suele llevar un día de ventaja a Datos Abiertos. El ritmo de los meses completos y el detalle por genérica salen del archivo diario de Datos Abiertos del mismo ministerio. Si la Consulta Amigable no responde, el cuadro usa solo Datos Abiertos y lo indica arriba. Se actualiza solo, tres veces al día, y toma únicamente la fuente Recursos Ordinarios.</p>
 <p><b>Saldo.</b> PIM menos devengado. <b>No certificado:</b> PIM menos certificado. El saldo es presupuesto, no disponibilidad de caja.</p>
 <p><b>Riesgo de reversión.</b> Para cada meta, producto o proyecto y genérica, se toma el promedio mensual de devengado de los tres últimos meses completos y se multiplica por el tiempo que queda hasta el 31 de diciembre, con tope en su saldo y piso en cero. Cuando las cifras del día vienen de la Consulta Amigable, ese devengado previsto se ajusta al tiempo restante y se limita al saldo de cada unidad. Lo que no alcanza a devengarse con ese ritmo es el riesgo. Es el mismo método del informe de saldos. En las pruebas con 2024 y 2025 este método sobrestimó el saldo final, porque no ve la aceleración de diciembre: sirve para ordenar prioridades, no para fijar un monto exacto.</p>
 <p><b>Avance del saldo.</b> Parte del saldo que la unidad tenía al cierre de octubre (con su PIM actual) que ya devengó desde entonces. Se compara con lo que debería llevar a la fecha: la planilla y las pensiones (2.1 y 2.2), que se devengan una vez al mes, por meses cerrados; el resto, por la parte de los días hábiles de noviembre y diciembre que ya pasó, ponderado por el saldo de cada genérica: verde, al ritmo necesario (90 % o más de lo esperado); ámbar, por debajo (60 % a 90 %); rojo, muy por debajo (menos de 60 %). La línea vertical de la barra marca dónde debería ir.</p>
+<p><b>Por proyecto.</b> El mismo cálculo se hace para cada producto, actividad y proyecto de inversión de cada unidad, con su propio saldo y su propio ritmo. El riesgo de la unidad es la suma del riesgo de sus productos y proyectos. «Proyecto» identifica las inversiones con código único (CUI); «Producto o actividad», el resto del gasto. Los nombres y las cifras del día salen de la Consulta Amigable (opción Producto/Proyecto de cada unidad ejecutora).</p>
 <p><b>Devengado necesario por día hábil.</b> Saldo de RO dividido entre los días hábiles que quedan hasta el 31 de diciembre (lunes a viernes, sin el 8 ni el 25 de diciembre).</p>
 </div></section>
 </div></main>
@@ -136,7 +148,10 @@ const nom=u=>u.sigla?`${u.sigla}`:u.ue;
 const SEM=(av,esp)=>{const r=esp>0?av/esp:1;return r>=0.9?['#1f6f68','al ritmo necesario']:r>=0.6?['#b7791f','por debajo del ritmo necesario']:['#9e2a2b','muy por debajo del ritmo necesario']};
 const AV=(av,esp)=>{const [c,t]=SEM(av,esp);return `<span class="av" title="${P(av)} del saldo al ${F(D.parametros.fecha_base)}; debería ir en ${P(esp)} (${t})"><span class="bar"><i style="width:${Math.min(100,100*av)}%;background:${c}"></i><b style="left:${Math.min(100,100*esp)}%"></b></span><span style="color:${c};font-weight:600">${P(av)}</span></span>`};
 let D;
-fetch('datos.json?'+Date.now()).then(r=>r.json()).then(j=>{D=j;pintar()}).catch(()=>{document.getElementById('meta').textContent='No se pudieron cargar los datos.'});
+let PJ=null;
+fetch('datos.json?'+Date.now()).then(r=>r.json()).then(j=>{D=j;pintar();
+ fetch('proyectos.json?'+Date.now()).then(r=>r.json()).then(p=>{PJ=p;proyectos();if(sel)detalle(sel,false)}).catch(()=>{document.getElementById('psub').textContent='No se pudo cargar el detalle por proyecto.'})
+}).catch(()=>{document.getElementById('meta').textContent='No se pudieron cargar los datos.'});
 
 function pintar(){
  const T=D.total,par=D.parametros,U=D.ues;
@@ -208,9 +223,50 @@ function tabla(){
  document.getElementById('cnt').textContent=`${R.length} de ${D.ues.length} unidades`;
  document.querySelectorAll('#cuerpo tr').forEach(tr=>tr.onclick=()=>detalle(tr.dataset.s,true));
 }
+// ---- Productos y proyectos ----
+const PCOLS=[['Producto o proyecto','n','t'],['Riesgo de reversión','ri','m'],['PIM RO','pim','m'],['Saldo al 31/10','si','m'],['Avance del saldo','av','a'],['Saldo actual','s','m'],['Devengado del día','dd','m'],['Ejecución del PIM','ej','p']];
+const TIPO=t=>t==='P'?'<span class="tipo P">Proyecto</span>':'<span class="tipo">Producto o actividad</span>';
+const ordenar=(R,k,d)=>R.sort((a,b)=>{const x=a[k],y=b[k];return(typeof x==='string'?x.localeCompare(y,'es'):(x??-1e18)-(y??-1e18))*d});
+const cabecera=(el,cols,o,d,fn)=>{el.innerHTML=cols.map(([t,k,ty])=>`<th class="${ty==='t'?'t':''} ${k===o?(d>0?'asc':'desc'):''}" data-k="${k}">${t.replace('31/10',F(D.parametros.fecha_base).slice(0,5))}</th>`).join('');el.querySelectorAll('th').forEach(th=>th.onclick=()=>fn(th.dataset.k))};
+const celdas=x=>`<td><b>${M(x.ri)}</b></td><td>${M(x.pim)}</td><td>${M(x.si)}</td><td>${x.si>0.5?AV(x.av,x.esp):'—'}</td><td>${M(x.s)}</td><td>${x.dd==null?'—':M(x.dd)}</td><td>${P(x.pim?x.dev/x.pim:0)}</td>`;
+const pieP=(R,etq)=>{const s=k=>R.reduce((a,x)=>a+(x[k]||0),0),si=s('si'),db=R.reduce((a,x)=>a+(x.si-x.s),0),esp=si>0?R.reduce((a,x)=>a+x.esp*Math.max(x.si,0),0)/si:0;
+ return `<tr><td class="t">${etq}</td><td>${M(s('ri'))}</td><td>${M(s('pim'))}</td><td>${M(si)}</td><td>${si>0.5?AV(db/si,esp):'—'}</td><td>${M(s('s'))}</td><td>${PJ.corte_anterior?M(s('dd')):'—'}</td><td>${P(s('dev')/s('pim'))}</td></tr>`};
+let pord='ri',pdir=-1,pver=25;
+function proyectos(){
+ if(!PJ)return;const q=document.getElementById('pq').value.trim().toLowerCase();
+ const uenom=Object.fromEntries(D.ues.map(u=>[u.sec,u]));
+ let R=Object.entries(PJ.ues).flatMap(([ue,l])=>l.filter(x=>x.t==='P').map(x=>({...x,ue,uen:uenom[ue]?nom(uenom[ue]):ue,ej:x.pim?x.dev/x.pim:0})));
+ const tot=R.length;if(q)R=R.filter(x=>(x.n+' '+x.c+' '+x.ue+' '+x.uen+' '+(uenom[x.ue]?.ue||'')).toLowerCase().includes(q));
+ ordenar(R,pord,pdir);
+ const cols=[PCOLS[0],['Unidad ejecutora','uen','t'],...PCOLS.slice(1)];
+ cabecera(document.getElementById('pcab'),cols,pord,pdir,k=>{pdir=pord===k?-pdir:(cols.find(c=>c[1]===k)[2]==='t'?1:-1);pord=k;proyectos()});
+ const V=R.slice(0,pver);
+ document.getElementById('pcuerpo').innerHTML=V.map(x=>`<tr data-s="${x.ue}"><td class="t" style="min-width:280px">${esc(x.n)} <span style="color:#5f6878;font-size:12.5px">(CUI ${x.c})</span></td><td class="t" style="min-width:110px">${esc(x.uen)}</td>${celdas(x)}</tr>`).join('');
+ document.getElementById('ppie').innerHTML=pieP(R,`Total (${R.length} proyectos)`).replace('<td class="t">','<td class="t" colspan="2">');
+ document.getElementById('pcnt').textContent=`${R.length} de ${tot} proyectos con RO`;
+ const b=document.getElementById('pmas');b.hidden=R.length<=pver;b.textContent=`Ver los ${R.length} proyectos`;b.onclick=()=>{pver=1e9;proyectos()};
+ document.querySelectorAll('#pcuerpo tr').forEach(tr=>tr.onclick=()=>detalle(tr.dataset.s,true));
+}
+document.getElementById('pq').oninput=()=>{pver=25;proyectos()};
+let uord='ri',udir=-1,usolo=false,uver=15,uq='';
+function proyUE(s){
+ const el=document.getElementById('pue');if(!el)return;
+ if(!PJ){el.innerHTML='<p class="nota">Cargando el detalle por producto y proyecto…</p>';return}
+ const L=(PJ.ues[s]||[]).map(x=>({...x,ej:x.pim?x.dev/x.pim:0}));const np=L.filter(x=>x.t==='P').length;
+ let R=L.filter(x=>(!usolo||x.t==='P')&&(!uq||(x.n+' '+x.c).toLowerCase().includes(uq)));ordenar(R,uord,udir);
+ el.innerHTML=`<h3 style="font-size:16px;margin-top:18px">Productos, actividades y proyectos de la unidad (orden: ${uord==='ri'&&udir<0?'riesgo, de mayor a menor':'según la columna elegida'})${PJ.corte!==D.corte?` · datos al ${F(PJ.corte)}`:''}</h3>
+ <div class="buscar"><input id="uq" type="search" placeholder="Buscar producto, proyecto o CUI…" aria-label="Buscar en la unidad" value="${esc(uq)}"><label class="chk"><input type="checkbox" id="usolo" ${usolo?'checked':''} ${np?'':'disabled'}> Solo proyectos de inversión (${np})</label><span>${R.length} de ${L.length}</span></div>
+ <div class="tabla"><table><thead><tr id="ucab"></tr></thead><tbody>${R.length?'':`<tr style="cursor:default"><td class="t" colspan="8">${usolo?'Esta unidad no tiene proyectos de inversión con Recursos Ordinarios.':'Sin resultados para la búsqueda.'}</td></tr>`}${R.slice(0,uver).map(x=>`<tr style="cursor:default"><td class="t" style="min-width:280px">${TIPO(x.t)}${esc(x.n)} <span style="color:#5f6878;font-size:12.5px">(${x.t==='P'?'CUI ':''}${x.c})</span></td>${celdas(x)}</tr>`).join('')}</tbody><tfoot>${pieP(R,`Total (${R.length})`)}</tfoot></table></div>
+ ${R.length>uver?`<button class="mas" id="umas">Ver los ${R.length}</button>`:''}
+ <p class="nota">La suma de los productos y proyectos coincide con el total de la unidad. El riesgo de la unidad es la suma del riesgo de cada uno.</p>`;
+ cabecera(document.getElementById('ucab'),PCOLS,uord,udir,k=>{udir=uord===k?-udir:(k==='n'?1:-1);uord=k;proyUE(s)});
+ const qi=document.getElementById('uq');qi.oninput=()=>{uq=qi.value.trim().toLowerCase();uver=15;proyUE(s);const n=document.getElementById('uq');n.focus();n.setSelectionRange(n.value.length,n.value.length)};
+ document.getElementById('usolo').onchange=e=>{usolo=e.target.checked;uver=15;proyUE(s)};
+ const m=document.getElementById('umas');if(m)m.onclick=()=>{uver=1e9;proyUE(s)};
+}
 document.getElementById('q').oninput=tabla;document.getElementById('fn').onchange=tabla;
 function detalle(s,ir){
- const u=D.ues.find(x=>x.sec===s);if(!u)return;sel=s;tabla();
+ const u=D.ues.find(x=>x.sec===s);if(!u)return;if(sel!==s){uq='';uver=15;usolo=false;uord='ri';udir=-1}sel=s;tabla();
  const sec=document.getElementById('detalle');sec.hidden=false;const S=D.serie_ue[s]||{saldo:[],riesgo:[]};
  const gens=Object.entries(u.gen).sort((a,b)=>b[1][3]-a[1][3]);
  const nec=u.saldo/Math.max(D.parametros.dias_habiles,1);
@@ -218,8 +274,10 @@ function detalle(s,ir){
  <div class="mini"><div><b>${M(u.saldo)}</b><small>Saldo RO (${P(u.pim?u.dev/u.pim:0)} ejecutado)</small></div><div><b style="color:#9e2a2b">${M(u.riesgo)}</b><small>Riesgo de reversión</small></div><div><b>${M(u.no_cert)}</b><small>No certificado</small></div><div><b>${M(u.cert-u.comp)}</b><small>Certificado sin compromiso</small></div><div><b>${M(u.comp-u.dev)}</b><small>Comprometido sin devengar</small></div><div><b>${M(nec)}</b><small>Necesario por día hábil · ritmo: ${M(u.ritmo/21)}</small></div><div><b style="color:${SEM(u.avance||0,u.esperado??D.parametros.avance_esperado)[0]}">${P(u.avance)}</b><small>Avance del saldo al ${F(D.parametros.fecha_base)} (debería ir en ${P(u.esperado??D.parametros.avance_esperado)})</small></div></div>
  <div class="dos"><div><h3 style="font-size:16px">Evolución diaria</h3><div id="gue"></div></div>
  <div><h3 style="font-size:16px">Por genérica (orden: riesgo)${D.parametros.corte_detalle&&D.parametros.corte_detalle!==D.corte?` · datos al ${F(D.parametros.corte_detalle)}`:''}</h3><div class="tabla" style="max-height:none"><table><thead><tr><th class="t" style="cursor:default">Genérica</th><th style="cursor:default">PIM</th><th style="cursor:default">Saldo</th><th style="cursor:default">Riesgo</th></tr></thead><tbody>${gens.map(([g,v])=>`<tr style="cursor:default"><td class="t" style="min-width:180px">${GEN[g]||g}</td><td>${M(v[0])}</td><td>${M(v[2])}</td><td>${M(v[3])}</td></tr>`).join('')}</tbody></table></div></div></div>
+ <div id="pue"></div>
  <p class="nota">La unidad ocupa el puesto ${D.ues.indexOf(u)+1} de ${D.ues.length} por riesgo de reversión.</p>`;
  linea(document.getElementById('gue'),D.fechas,[{n:'Saldo RO',v:S.saldo,c:'#a86a12'},{n:'Riesgo de reversión',v:S.riesgo,c:'#9e2a2b'}],200);
+ proyUE(s);
  if(ir)sec.scrollIntoView({behavior:'smooth'});
 }
 </script>

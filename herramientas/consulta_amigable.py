@@ -58,18 +58,39 @@ def fecha_actualizacion(txt):
     return dt.date(int(m.group(3)), MESES[m.group(2).lower()], int(m.group(1)))
 
 
-def por_ejecutora(anio, nivel, sector, pliego, fuente="1", timeout=60):
-    """Devuelve (filas, fecha_actualizacion). filas = {sec_ejec: {campo: monto}}."""
+def _filas_con_nombre(txt):
+    """Filas de la tabla: (valor del botón de selección, nombre). El nombre va como «código: NOMBRE» en la misma fila."""
+    out = []
+    for tr in re.findall(r"<tr\b.*?</tr>", txt, re.I | re.S):
+        m = re.search(r'<input\b[^>]*type\s*=\s*"radio"[^>]*value\s*=\s*"([^"]*)"', tr, re.I) or \
+            re.search(r'<input\b[^>]*value\s*=\s*"([^"]*)"[^>]*type\s*=\s*"radio"', tr, re.I)
+        if not m:
+            continue
+        v = _html.unescape(m.group(1))
+        t = re.sub(r"\s+", " ", _html.unescape(re.sub(r"<[^>]+>", " ", tr))).strip()
+        cod = v.split("/")[0]
+        n = re.search(re.escape(cod) + r"\s*:\s*(.+?)(?:\s+-?[\d,]+(?:\.\d+)?)*\s*(?:Sistema de Seguimiento.*)?$", t)
+        out.append((v, n.group(1).strip() if n else t))
+    return out
+
+
+def _montos(v):
+    p = v.split("/")
+    return (p[0], {c: float(x) for c, x in zip(CAMPOS, p[1:])}) if len(p) == 1 + len(CAMPOS) else (None, None)
+
+
+def por_ejecutora(anio, nivel, sector, pliego, fuente="1", timeout=60, productos=False):
+    """Devuelve (filas, fecha, prod).
+    filas = {sec_ejec: {campo: monto}}; prod = {sec_ejec: {código: {"nombre": ..., campo: monto}}} si productos=True."""
     import requests
     s = requests.Session()
     s.headers.update({"User-Agent": "Mozilla/5.0 (cuadro de control de saldos)"})
     r = s.get(BASE.format(anio=anio), timeout=timeout)
     r.raise_for_status()
-    estado = {"url": r.url, "txt": r.text}
     fecha = fecha_actualizacion(r.text)          # la fecha aparece en la portada del navegador
 
-    def paso(boton, empieza=None):
-        txt, url = estado["txt"], estado["url"]
+    def paso(est, boton, empieza=None):
+        txt, url = est
         datos = dict(_inputs(txt, "hidden"))
         datos.update(dict(_selects(txt)))
         if empieza is not None:
@@ -83,26 +104,36 @@ def por_ejecutora(anio, nivel, sector, pliego, fuente="1", timeout=60):
         datos[btn[0]] = boton
         rr = s.post(_accion(txt, url), data=datos, timeout=timeout)
         rr.raise_for_status()
-        estado["url"], estado["txt"] = rr.url, rr.text
+        return rr.text, rr.url
 
-    paso("Nivel de Gobierno")
-    paso("Sector", nivel)
-    paso("Pliego", sector)
-    paso("Fuente", pliego)
-    paso("Ejecutora", fuente)
+    est = (r.text, r.url)
+    est = paso(est, "Nivel de Gobierno")
+    est = paso(est, "Sector", nivel)
+    est = paso(est, "Pliego", sector)
+    est = paso(est, "Fuente", pliego)
+    ejec = paso(est, "Ejecutora", fuente)
     filas = {}
-    for _, v in _inputs(estado["txt"], "radio"):
-        p = v.split("/")
-        if len(p) != 1 + len(CAMPOS):
-            continue
-        filas[p[0]] = {c: float(x) for c, x in zip(CAMPOS, p[1:])}
+    for _, v in _inputs(ejec[0], "radio"):
+        k, m = _montos(v)
+        if k:
+            filas[k] = m
     if not filas:
         raise RuntimeError("Consulta Amigable: la lista de unidades ejecutoras llegó vacía")
-    return filas, (fecha or fecha_actualizacion(estado["txt"]))
+    prod = {}
+    if productos:
+        for ue in filas:                           # desde la lista de unidades se entra a cada una (el estado viaja en la página)
+            txt, _ = paso(ejec, "Producto/Proyecto", ue)
+            d = {}
+            for v, nom in _filas_con_nombre(txt):
+                k, m = _montos(v)
+                if k:
+                    d[k] = dict(m, nombre=nom)
+            prod[ue] = d
+    return filas, fecha, prod
 
 
 if __name__ == "__main__":
     a = sys.argv[1:] or ["2026", "E", "11", "011", "1"]
-    f, fecha = por_ejecutora(int(a[0]), a[1], a[2], a[3], a[4] if len(a) > 4 else "1")
-    print(f"actualización: {fecha} · unidades: {len(f)}")
+    f, fecha, pr = por_ejecutora(int(a[0]), a[1], a[2], a[3], a[4] if len(a) > 4 else "1", productos="--productos" in sys.argv)
+    print(f"actualización: {fecha} · unidades: {len(f)} · productos/proyectos: {sum(len(x) for x in pr.values())}")
     print(f"PIM S/ {sum(x['PIM'] for x in f.values()) / 1e6:,.1f} M · devengado S/ {sum(x['DEVENGADO'] for x in f.values()) / 1e6:,.1f} M")
