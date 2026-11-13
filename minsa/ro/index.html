@@ -293,7 +293,7 @@ function pintar(){
  // estado de actualización
  const hoy=hoyLima(),ult=new Date(D.corte+'T12:00:00');let hab=0;for(let d=new Date(ult);d<hoy;d.setDate(d.getDate()+1)){if(d>ult&&d.getDay()%6!==0)hab++}
  const horas=cons?(Date.now()-cons.getTime())/36e5:99;const av=[];
- if(hab>1)av.push(`Los datos son del ${F(D.corte)}: el MEF aún no publica la ejecución posterior. <small>Se consulta a las 9:47, 15:13 y 19:13.</small>`);
+ if(hab>1)av.push(`Los datos son del ${F(D.corte)}: el MEF aún no publica la ejecución posterior. <small>Se revisa cada hora, de 7:00 a 23:00, si el MEF publicó algo nuevo.</small>`);
  if(horas>12)av.push(`La última consulta exitosa fue hace ${Math.round(horas)} horas. <small>Se muestra el último dato válido; puede estar desactualizado.</small>`);
  document.getElementById('vigencia').innerHTML=av.length?aviso(av.join(' '),'ambar',I_ALE):'';
  const comp=U.filter(u=>u.dev_ant!=null),dd=u=>u.dev_ant!=null?u.dev-u.dev_ant:null;

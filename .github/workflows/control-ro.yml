@@ -1,11 +1,17 @@
 name: Control diario de Recursos Ordinarios
 
+# Sigue el ritmo del MEF: cada hora, de 7:23 a 23:23 (hora de Lima), una revisión liviana pregunta si la Consulta Amigable
+# o el archivo diario de Datos Abiertos cambiaron. Solo si hay novedad se descarga, se calcula y se publica.
 on:
   schedule:
-    - cron: "47 14 * * *"   # 09:47 hora de Lima, después de la publicación diaria del MEF
-    - cron: "13 20 * * *"   # 15:13 hora de Lima, segundo intento si el archivo salió tarde
-    - cron: "13 0 * * *"    # 19:13 hora de Lima, tercer intento (la Consulta Amigable se actualiza durante el día)
+    - cron: "23 12-23 * * *"   # 7:23 a 18:23 hora de Lima
+    - cron: "23 0-4 * * *"     # 19:23 a 23:23 hora de Lima
   workflow_dispatch:
+    inputs:
+      forzar:
+        description: "Actualizar aunque el MEF no haya publicado nada nuevo"
+        type: boolean
+        default: true
 
 permissions:
   contents: write
@@ -15,11 +21,44 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  vigilar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    outputs:
+      novedad: ${{ steps.mef.outputs.novedad }}
+      ca_fecha: ${{ steps.mef.outputs.ca_fecha }}
+      da_publicado: ${{ steps.mef.outputs.da_publicado }}
+      da_clave: ${{ steps.mef.outputs.da_clave }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            herramientas
+            minsa/ro
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -q requests
+      - name: Revisar si el MEF publicó algo nuevo
+        id: mef
+        run: python herramientas/vigilar_mef.py
+      - name: Resultado
+        run: |
+          if [ "${{ steps.mef.outputs.novedad }}" = "true" ] || [ "${{ github.event_name }}" = "workflow_dispatch" -a "${{ inputs.forzar }}" = "true" ]; then
+            echo "::notice::Se actualiza: ${{ steps.mef.outputs.motivo }}"
+          else
+            echo "::notice::Sin novedades del MEF; no se descarga nada."
+          fi
+
   actualizar:
+    needs: vigilar
+    if: needs.vigilar.outputs.novedad == 'true' || (github.event_name == 'workflow_dispatch' && inputs.forzar)
     runs-on: ubuntu-latest
     timeout-minutes: 170
     env:
       HAY_NUCLEO: ${{ secrets.KRONOS_DEPLOY_KEY != '' }}
+      GASTO: kronos/pliegos/entidades/minsa/datos/pliego_minsa_gasto_2026.json
+      DA_CLAVE: ${{ needs.vigilar.outputs.da_clave }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -34,20 +73,34 @@ jobs:
           repository: AlcaldealdIA/kronos-nucleo
           ssh-key: ${{ secrets.KRONOS_DEPLOY_KEY }}
           path: kronos
+      - name: Reusar el archivo de gasto si ya se leyó esta misma publicación del MEF
+        id: cache
+        if: env.HAY_NUCLEO == 'true' && env.DA_CLAVE != 'sin-fecha'
+        uses: actions/cache/restore@v4
+        with:
+          path: ${{ env.GASTO }}
+          key: gasto-minsa-2026-${{ env.DA_CLAVE }}
       - name: Descargar el gasto del pliego (todas las fuentes, una sola lectura del archivo del MEF)
-        if: env.HAY_NUCLEO == 'true'
+        if: env.HAY_NUCLEO == 'true' && steps.cache.outputs.cache-hit != 'true'
         run: python kronos/pliegos/datos/descargar_pliego.py minsa --sin-inversiones
+      - name: Guardar el archivo de gasto para las próximas corridas
+        if: env.HAY_NUCLEO == 'true' && steps.cache.outputs.cache-hit != 'true' && env.DA_CLAVE != 'sin-fecha'
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: ${{ env.GASTO }}
+          key: gasto-minsa-2026-${{ env.DA_CLAVE }}
       - name: Calcular el control diario de RO
         run: |
           if [ "$HAY_NUCLEO" = "true" ]; then
-            python herramientas/tablero_ro.py minsa --json kronos/pliegos/entidades/minsa/datos/pliego_minsa_gasto_2026.json
+            python herramientas/tablero_ro.py minsa --json "$GASTO"
           else
             python herramientas/tablero_ro.py minsa
           fi
       - name: Actualizar el informe de saldos si el MEF publicó un archivo nuevo
         if: env.HAY_NUCLEO == 'true'
         run: |
-          nuevo=$(python -c "import json,re;s=open('kronos/pliegos/entidades/minsa/datos/pliego_minsa_gasto_2026.json').read(600);print(re.search(r'\"publicado\":\s*\"([^\"]+)\"',s).group(1))")
+          nuevo=$(python -c "import re;s=open('$GASTO').read(600);print(re.search(r'\"publicado\":\s*\"([^\"]+)\"',s).group(1))")
           previo=$(python -c "import json;print(json.load(open('minsa/estado_informe.json')).get('publicado') or '')" 2>/dev/null || echo "")
           echo "archivo del MEF: $nuevo · informe publicado con: $previo"
           if [ "$nuevo" = "$previo" ]; then echo "El informe ya está al día."; exit 0; fi
@@ -59,13 +112,20 @@ jobs:
             cp $W/ro_referencias.json minsa/ro/referencias.json
             python herramientas/actualizar_portada.py
           else
+            touch /tmp/informe_fallo
             echo "::warning::Una comprobación del informe falló; se conserva la versión anterior."
           fi
+      - name: Registrar lo que se vio del MEF
+        run: |
+          # Si el informe falló, no se da por vista la publicación de Datos Abiertos: la próxima revisión volverá a intentarlo.
+          da="${{ needs.vigilar.outputs.da_publicado }}"
+          if [ -f /tmp/informe_fallo ] || [ "$HAY_NUCLEO" != "true" ]; then da=""; fi
+          python herramientas/vigilar_mef.py --guardar "${{ needs.vigilar.outputs.ca_fecha }}" "$da"
       - name: Publicar
         run: |
           git config user.name "MinistroaldIA"
           git config user.email "noreply@users.noreply.github.com"
-          git add minsa/ro/historial.csv minsa/ro/datos.json minsa/ro/proyectos.json minsa/ro/historial_proyectos.csv minsa/ro/referencias.json
+          git add minsa/ro/historial.csv minsa/ro/datos.json minsa/ro/proyectos.json minsa/ro/historial_proyectos.csv minsa/ro/referencias.json minsa/ro/fuentes_vistas.json
           git add -A minsa/index.html minsa/anexos.html minsa/estado_informe.json minsa/descargas index.html 2>/dev/null || true
           if git diff --cached --quiet; then echo "Sin cambios."; exit 0; fi
           inf=""
