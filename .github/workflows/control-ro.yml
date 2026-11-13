@@ -26,7 +26,7 @@ jobs:
         with:
           python-version: "3.12"
       - name: Instalar dependencias
-        run: pip install pandas requests openpyxl lxml beautifulsoup4 markdown html5lib
+        run: pip install pandas requests openpyxl lxml beautifulsoup4 markdown html5lib python-docx pypdf qrcode
       - name: Traer el núcleo de análisis (repositorio privado)
         if: env.HAY_NUCLEO == 'true'
         uses: actions/checkout@v4
