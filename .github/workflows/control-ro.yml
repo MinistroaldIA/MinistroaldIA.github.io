@@ -4,6 +4,7 @@ on:
   schedule:
     - cron: "47 14 * * *"   # 09:47 hora de Lima, después de la publicación diaria del MEF
     - cron: "13 20 * * *"   # 15:13 hora de Lima, segundo intento si el archivo salió tarde
+    - cron: "13 0 * * *"    # 19:13 hora de Lima, tercer intento (la Consulta Amigable se actualiza durante el día)
   workflow_dispatch:
 
 permissions:

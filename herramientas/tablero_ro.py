@@ -100,6 +100,57 @@ def dias_habiles(desde, hasta):
     return n
 
 
+def tiempo(corte, anio, mes_base=10):
+    """Meses que faltan al 31/12, días hábiles y avance esperado (lineal y por mes cerrado) a una fecha de corte."""
+    M, dia = corte.month, corte.day
+    dmes = calendar.monthrange(anio, M)[1]
+    meses_rest = (0.0 if dia == dmes else (dmes - dia) / dmes) + (12 - M)
+    fin_b = dt.date(anio, mes_base, calendar.monthrange(anio, mes_base)[1])
+    ht = dias_habiles(fin_b + dt.timedelta(days=1), dt.date(anio, 12, 31))
+    hp = dias_habiles(fin_b + dt.timedelta(days=1), corte)
+    mc = (M - mes_base - 1) + (1 if dia == dmes else 0)
+    return {"meses_rest": meses_rest, "habiles_rest": dias_habiles(corte + dt.timedelta(days=1), dt.date(anio, 12, 31)),
+            "fin_base": fin_b, "habiles_total": ht, "habiles_pasados": hp, "esp_lin": hp / ht if ht else 0.0,
+            "esp_mes": max(0, mc) / (12 - mes_base)}
+
+
+def con_consulta_amigable(g, par, corte_da, cfg):
+    """Reemplaza las cifras del día por las de la Consulta Amigable si trae un corte más reciente.
+    El ritmo de los meses completos y el detalle por genérica siguen saliendo de Datos Abiertos."""
+    try:
+        import consulta_amigable as CA
+        filas, fecha = CA.por_ejecutora(cfg["anio"], cfg["nivel"], cfg["sector"], cfg["pliego"], "1")
+    except Exception as e:                                   # sin acceso o cambió la página: se sigue con Datos Abiertos
+        print(f"Consulta Amigable no disponible ({e}); se usa Datos Abiertos")
+        return g, par, corte_da, "Datos Abiertos"
+    if not fecha or fecha <= corte_da:
+        print(f"Consulta Amigable al {fecha}: no es más reciente que Datos Abiertos ({corte_da})")
+        return g, par, corte_da, "Datos Abiertos"
+    falt = sorted(set(g.SEC_EJEC) - set(filas))
+    if falt:
+        print(f"Consulta Amigable sin las UE {falt}; se usa Datos Abiertos")
+        return g, par, corte_da, "Datos Abiertos"
+    t0, t1 = tiempo(corte_da, cfg["anio"], cfg.get("mes_base", 10)), tiempo(fecha, cfg["anio"], cfg.get("mes_base", 10))
+    g = g.copy()
+    dev_da = g.DEVENGADO.copy()
+    hasta_base = g.DEVENGADO - g.dev_desde_base
+    for c, k in (("PIM", "PIM"), ("CERTIFICADO", "CERTIFICADO"), ("COMPROMETIDO", "COMPROMETIDO_ANUAL"), ("DEVENGADO", "DEVENGADO")):
+        g[c] = g.SEC_EJEC.map(lambda x: filas[x][k])
+    g["saldo"] = g.PIM - g.DEVENGADO
+    g["no_certificado"] = g.PIM - g.CERTIFICADO
+    g["dev_mes_corte"] = g.dev_mes_corte + (g.DEVENGADO - dev_da)
+    g["dev_desde_base"] = g.DEVENGADO - hasta_base
+    f = (t1["meses_rest"] / t0["meses_rest"]) if t0["meses_rest"] > 0 else 0.0
+    g["adicional"] = pd.concat([g.adicional * f, g.saldo.clip(lower=0)], axis=1).min(axis=1)
+    g["riesgo"] = g.saldo - g.adicional
+    g["esperado"] = g.w_planilla * t1["esp_mes"] + (1 - g.w_planilla) * t1["esp_lin"]
+    par = dict(par, meses_restantes=round(t1["meses_rest"], 4), dias_habiles=t1["habiles_rest"], habiles_desde_base=t1["habiles_pasados"],
+               avance_esperado=round(t1["esp_lin"], 4), corte_detalle=corte_da.isoformat(),
+               publicado_lima=f"Consulta Amigable, actualizada al {fecha.strftime('%d/%m/%Y')}")
+    print(f"Consulta Amigable al {fecha}: devengado RO S/ {g.DEVENGADO.sum() / 1e6:,.1f} M (Datos Abiertos al {corte_da}: S/ {dev_da.sum() / 1e6:,.1f} M)")
+    return g, par, fecha, "Consulta Amigable"
+
+
 def calcular(df, publicado, anio, mes_base=10):
     """El archivo se publica en la mañana (hora de Lima) con datos hasta el día anterior."""
     lima = parsedate_to_datetime(publicado) - dt.timedelta(hours=5)
@@ -138,6 +189,8 @@ def calcular(df, publicado, anio, mes_base=10):
     U["esp_w"] = U.saldo_ini.clip(lower=0) * U.GENERICA.astype(str).isin(["1", "2"]).map({True: esp_mes, False: esp_lin})
     _w = U.groupby("SEC_EJEC")[["saldo_ini", "esp_w"]].sum()
     g["esperado"] = (_w.esp_w / U.assign(si=U.saldo_ini.clip(lower=0)).groupby("SEC_EJEC").si.sum()).fillna(0.0)
+    _si = U.assign(si=U.saldo_ini.clip(lower=0))
+    g["w_planilla"] = (_si[_si.GENERICA.astype(str).isin(["1", "2"])].groupby("SEC_EJEC").si.sum() / _si.groupby("SEC_EJEC").si.sum()).reindex(g.index).fillna(0.0)
     g["ritmo_mensual"] = U.groupby("SEC_EJEC")[completos].sum().mean(axis=1)
     gen = U.groupby(["SEC_EJEC", "GENERICA"])[["PIM", "DEVENGADO", "saldo", "riesgo"]].sum().reset_index()
     mensual = df[df.MES_EJE > 0].groupby("MES_EJE").DEVENGADO.sum().reindex(range(1, 13)).fillna(0.0)
@@ -158,6 +211,11 @@ def main():
     os.makedirs(out, exist_ok=True)
     df, nombres, publicado = desde_json(sys.argv[3], cfg.get("excluir_json", [])) if "--json" in sys.argv else descargar(cfg)
     corte, g, gen, mensual, par = calcular(df, publicado, cfg["anio"], cfg.get("mes_base", 10))
+    par["corte_detalle"] = corte.isoformat()
+    fuente = "Datos Abiertos"
+    if "--sin-ca" not in sys.argv:
+        g, par, corte, fuente = con_consulta_amigable(g, par, corte, cfg)
+    par["fuente"] = fuente
     fc = corte.isoformat()
     g.insert(0, "fecha_corte", fc)
     g["UE"] = g.SEC_EJEC.map(lambda x: nombre(nombres.get(x, x)))
