@@ -35,7 +35,10 @@ FERIADOS_DIC = {8, 25}   # días no laborables fijos que quedan en diciembre
 _MIN = {"De", "Del", "La", "Las", "Los", "Y", "En", "El", "Para", "A", "Por"}
 _TILDE = {"Administracion": "Administración", "Direccion": "Dirección", "Credito": "Crédito", "Estrategicos": "Estratégicos", "Pediatricas": "Pediátricas",
           "Creacion": "Creación", "Atencion": "Atención", "Rehabilitacion": "Rehabilitación", "Oftalmologia": "Oftalmología", "Neurologicas": "Neurológicas",
-          "Movil": "Móvil", "Huaycan": "Huaycán", "Lima Este - Vitarte": "Lima Este - Vitarte", "Bartolome": "Bartolomé", "Valdizan": "Valdizán"}
+          "Movil": "Móvil", "Huaycan": "Huaycán", "Lima Este - Vitarte": "Lima Este - Vitarte", "Bartolome": "Bartolomé", "Valdizan": "Valdizán", "Ampliacion": "Ampliación", "Preparacion": "Preparación", "Recuperacion": "Recuperación",
+          "Implementacion": "Implementación", "Adquisicion": "Adquisición", "Instalacion": "Instalación", "Construccion": "Construcción",
+          "Prevencion": "Prevención", "Vacunacion": "Vacunación", "Gestion": "Gestión", "Infeccion": "Infección", "Nutricion": "Nutrición",
+          "Poblacion": "Población", "Evaluacion": "Evaluación", "Proteccion": "Protección", "Rehabilitacion": "Rehabilitación"}
 
 
 def nombre(t):
