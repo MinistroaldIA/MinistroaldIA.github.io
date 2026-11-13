@@ -1,0 +1,20 @@
+{
+ "corte": "2026-11-11",
+ "corte_txt": "11/11/2026",
+ "publicado": null,
+ "pim": 11815990105.0,
+ "devengado": 9183665043.52,
+ "saldo": 2632325061.4799995,
+ "ok": true,
+ "controles": [
+  "ninguna UE del archivo fuera del padrón",
+  "sin unidades duplicadas",
+  "proyección dentro del PIM en todas las unidades",
+  "devengado adicional nunca negativo",
+  "saldo por devengar = PIM − devengado",
+  "sin certificar = PIM − certificado",
+  "PIM y devengado con valores",
+  "la web muestra el corte 11/11/2026",
+  "la web muestra el PIM del pliego"
+ ]
+}

@@ -17,25 +17,59 @@ concurrency:
 jobs:
   actualizar:
     runs-on: ubuntu-latest
-    timeout-minutes: 150
+    timeout-minutes: 170
+    env:
+      HAY_NUCLEO: ${{ secrets.KRONOS_DEPLOY_KEY != '' }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - name: Instalar dependencias
-        run: pip install pandas requests
-      - name: Descargar el archivo diario del MEF y calcular el cuadro del MINSA
-        run: python herramientas/tablero_ro.py minsa
-      - name: Publicar si hay un corte nuevo
+        run: pip install pandas requests openpyxl lxml beautifulsoup4 markdown html5lib
+      - name: Traer el núcleo de análisis (repositorio privado)
+        if: env.HAY_NUCLEO == 'true'
+        uses: actions/checkout@v4
+        with:
+          repository: AlcaldealdIA/kronos-nucleo
+          ssh-key: ${{ secrets.KRONOS_DEPLOY_KEY }}
+          path: kronos
+      - name: Descargar el gasto del pliego (todas las fuentes, una sola lectura del archivo del MEF)
+        if: env.HAY_NUCLEO == 'true'
+        run: python kronos/pliegos/datos/descargar_pliego.py minsa --sin-inversiones
+      - name: Calcular el control diario de RO
+        run: |
+          if [ "$HAY_NUCLEO" = "true" ]; then
+            python herramientas/tablero_ro.py minsa --json kronos/pliegos/entidades/minsa/datos/pliego_minsa_gasto_2026.json
+          else
+            python herramientas/tablero_ro.py minsa
+          fi
+      - name: Actualizar el informe de saldos si el MEF publicó un archivo nuevo
+        if: env.HAY_NUCLEO == 'true'
+        run: |
+          nuevo=$(python -c "import json,re;s=open('kronos/pliegos/entidades/minsa/datos/pliego_minsa_gasto_2026.json').read(600);print(re.search(r'\"publicado\":\s*\"([^\"]+)\"',s).group(1))")
+          previo=$(python -c "import json;print(json.load(open('minsa/estado_informe.json')).get('publicado') or '')" 2>/dev/null || echo "")
+          echo "archivo del MEF: $nuevo · informe publicado con: $previo"
+          if [ "$nuevo" = "$previo" ]; then echo "El informe ya está al día."; exit 0; fi
+          python kronos/pliegos/datos/descargar_pliego.py minsa --solo-inversiones
+          if python kronos/pliegos/automatico.py minsa; then
+            W=kronos/salida/pliegos/minsa/web_publica
+            cp $W/index.html $W/anexos.html $W/estado_informe.json minsa/
+            rm -f minsa/descargas/*.xlsx && cp $W/descargas/*.xlsx minsa/descargas/
+            cp $W/ro_referencias.json minsa/ro/referencias.json
+            python herramientas/actualizar_portada.py
+          else
+            echo "::warning::Una comprobación del informe falló; se conserva la versión anterior."
+          fi
+      - name: Publicar
         run: |
           git config user.name "MinistroaldIA"
           git config user.email "noreply@users.noreply.github.com"
-          git add minsa/ro/historial.csv minsa/ro/datos.json minsa/ro/proyectos.json minsa/ro/historial_proyectos.csv
-          if git diff --cached --quiet -- minsa/ro/historial.csv minsa/ro/proyectos.json; then
-            # sin corte nuevo: se publica igual la hora de la última consulta exitosa (datos.json), para que el portal muestre su antigüedad
-            if git diff --cached --quiet; then echo "Sin cambios."; else git commit -m "Control RO MINSA: consulta sin corte nuevo" && git push; fi
-          else
-            git commit -m "Control RO MINSA: corte $(python -c "import json;print(json.load(open('minsa/ro/datos.json'))['corte'])")"
-            git push
-          fi
+          git add minsa/ro/historial.csv minsa/ro/datos.json minsa/ro/proyectos.json minsa/ro/historial_proyectos.csv minsa/ro/referencias.json
+          git add -A minsa/index.html minsa/anexos.html minsa/estado_informe.json minsa/descargas index.html 2>/dev/null || true
+          if git diff --cached --quiet; then echo "Sin cambios."; exit 0; fi
+          inf=""
+          if ! git diff --cached --quiet -- minsa/index.html; then inf=" · informe al $(python -c "import json;print(json.load(open('minsa/estado_informe.json'))['corte_txt'])")"; fi
+          if git diff --cached --quiet -- minsa/ro/historial.csv minsa/ro/proyectos.json; then msg="consulta sin corte nuevo"; else msg="corte $(python -c "import json;print(json.load(open('minsa/ro/datos.json'))['corte'])")"; fi
+          git commit -m "Control RO MINSA: ${msg}${inf}"
+          git push
