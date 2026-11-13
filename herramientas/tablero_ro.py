@@ -31,6 +31,7 @@ C = {"MES": 1, "NIVEL": 2, "SECTOR": 4, "PLIEGO": 6, "SEC_EJEC": 8, "EJEC_NOM": 
      "META": 32, "FUENTE": 37, "RUBRO": 39, "GEN": 46, "GEN_NOM": 47, "M0": 56}
 MONTOS = ["PIA", "PIM", "CERTIFICADO", "COMPROMETIDO_ANUAL", "COMPROMETIDO", "DEVENGADO", "GIRADO"]
 LLAVES = ["SEC_EJEC", "SEC_FUNC", "TIPO_ACT_PROY", "PRODUCTO_PROYECTO", "META", "RUBRO", "GENERICA"]
+METODO = "2026-11-13.2"     # subir la versión (y describirla en <id>/ro/revisiones.json) cada vez que cambie el cálculo
 FERIADOS_DIC = {8, 9, 25}   # feriados nacionales de diciembre: Inmaculada Concepción, Batalla de Ayacucho (Ley 31381) y Navidad
 CALENDARIO = ("Días hábiles: lunes a viernes, sin los feriados nacionales del 8, 9 y 25 de diciembre. Se cuentan desde el día siguiente al corte "
               "hasta el 31 de diciembre. No incluye días no laborables que el Gobierno decrete después.")
@@ -361,6 +362,62 @@ def controles(g, ues, tot, P):
     return c
 
 
+def procedencia(fuente, corte, corte_da, publicado, PR_ca):
+    """Fuente real de cada componente del corte que se publica (se muestra en la cabecera, las fichas y el método)."""
+    f = lambda d: d.strftime("%d/%m/%Y")
+    da = f"Datos Abiertos al {f(corte_da)}" + (f" (archivo publicado {publicado})" if publicado else "")
+    dia = f"Consulta Amigable al {f(corte)}" if fuente == "Consulta Amigable" else f"Datos Abiertos al {f(corte_da)}"
+    return [
+        {"componente": "Cifras del día por unidad: PIM, certificado, compromiso y devengado", "fuente": dia},
+        {"componente": "Productos, actividades y proyectos de cada unidad", "fuente": dia if PR_ca else f"Datos Abiertos al {f(corte_da)}"},
+        {"componente": "Ritmo de los tres últimos meses completos, detalle por meta y genérica, y devengado mensual", "fuente": da},
+        {"componente": "Escenario según patrones de 2023–2025", "fuente": "Datos Abiertos, años cerrados 2023, 2024 y 2025 (devengado mensual por unidad y genérica)"},
+        {"componente": "Días hábiles al 31/12", "fuente": "Calendario de lunes a viernes sin los feriados nacionales del 8, 9 y 25 de diciembre"},
+    ]
+
+
+def fdm(iso):
+    return "/".join(reversed(iso.split("-"))) if iso else "—"
+
+
+CAMPOS_REV = [("PIM", "PIM"), ("DEVENGADO", "Devengado"), ("saldo", "Saldo por devengar"), ("no_certificado", "Sin certificar"),
+              ("riesgo", "Riesgo estimado (ejecución reciente)"), ("riesgo_hist", "Riesgo según patrones 2023–2025")]
+
+
+def revisar(out, J):
+    """Si se vuelve a publicar un corte ya publicado con cifras distintas, lo anota en revisiones.json con fecha, motivo y efecto.
+    También guarda los valores con que se publicó cada corte por primera vez. No borra ni reescribe revisiones anteriores."""
+    fr, fd = os.path.join(out, "revisiones.json"), os.path.join(out, "datos.json")
+    R = json.load(open(fr, encoding="utf-8")) if os.path.isfile(fr) else {"revisiones": [], "primera_publicacion": {}, "metodos": []}
+    A = json.load(open(fd, encoding="utf-8")) if os.path.isfile(fd) else None
+    par, fc, T = J["parametros"], J["corte"], J["total"]
+    ahora = par["consulta_ok"]
+    R.setdefault("primera_publicacion", {})
+    if fc not in R["primera_publicacion"]:
+        R["primera_publicacion"][fc] = {"publicado": ahora, "fuente": par["fuente"], "corte_detalle": par.get("corte_detalle"),
+                                        **{k: T.get(k) for k, _ in CAMPOS_REV}}
+    if A and A.get("corte") == fc:
+        pa, TA = A.get("parametros", {}), A.get("total", {})
+        motivos = []
+        if pa.get("metodo") != par.get("metodo"):
+            motivos.append(f"cambio de método (versión {pa.get('metodo') or 'anterior'} → {par.get('metodo')}; ver la lista de métodos)")
+        if pa.get("fuente") != par.get("fuente"):
+            motivos.append(f"las cifras del día pasaron de {pa.get('fuente')} a {par.get('fuente')}")
+        if pa.get("corte_detalle") != par.get("corte_detalle"):
+            motivos.append(f"el ritmo y el detalle de Datos Abiertos pasaron del {fdm(pa.get('corte_detalle'))} al {fdm(par.get('corte_detalle'))}")
+        if not motivos:
+            motivos.append("misma fuente y mismo método: el MEF modificó cifras ya publicadas (causa por verificar)")
+        for k, etq in CAMPOS_REV:
+            a, d = TA.get(k), T.get(k)
+            if (a is None) != (d is None) or (a is not None and abs(d - a) >= 1):
+                R["revisiones"].append({"registrado": ahora, "corte": fc, "indicador": etq, "antes": a, "despues": d,
+                                        "motivo": (lambda t: t[:1].upper() + t[1:])("; ".join(motivos)) + ".",
+                                        "tipo": "método" if pa.get("metodo") != par.get("metodo") else ("fuente" if len(motivos) and "MEF modificó" not in motivos[0] else "dato")})
+    R["metodo_vigente"] = par.get("metodo")
+    json.dump(R, open(fr, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    J["revisiones_corte"] = [x for x in R["revisiones"] if x["corte"] == fc]
+
+
 def main():
     eid = sys.argv[1]
     cfg = json.load(open(os.path.join(AQUI, "pliegos.json"), encoding="utf-8"))[eid]
@@ -379,6 +436,9 @@ def main():
     par["fuente"] = fuente
     par["consulta_ok"] = dt.datetime.now(dt.timezone(dt.timedelta(hours=-5))).strftime("%Y-%m-%dT%H:%M")
     par["calendario"] = CALENDARIO
+    par["metodo"] = METODO
+    par["da_publicado"] = publicado
+    par["procedencia"] = procedencia(fuente, corte, corte_da, publicado, PR_ca=(fuente == "Consulta Amigable"))
     # escenario según patrones de 2023–2025, aplicado a la fecha de corte que se publica
     RH = riesgo_hist_ue(calcular.UG, corte)
     if RH is not None:
@@ -417,7 +477,7 @@ def main():
              "no_cert": r.no_certificado, "adicional": r.adicional, "riesgo": r.riesgo, "dev_mes": r.dev_mes_corte, "ritmo": r.ritmo_mensual,
              "dev_base": r.dev_desde_base, "saldo_ini": r.saldo + r.dev_desde_base,
              "avance": (r.dev_desde_base / (r.saldo + r.dev_desde_base)) if (r.saldo + r.dev_desde_base) > 0 else 0.0,
-             "esperado": r.esperado,
+             "esperado": r.esperado, "w_pl": round(float(getattr(r, "w_planilla", 0.0)), 4),
              "riesgo_hist": getattr(r, "riesgo_hist", None), "rh_bajo": getattr(r, "rh_bajo", None), "rh_alto": getattr(r, "rh_alto", None),
              "gen": {x.GENERICA: [x.PIM, x.DEVENGADO, x.saldo, x.riesgo] for x in gen[gen.SEC_EJEC == r.SEC_EJEC].itertuples() if abs(x.PIM) > 0.5}}
         if P is not None and r.SEC_EJEC in P.index:
@@ -440,6 +500,7 @@ def main():
          "controles": controles(g, ues, serie.loc[fc], P),
          "fuentes": [(H[H.fecha_corte == f_].fuente.dropna().iloc[0] if "fuente" in H.columns and H[H.fecha_corte == f_].fuente.notna().any() else None) for f_ in serie.index],
          "mensual": mensual.round(2).tolist(), "ues": ues}
+    revisar(out, J)
     json.dump(J, open(os.path.join(out, "datos.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print(f"corte {fc} · {len(ues)} UE · saldo RO S/ {J['total']['saldo'] / 1e6:,.1f} M · riesgo S/ {J['total']['riesgo'] / 1e6:,.1f} M")
 

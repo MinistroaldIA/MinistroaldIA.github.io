@@ -7,6 +7,7 @@
 <meta name="description" content="Cuadro de control diario de los saldos de Recursos Ordinarios por unidad ejecutora y riesgo estimado de reversión al 31 de diciembre.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ccircle cx=%228%22 cy=%228%22 r=%227%22 fill=%22%2313294b%22/%3E%3C/svg%3E">
 <style>
 :root{--bg:#faf8f3;--card:#fff;--ink:#1d2433;--muted:#5f6878;--line:#e3dccd;--soft:#f5f1e8;--navy:#13294b;--turq:#19c39c;--turq-d:#0f8f72;--turq-s:#e3f4ef;
 --alto:#c0392b;--alto-t:#fde3e0;--medio:#d99a06;--medio-t:#fbeccc;--bajo:#1f8f6a;--bajo-t:#d8f5ec;
@@ -155,6 +156,15 @@ footer{margin-top:36px;border-top:1px solid var(--line);padding:20px 0 36px;colo
 .ctx .tg{font:700 12.5px var(--f-t);color:var(--navy)}
 .volver{margin:0 0 10px}
 details.valores{margin-top:8px;font-size:13px}details.valores summary{cursor:pointer;color:var(--turq-d);font-weight:600}
+#hero a{color:#9be7cf;font-weight:600}.fechas a,.aviso a{color:#0f7a62;font-weight:600}
+.radar{display:flex;align-items:center;gap:10px;margin-top:8px;padding:7px 12px 7px 8px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12.5px;color:var(--muted);line-height:1.25}
+.radar svg{flex:none}.radar .rd-b{font:700 15px var(--f-t);color:var(--navy);font-variant-numeric:tabular-nums}.radar .rd-t{display:block;color:var(--navy);font-weight:600}
+.radar .barrido{transform-origin:20px 20px;animation:giro 4s linear infinite}.radar .eco{transform-origin:20px 20px;animation:eco 4s ease-out infinite}
+.radar.activo .barrido{animation-duration:1.2s}.radar .nuevo{all:unset;cursor:pointer;color:#fff;background:var(--turq-d,#0f7a62);border-radius:999px;padding:3px 10px;font-weight:600;margin-left:4px}
+@keyframes giro{to{transform:rotate(360deg)}}@keyframes eco{0%{opacity:.55;transform:scale(.25)}80%,100%{opacity:0;transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.radar .barrido,.radar .eco{animation:none}}
+.descomp{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}.descomp td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right}.descomp td:first-child{text-align:left}.descomp tr:last-child td{font-weight:700;border-bottom:0}
+.rev{width:100%;border-collapse:collapse;font-size:13px}.rev th,.rev td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.rev td.n{text-align:right;white-space:nowrap}
 @media (max-width:1100px){.hero5{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media (max-width:700px){.ttab{display:block;overflow-x:auto;max-width:100%}.ttab td,.ttab th{padding:7px 8px}.tabla.cuadro{display:none}.tarjetas{display:block}.hero5{grid-template-columns:1fr 1fr}}
 @media (max-width:900px){.dos,.exp,.avz{grid-template-columns:1fr}.hero4{grid-template-columns:1fr 1fr}.hero4>div{border-left:0;padding:10px 8px}.ficha{position:static}.corte{align-items:flex-start}}
@@ -167,7 +177,7 @@ details.valores{margin-top:8px;font-size:13px}details.valores summary{cursor:poi
 <header><div class="wrap">
 <div class="hcab"><div><div class="eyebrow" id="ent">Ministerio de Salud · Pliego 011</div>
 <h1>Control diario de RO</h1><p class="sub0">Qué cambió entre cortes y qué revisar hoy · solo Recursos Ordinarios</p></div>
-<div class="corte"><b id="cortebox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="cortetx">Cargando…</span></b><span class="hab" id="habiles"></span></div></div>
+<div class="corte"><b id="cortebox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="cortetx">Cargando…</span></b><span class="hab" id="habiles"></span><div class="radar" id="radar" role="timer" aria-live="off" hidden></div></div></div>
 <div class="fechas" id="fechas"></div>
 <details class="glos"><summary>¿Qué significan las siglas y los términos?</summary><dl>
 <dt>RO</dt><dd>Recursos Ordinarios: fuente de financiamiento que proviene principalmente de los impuestos, asignada por el Tesoro Público.</dd>
@@ -233,7 +243,7 @@ details.valores{margin-top:8px;font-size:13px}details.valores summary{cursor:poi
 </section>
 <section id="metodo"><h2>Método, fórmulas y criterios</h2>
 <div class="metodo">
-<p><b>Fuentes y fechas.</b> Las cifras del día por unidad (PIM, certificado, compromiso, devengado) salen de la Consulta Amigable del MEF; el ritmo de los meses completos, el detalle por genérica y el devengado mensual salen de Datos Abiertos del MEF, que suele ir un día atrás. Arriba se muestran el corte actual, el corte anterior, la fuente de cada uno y la hora de la última consulta exitosa. Si la consulta falla, se conserva el último dato válido y se avisa su antigüedad. Solo se toma la fuente Recursos Ordinarios.</p>
+<div id="procedencia"></div>
 <p><b>Fórmulas.</b> Saldo por devengar = PIM − devengado. Sin certificar = PIM − certificado. Devengado entre cortes = devengado actual − devengado del corte anterior (un valor negativo es un ajuste o anulación y se marca para revisión, no se convierte en cero). Variación del saldo = variación del PIM − devengado entre cortes: una baja del saldo puede venir de una rebaja del PIM y no de más ejecución. Las comprobaciones se hacen con los valores originales, antes de redondear; las diferencias de presentación son de redondeo.</p>
 <p><b>Riesgo estimado al cierre (escenario según ejecución reciente).</b> Para cada meta, producto o proyecto y genérica: promedio mensual de devengado de los tres últimos meses completos × meses que faltan al 31/12, con tope en su saldo y piso en cero. Lo que no alcanza a devengarse con ese ritmo es el riesgo. En las pruebas con 2024 y 2025 este escenario sobrestimó el saldo final porque no ve la aceleración de diciembre: sirve para ordenar prioridades, no para fijar un monto.</p>
 <p><b>Escenario según patrones de 2023–2025.</b> Para cada unidad y genérica, la parte del saldo pendiente a la misma fecha que se devengó hasta el 31/12 en cada año cerrado; se aplica al saldo actual. Se publica el valor central (promedio de los tres años) y el rango (año más y menos favorable). Las combinaciones sin historia comparable conservan el escenario según ejecución reciente.</p>
@@ -242,15 +252,23 @@ details.valores{margin-top:8px;font-size:13px}details.valores summary{cursor:poi
 <p><b>Programación documentada.</b> Todavía no se registra la programación de las unidades. Cuando exista, el cuadro mostrará «Programado para el intervalo» y «Brecha frente a programación», y la referencia estadística quedará como dato secundario.</p>
 <p><b>Por producto y proyecto.</b> El mismo cálculo se hace para cada producto, actividad y proyecto de cada unidad; el riesgo de la unidad es la suma del de sus productos y proyectos. «Proyecto» identifica inversiones con CUI.</p>
 <p><b>Ejecución reciente frente a lo necesario.</b> Ejecución reciente por día hábil = promedio mensual de los tres últimos meses completos ÷ 21 días hábiles. Necesario por día hábil = saldo RO ÷ días hábiles que quedan. Es una referencia estadística; no reemplaza la programación de entregas, planillas y valorizaciones. <span id="cal"></span></p>
+<p><b>Clasificación frente a la referencia.</b> Razón = avance ÷ referencia, calculada con los valores originales, antes de redondear. Alcanza el umbral: razón ≥ 90 %. Por debajo: razón ≥ 60 % y menor que 90 %. Muy por debajo: razón menor que 60 % (incluye avances negativos). Si la referencia es 0 o no existe, la unidad figura «sin referencia» y no se clasifica. La misma regla rige en tarjetas, fichas, gráficos y exportaciones.</p>
+<p><b>Variación del riesgo estimado.</b> Variación del riesgo = variación del PIM − devengado entre cortes − variación de lo que el ritmo reciente prevé devengar hasta el 31/12. El último término recoge el menor tiempo restante y los supuestos del cálculo (ritmo, tope en el saldo y, si ocurre, un cambio de fuente). Por eso el riesgo puede subir aunque la unidad haya devengado algo: sube cuando devengó menos de lo que su ritmo preveía para esos días. La causa concreta se verifica con la unidad.</p>
+<p><b>Importes pequeños.</b> Desde S/ 50,000 se muestran en millones; por debajo, en soles con su signo.</p>
 <p><b>Estado de actualización.</b> Aviso si el dato tiene más de un día hábil de antigüedad o si la última consulta exitosa tiene más de 12 horas.</p>
-</div></section>
+</div>
+<h3 id="revisiones" style="margin-top:18px">Revisiones de cifras y de método</h3>
+<div id="revtab"><p class="nota">Cargando…</p></div>
+</section>
 </div></main>
 <footer><div class="wrap">Ministro al Día · Datos del Ministerio de Economía y Finanzas (Consulta Amigable y Datos Abiertos). Importes en soles. El saldo es presupuesto: no equivale a dinero en caja ni a pago.</div></footer>
 <script>
 const GEN={"1":"2.1 Personal y obligaciones sociales","2":"2.2 Pensiones y prestaciones sociales","3":"2.3 Bienes y servicios","4":"2.4 Donaciones y transferencias","5":"2.5 Otros gastos","6":"2.6 Adquisición de activos no financieros","7":"2.7 Adquisición de activos financieros","8":"2.8 Servicio de la deuda"};
 const MESES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Set","Oct","Nov","Dic"];
-const M=v=>{if(v==null||isNaN(v))return'—';const a=Math.abs(v);if(a<0.5)return'S/ 0';if(a<5e4)return(v<0?'−':'')+'< S/ 0.05 M';return(v<0?'−':'')+'S/ '+(a/1e6).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' M'};
-const M2=v=>v!=null&&Math.abs(v)>=0.5&&Math.abs(v)<5e4?(v<0?'−':'')+'S/ '+Math.round(Math.abs(v)).toLocaleString('en-US'):M(v);
+// Importes: en millones desde S/ 50,000; por debajo, en soles con su signo, para que dos movimientos pequeños no se confundan ni parezcan cero.
+const M=v=>{if(v==null||isNaN(v))return'—';const a=Math.abs(v);if(a<0.5)return'S/ 0';if(a<5e4)return(v<0?'−':'')+'S/ '+Math.round(a).toLocaleString('en-US');return(v<0?'−':'')+'S/ '+(a/1e6).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' M'};
+const M2=M;
+const MS=v=>v==null||isNaN(v)?'—':(v>=0.5?'+':'')+M(v);   // con signo, para variaciones
 const P=v=>v!=null&&isFinite(v)?(100*v).toFixed(1)+' %':'—';
 const F=s=>{const[y,m,d]=s.split('-');return`${d}/${m}/${y}`};
 const F5=s=>F(s).slice(0,5);
@@ -259,9 +277,15 @@ const nivel=u=>{const r=u.pim>0?u.riesgo/u.pim:0;return r>0.15?'Alto':r>=0.05?'M
 const COLN={Alto:'#c0392b',Medio:'#d99a06',Bajo:'#1f8f6a'};
 const nom=u=>u.sigla||u.ue.replace('Dirección de Redes Integradas de Salud','DIRIS').replace('Instituto Nacional de Salud del Niño - San Borja','INSN San Borja').replace('Instituto Nacional de Salud del Niño','INSN').replace('Hospital Nacional','H.').replace('Hospital','H.').replace('Instituto Nacional','Inst. Nac.').replace(' - MINSA','');
 // Avance frente a la referencia estadística (no es una meta de la unidad)
-const SEM=(av,esp)=>{if(!(esp>0))return['#5f6878','sin referencia todavía','Sin'];const r=av/esp;return r>=0.9?['#1f8f6a','al ritmo de la referencia','Al']:r>=0.6?['#a86a12','por debajo de la referencia','Debajo']:['#c0392b','muy por debajo de la referencia','Muy']};
-const CORTO={Al:'al ritmo',Debajo:'por debajo',Muy:'muy por debajo',Sin:'sin referencia'};
-const AV=(av,esp)=>{const [c,,k]=SEM(av,esp),t=CORTO[k];return `<span class="av"><span class="bar" aria-hidden="true"><i style="width:${Math.min(100,100*av)}%;background:${c}"></i>${esp>0?`<b style="left:${Math.min(100,100*esp)}%"></b>`:''}</span><span style="color:${c};font-weight:600">${P(av)}</span></span><span class="rango">${esp>0?`ref. ${P(esp)} · ${t}`:t}</span>`};
+// Clasificación con valores originales (antes de redondear). Razón = avance ÷ referencia, con tolerancia de 1e-9 para que
+// 9 % frente a 10 % cuente como 90 % exacto (en coma flotante 0.09/0.1 = 0.8999…).
+// Alcanza el umbral: razón ≥ 90 %. Por debajo: ≥ 60 % y < 90 %. Muy por debajo: < 60 %. Referencia ausente o cero: sin referencia (nunca cuenta como cumplimiento).
+const SEM=(av,esp)=>{if(!(esp>0)||av==null||isNaN(av))return['#5f6878','sin referencia','Sin'];const r=av/esp,e=1e-9;return r>=0.9-e?['#1f8f6a','alcanza el umbral','Al']:r>=0.6-e?['#a86a12','por debajo de la referencia','Debajo']:['#c0392b','muy por debajo de la referencia','Muy']};
+const CORTO={Al:'alcanza el umbral',Debajo:'por debajo',Muy:'muy por debajo',Sin:'sin referencia'};
+const CLASE=(av,esp)=>SEM(av,esp)[2];
+// Motivo por el que una unidad no tiene referencia estadística
+const sinRef=u=>!(u.saldo_ini>0)?'No tenía saldo por devengar al cierre del último mes, así que no hay avance que medir.':!(u.esperado>0)?((u.w_pl==null||u.w_pl>=0.999)?'Todo su saldo está en partidas que se devengan una vez al mes (planilla, pensiones o proyectos de inversión). Para ellas la referencia avanza por mes cerrado y todavía no cierra el mes en curso: hasta entonces la referencia es 0.':'La referencia calculada es 0 para esta unidad.'):null;
+const AV=(av,esp)=>{const [c,,k]=SEM(av,esp),t=CORTO[k];return `<span class="av"><span class="bar" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,100*av))}%;background:${c}"></i>${esp>0?`<b style="left:${Math.min(100,100*esp)}%"></b>`:''}</span><span style="color:${c};font-weight:600">${P(av)}</span></span><span class="rango">${esp>0?`ref. ${P(esp)} · ${t}`:t}</span>`};
 const ICO=p=>`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
 const I_INFO='<circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/>',I_ALE='<path d="M12 3 2 21h20L12 3z"/><path d="M12 10v5M12 18v.5"/>',I_OK='<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>';
 const aviso=(t,cl='',ic=I_INFO)=>`<div class="aviso ${cl}">${ICO(ic)}<span>${t}</span></div>`;
@@ -274,10 +298,11 @@ function hb(filas,tit){const[top,paso]=escala(Math.max(0,...filas.map(f=>f.v))),
 function csv(nombre,meta,cab,filas){const q=v=>{const s=v==null?'':String(v);return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
  const t='﻿'+[...meta.map(m=>[m]),[],cab,...filas].map(f=>f.map(q).join(';')).join('\n');const a=document.createElement('a');
  a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));a.download=nombre;document.body.appendChild(a);a.click();a.remove()}
-const metaCSV=(extra)=>[`Ámbito: ${D.pliego}, fuente Recursos Ordinarios`,`Corte: ${F(D.corte)}${D.corte_anterior?` · corte anterior: ${F(D.corte_anterior)}`:''}`,`Fuente de datos: ${D.parametros.fuente} del MEF · consulta: ${(D.parametros.consulta_ok||D.actualizado||'').replace('T',' ')}`,...extra,'Importes en soles, sin redondear'];
-let D,PJ=null,REF=null,sel=null;
+const metaCSV=(extra)=>[`Ámbito: ${D.pliego}, fuente Recursos Ordinarios`,`Corte: ${F(D.corte)}${D.corte_anterior?` · corte anterior: ${F(D.corte_anterior)}`:''}`,...(D.parametros.procedencia||[{componente:'Fuente de datos',fuente:D.parametros.fuente+' del MEF'}]).map(x=>`${x.componente}: ${x.fuente}`),`Consulta: ${(D.parametros.consulta_ok||D.actualizado||'').replace('T',' ')} · método ${D.parametros.metodo||'—'}`,...extra,'Importes en soles, sin redondear'];
+let D,PJ=null,REF=null,REV=null,sel=null;
 const hoyLima=()=>new Date(new Date().toLocaleString('en-US',{timeZone:'America/Lima'}));
 fetch('datos.json?'+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{D=j;pintar();
+ fetch('revisiones.json?'+Date.now()).then(r=>r.ok?r.json():null).then(x=>{REV=x;revisiones()}).catch(()=>revisiones());
  fetch('referencias.json?'+Date.now()).then(r=>r.ok?r.json():null).then(x=>{REF=x;contexto()}).catch(()=>contexto());
  fetch('proyectos.json?'+Date.now()).then(r=>r.json()).then(p=>{PJ=p;proyectos();if(sel)detalle(sel,false)}).catch(()=>{document.getElementById('psub').textContent='No se pudo cargar el detalle por proyecto. Intente recargar la página.'})
 }).catch(()=>{document.getElementById('vigencia').innerHTML=aviso('No se pudieron cargar los datos. Revise su conexión e intente recargar la página.','rojo',I_ALE);document.getElementById('cortetx').textContent='Sin datos'});
@@ -289,40 +314,45 @@ function pintar(){
  document.getElementById('cortetx').textContent=`Corte: ${F(D.corte)}`;
  document.getElementById('habiles').textContent=`${par.dias_habiles} días hábiles hasta el 31/12`;
  const cons=par.consulta_ok?new Date(par.consulta_ok+':00-05:00'):null;
- document.getElementById('fechas').innerHTML=`<span>Corte actual: <b>${F(D.corte)}</b></span><span>Corte anterior: <b>${ant?F(ant):'—'}</b></span><span>Fuente: <b>${esc(par.fuente)} del MEF</b>${ant&&fu[i-1]&&fu[i-1]!==fu[i]?` (corte anterior: ${esc(fu[i-1])})`:''}</span><span>Última consulta exitosa: <b>${cons?cons.toLocaleString('es-PE',{timeZone:'America/Lima',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—'}</b></span><span>Ámbito: <b>Recursos Ordinarios</b></span>`;
+ document.getElementById('fechas').innerHTML=`<span>Corte actual: <b>${F(D.corte)}</b></span><span>Corte anterior: <b>${ant?F(ant):'—'}</b></span><span>Cifras del día: <b>${esc(par.fuente)}</b>${ant&&fu[i-1]&&fu[i-1]!==fu[i]?` (corte anterior: ${esc(fu[i-1])})`:''}</span><span>Ritmo y detalle: <b>Datos Abiertos al ${F5(par.corte_detalle||D.corte)}</b></span><span><a href="#procedencia">Procedencia y revisiones</a></span><span>Última consulta exitosa: <b>${cons?cons.toLocaleString('es-PE',{timeZone:'America/Lima',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—'}</b></span><span>Ámbito: <b>Recursos Ordinarios</b></span>`;
  // estado de actualización
  const hoy=hoyLima(),ult=new Date(D.corte+'T12:00:00');let hab=0;for(let d=new Date(ult);d<hoy;d.setDate(d.getDate()+1)){if(d>ult&&d.getDay()%6!==0)hab++}
  const horas=cons?(Date.now()-cons.getTime())/36e5:99;const av=[];
- if(hab>1)av.push(`Los datos son del ${F(D.corte)}: el MEF aún no publica la ejecución posterior. <small>Se revisa cada hora, de 7:00 a 23:00, si el MEF publicó algo nuevo.</small>`);
+ if(hab>1)av.push(`Los datos son del ${F(D.corte)}: el MEF aún no publica la ejecución posterior. <small>Se revisa cada hora, de 7:23 a 23:23, si el MEF publicó algo nuevo.</small>`);
  if(horas>12)av.push(`La última consulta exitosa fue hace ${Math.round(horas)} horas. <small>Se muestra el último dato válido; puede estar desactualizado.</small>`);
  document.getElementById('vigencia').innerHTML=av.length?aviso(av.join(' '),'ambar',I_ALE):'';
  const comp=U.filter(u=>u.dev_ant!=null),dd=u=>u.dev_ant!=null?u.dev-u.dev_ant:null;
  const conAv=comp.filter(u=>dd(u)>0.5).length,negs=comp.filter(u=>dd(u)<-0.5);
  const dsal=ant?D.serie.saldo[i]-D.serie.saldo[i-1]:null,dri=ant?D.serie.riesgo[i]-D.serie.riesgo[i-1]:null,ddev=ant?D.serie.DEVENGADO[i]-D.serie.DEVENGADO[i-1]:null,dpim=ant&&D.serie.PIM?D.serie.PIM[i]-D.serie.PIM[i-1]:null;
  const habE=par.habiles_entre,intv=ant?`del ${F5(ant)} al ${F5(D.corte)}${habE>1?` · ${habE} días hábiles`:''}`:'';
- const ref=U.filter(u=>u.saldo_ini>0&&(u.esperado??0)>0),muy=ref.filter(u=>u.avance<0.6*u.esperado).length;
+ const ref=U.filter(u=>u.saldo_ini>0&&(u.esperado??0)>0),muy=ref.filter(u=>CLASE(u.avance,u.esperado)==='Muy').length,sinr=U.filter(u=>sinRef(u));
  const vr=(v,inv=true)=>v==null?'':`<span class="chip ${(inv?v>0:v<0)?'mal':''}">${v>0?'▲ +':'▼ '}${M(v)}</span>`;
  document.getElementById('hero').innerHTML=`
  <div><div class="et">Devengado entre cortes</div><div class="num">${ddev==null?'—':M(ddev)}</div><div class="ds">${ant?intv:'Desde el segundo corte'}</div></div>
  <div><div class="et">Saldo por devengar</div><div class="num">${M(T.saldo)}</div>${vr(dsal)}<div class="ds">${dpim&&Math.abs(dpim)>=0.5?`Incluye una variación del PIM de ${M(dpim)}`:'Sin cambios en el PIM entre cortes'}</div></div>
  <div><div class="et">Unidades con avance entre cortes</div><div class="num">${ant?`${conAv} de ${comp.length}`:'—'}</div><div class="ds">${ant?`${comp.length} con dato comparable${negs.length?` · ${negs.length} con ajuste negativo`:''}`:'Sin corte anterior'}</div></div>
- <div><div class="et">Riesgo estimado al cierre</div><div class="num">${M(T.riesgo)}</div>${vr(dri)}<div class="ds">Escenario según ejecución reciente.${T.riesgo_hist!=null?` Según patrones 2023–2025: ${M(T.riesgo_hist)} (${M(T.rh_bajo)} a ${M(T.rh_alto)})`:''}</div></div>
- <div><div class="et">Por debajo de su programación</div><div class="num sm">Sin programación</div><div class="ds">Aún no se registra. Referencia estadística: ${muy} de ${ref.length} unidades muy por debajo.</div></div>`;
+ <div><div class="et">Riesgo estimado al cierre</div>${T.riesgo_hist!=null?`<div class="num sm">entre ${M(T.riesgo_hist)} y ${M(T.riesgo)}</div><div class="ds">${M(T.riesgo_hist)}: patrones 2023–2025<br>${M(T.riesgo)}: ejecución reciente ${vr(dri)}</div><div class="ds">Estimaciones, no límites (<a href="#ctx">ver por qué</a>).</div>`:`<div class="num">${M(T.riesgo)}</div>${vr(dri)}<div class="ds">Escenario según ejecución reciente.</div>`}</div>
+ <div><div class="et">Programación de las unidades: no registrada</div><div class="num sm">${muy} de ${ref.length}</div><div class="ds">unidades muy por debajo de la referencia estadística · ${ref.length} con referencia · ${sinr.length} sin referencia${sinr.length?` (${sinr.map(u=>esc(nom(u))).join(', ')}; <a href="#" id="ver-sinref">ver motivo</a>)`:''}</div></div>`;
+ const vs=document.getElementById('ver-sinref');if(vs)vs.onclick=e=>{e.preventDefault();chip='sinref';chips();tabla();document.getElementById('cuadro').scrollIntoView({behavior:'smooth'})};
  const top5=U.slice(0,5),c5=top5.reduce((s,u)=>s+u.riesgo,0);
  let al=aviso(`Cinco unidades concentran el ${P(c5/T.riesgo)} del riesgo estimado: ${top5.map(u=>`${esc(nom(u))} (${M(u.riesgo)})`).join(', ')}. <small>Verificar qué parte de su saldo tiene entregas, conformidades o valorizaciones previstas antes del cierre.</small>`,'ambar',I_ALE);
  if(negs.length)al+=aviso(`Ajuste negativo del devengado entre el ${F5(ant)} y el ${F5(D.corte)} en ${negs.map(u=>`${esc(nom(u))} (${M2(dd(u))})`).join(', ')}. <small>Puede ser una anulación o rebaja de un devengado; se muestra tal cual para su revisión.</small>`,'',I_INFO);
  document.getElementById('alerta').innerHTML=al;
- document.getElementById('aviso-prog').innerHTML=aviso('Programación documentada: todavía no registrada. <small>Por eso el cuadro no muestra «Programado para el intervalo» ni «Brecha». La comparación con la referencia estadística no es una meta de la unidad.</small>','',I_INFO);
+ document.getElementById('aviso-prog').innerHTML=aviso('Programación de las unidades: no registrada. <small>Por eso el cuadro no muestra «Programado para el intervalo» ni «Brecha». Umbral: al menos el 90 % de la referencia estadística. No equivale a cumplir una meta.</small>','',I_INFO);
  document.getElementById('cal').textContent=par.calendario||'';
- ranking();evolucion();chips();tabla();
+ ranking();evolucion();chips();tabla();reloj();if(REV!==null)revisiones();
 }
 // ---------- cuadro de seguimiento ----------
-const CHIPS=[['todas','Todas',u=>true],['sinav','Sin avance entre cortes',u=>u.dd!=null&&Math.abs(u.dd)<0.5],['sube','Aumento del riesgo estimado',u=>u.dri!=null&&u.dri>0.5],['debajo','Muy por debajo de la referencia',u=>u.saldo_ini>0&&u.esperado>0&&u.avance<0.6*u.esperado],['neg','Ajuste negativo del devengado',u=>u.dd!=null&&u.dd<-0.5],['sinprog','Sin programación registrada',u=>true],['pend','Datos pendientes de actualización',u=>u.dev_ant==null]];
-const DESC={todas:'todas las unidades',sinav:'sin avance registrado entre cortes (un intervalo sin avance no es por sí solo un incumplimiento)',sube:'con aumento del riesgo estimado entre cortes',debajo:'con avance menor al 60 % de la referencia estadística',neg:'con ajuste negativo del devengado entre cortes',sinprog:'sin programación registrada (todas, por ahora)',pend:'sin dato comparable del corte anterior'};
+const CHIPS=[['todas','Todas',u=>true],['sinav','Sin cambio en el devengado',u=>u.dd!=null&&Math.abs(u.dd)<0.5],['sube','Aumento del riesgo estimado',u=>u.dri!=null&&u.dri>0.5],['debajo','Muy por debajo de la referencia',u=>u.saldo_ini>0&&CLASE(u.avance,u.esperado)==='Muy'],['sinref','Sin referencia estadística',u=>!!sinRef(u)],['neg','Ajuste negativo del devengado',u=>u.dd!=null&&u.dd<-0.5],['sinprog','Sin programación registrada',u=>true],['pend','Datos pendientes de actualización',u=>u.dev_ant==null]];
+const DESC={todas:'todas las unidades',sinav:'sin cambio en el devengado entre cortes (un intervalo sin cambio no es por sí solo un incumplimiento)',sube:'con aumento del riesgo estimado entre cortes (la ficha explica de dónde viene el aumento)',debajo:'con avance menor al 60 % de la referencia estadística',sinref:'sin referencia estadística (la ficha indica el motivo)',neg:'con ajuste negativo del devengado entre cortes',sinprog:'sin programación registrada (todas, por ahora)',pend:'sin dato comparable del corte anterior'};
 let chip='todas',vista='seg',ord='riesgo',dir=-1;
 const COLS_SEG=[['Unidad ejecutora','n','t'],['Devengado entre cortes','dd','m'],['Saldo por devengar','saldo','m'],['Riesgo estimado al cierre','riesgo','m'],['Patrones 2023–2025','riesgo_hist','m'],['Avance del saldo vs. referencia','avr','a'],['Nivel de riesgo','nivr','t']];
 const COLS_PRE=[['Unidad ejecutora','n','t'],['PIM RO','pim','m'],['Variación del PIM','dpim','m'],['Certificado','cert','m'],['Sin certificar','no_cert','m'],['Saldo al 31/10','saldo_ini','m'],['Ejecución del PIM','ej','p'],['% del riesgo','pr','p']];
-function filas(){const T=D.total;return D.ues.map((u,k)=>({...u,i:k+1,n:nom(u),nivel:nivel(u),nivr:{Alto:3,Medio:2,Bajo:1}[nivel(u)],dd:u.dev_ant!=null?u.dev-u.dev_ant:null,dri:u.riesgo_ant!=null?u.riesgo-u.riesgo_ant:null,dsal:u.saldo_ant!=null?u.saldo-u.saldo_ant:null,dpim:u.pim_ant!=null?u.pim-u.pim_ant:null,ej:u.pim?u.dev/u.pim:0,pr:T.riesgo?u.riesgo/T.riesgo:0,avr:u.esperado>0?u.avance/u.esperado:null}))}
+function filas(){const T=D.total;return D.ues.map((u,k)=>({...u,i:k+1,n:nom(u),nivel:nivel(u),nivr:{Alto:3,Medio:2,Bajo:1}[nivel(u)],dd:u.dev_ant!=null?u.dev-u.dev_ant:null,dri:u.riesgo_ant!=null?u.riesgo-u.riesgo_ant:null,dsal:u.saldo_ant!=null?u.saldo-u.saldo_ant:null,dpim:u.pim_ant!=null?u.pim-u.pim_ant:null,ej:u.pim?u.dev/u.pim:0,pr:T.riesgo?u.riesgo/T.riesgo:0,avr:u.esperado>0?u.avance/u.esperado:null,...descomp(u)}))}
+// Variación del riesgo = variación del PIM − devengado entre cortes − variación de lo que el ritmo prevé devengar hasta el 31/12.
+// El tercer término recoge el menor tiempo restante y los supuestos del cálculo (ritmo, tope en el saldo, fuente). Los tres suman la variación total.
+function descomp(u){if(u.riesgo_ant==null||u.saldo_ant==null||u.dev_ant==null||u.pim_ant==null)return{ep:null,ed:null,et:null};
+ const ep=u.pim-u.pim_ant,ed=-(u.dev-u.dev_ant),adi=u.saldo-u.riesgo,adiA=u.saldo_ant-u.riesgo_ant;return{ep,ed,et:-(adi-adiA)}}
 function filtradas(){const q=document.getElementById('q').value.trim().toLowerCase(),fn=document.getElementById('fn').value,f=CHIPS.find(c=>c[0]===chip)[2];
  let R=filas().filter(u=>f(u)&&(!fn||u.nivel===fn)&&(!q||(u.ue+' '+u.sec+' '+u.sigla).toLowerCase().includes(q)));
  R.sort((a,b)=>{const x=a[ord],y=b[ord];if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return(typeof x==='string'?x.localeCompare(y,'es'):x-y)*dir});return R}
@@ -341,18 +371,18 @@ function tabla(){
  document.getElementById('pie').innerHTML=vista==='seg'?`<tr><td class="t">Total (${R.length})</td><td>${sdd==null?'—':M(sdd)}</td><td>${M(s('saldo'))}</td><td>${M(s('riesgo'))}</td><td>${M(s('riesgo_hist'))}</td><td>${s('saldo_ini')>0?P(s('dev_base')/s('saldo_ini')):'—'}</td><td></td></tr>`
   :`<tr><td class="t">Total (${R.length})</td><td>${M(s('pim'))}</td><td>${M(s('dpim'))}</td><td>${M(s('cert'))}</td><td>${M(s('no_cert'))}</td><td>${M(s('saldo_ini'))}</td><td>${P(s('dev')/s('pim'))}</td><td>${P(s('riesgo')/D.total.riesgo)}</td></tr>`;
  // tarjetas para celular
- document.getElementById('tarjetas').innerHTML=R.map(u=>`<div class="tj" tabindex="0" role="button" data-s="${u.sec}" aria-label="${esc(u.ue)}: abrir ficha"><h4><span>${esc(u.n)}</span><span class="nivel ${u.nivel}">${u.nivel}</span></h4><dl><dt>Devengado entre cortes</dt><dd class="${u.dd<-0.5?'neg':''}">${u.dd==null?'Sin dato':M(u.dd)}</dd><dt>Saldo por devengar</dt><dd>${M(u.saldo)}</dd><dt>Riesgo estimado</dt><dd>${M(u.riesgo)}</dd><dt>Avance del saldo</dt><dd>${u.saldo_ini>0?P(u.avance)+(u.esperado>0?` (ref. ${P(u.esperado)})`:''):'No aplica'}</dd></dl></div>`).join('')||'<p class="nota">No hay unidades con este filtro.</p>';
+ document.getElementById('tarjetas').innerHTML=R.map(u=>`<div class="tj" tabindex="0" role="button" data-s="${u.sec}" aria-label="${esc(u.ue)}: abrir ficha"><h4><span>${esc(u.n)}</span><span class="nivel ${u.nivel}">${u.nivel}</span></h4><dl><dt>Devengado entre cortes</dt><dd class="${u.dd<-0.5?'neg':''}">${u.dd==null?'Sin dato':M(u.dd)}</dd><dt>Saldo por devengar</dt><dd>${M(u.saldo)}</dd><dt>Riesgo estimado</dt><dd>${M(u.riesgo)}</dd><dt>Avance del saldo</dt><dd>${u.saldo_ini>0?(u.esperado>0?`Avance: ${P(u.avance)} · Referencia: ${P(u.esperado)} · ${CORTO[CLASE(u.avance,u.esperado)]}`:`${P(u.avance)} · Sin referencia`):'No aplica'}</dd></dl></div>`).join('')||'<p class="nota">No hay unidades con este filtro.</p>';
  const colN=cols.find(c=>c[1]===ord)?.[0]||ord;
  document.getElementById('criterio').textContent=`Mostrando ${R.length} de ${D.ues.length} unidades · filtro: ${DESC[chip]}${document.getElementById('fn').value?` · nivel de riesgo ${document.getElementById('fn').value.toLowerCase()}`:''}${document.getElementById('q').value?` · búsqueda «${document.getElementById('q').value}»`:''} · orden: ${colN.replace('31/10',F5(D.parametros.fecha_base))}, ${dir>0?'de menor a mayor':'de mayor a menor'}.`;
- document.getElementById('nota-cuadro').innerHTML=`Nivel de riesgo = riesgo estimado ÷ PIM RO: alto, más de 15 %; medio, 5 % a 15 %; bajo, menos de 5 %. «Patrones 2023–2025»: valor central y rango. «Sin dato»: la unidad no tiene corte anterior comparable; «S/ 0»: no hubo variación. El seguimiento de acciones (responsable, fecha, evidencia) se habilitará cuando exista un registro con usuarios autorizados.`;
+ document.getElementById('nota-cuadro').innerHTML=`Nivel de riesgo = riesgo estimado ÷ PIM RO: alto, más de 15 %; medio, 5 % a 15 %; bajo, menos de 5 %. «Patrones 2023–2025»: valor central y rango. Avance frente a la referencia: alcanza el umbral si llega al 90 % de la referencia; por debajo, del 60 % al 90 %; muy por debajo, menos del 60 %. No equivale a cumplir una meta. «Sin dato»: la unidad no tiene corte anterior comparable; «S/ 0»: no hubo variación; los importes menores a S/ 50,000 se muestran en soles. El seguimiento de acciones (responsable, fecha, evidencia) se habilitará cuando exista un registro con usuarios autorizados.`;
  document.querySelectorAll('#cuerpo tr[data-s],#tarjetas [data-s]').forEach(el=>{el.onclick=()=>detalle(el.dataset.s,true);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();detalle(el.dataset.s,true)}}});
 }
 document.getElementById('q').oninput=tabla;document.getElementById('fn').onchange=tabla;
 document.getElementById('v-seg').onclick=()=>{vista='seg';document.getElementById('v-seg').setAttribute('aria-pressed','true');document.getElementById('v-pre').setAttribute('aria-pressed','false');tabla()};
 document.getElementById('v-pre').onclick=()=>{vista='pre';document.getElementById('v-pre').setAttribute('aria-pressed','true');document.getElementById('v-seg').setAttribute('aria-pressed','false');tabla()};
 document.getElementById('exp').onclick=()=>{const R=filtradas();csv(`control_RO_unidades_${D.corte}.csv`,metaCSV([`Filtros: ${document.getElementById('criterio').textContent}`]),
- ['Codigo','Unidad ejecutora','Nivel de riesgo','PIM','Variacion del PIM','Certificado','Sin certificar','Devengado','Devengado entre cortes','Saldo por devengar','Variacion del saldo','Riesgo estimado (ejecucion reciente)','Variacion del riesgo','Riesgo segun patrones 2023-2025','Rango bajo','Rango alto','Saldo al 31/10','Avance del saldo','Referencia estadistica'],
- R.map(u=>[u.sec,u.ue,u.nivel,u.pim,u.dpim,u.cert,u.no_cert,u.dev,u.dd,u.saldo,u.dsal,u.riesgo,u.dri,u.riesgo_hist,u.rh_bajo,u.rh_alto,u.saldo_ini,u.avance,u.esperado]))};
+ ['Codigo','Unidad ejecutora','Nivel de riesgo','PIM','Variacion del PIM','Certificado','Sin certificar','Devengado','Devengado entre cortes','Saldo por devengar','Variacion del saldo','Riesgo estimado (ejecucion reciente)','Variacion del riesgo','Efecto de la variacion del PIM','Efecto del devengado entre cortes','Efecto del tiempo restante y supuestos','Riesgo segun patrones 2023-2025','Rango bajo','Rango alto',`Saldo al ${F(D.parametros.fecha_base)}`,'Avance del saldo','Referencia estadistica','Clasificacion frente a la referencia','Motivo sin referencia'],
+ R.map(u=>[u.sec,u.ue,u.nivel,u.pim,u.dpim,u.cert,u.no_cert,u.dev,u.dd,u.saldo,u.dsal,u.riesgo,u.dri,u.ep,u.ed,u.et,u.riesgo_hist,u.rh_bajo,u.rh_alto,u.saldo_ini,u.avance,u.esperado,u.saldo_ini>0?CORTO[CLASE(u.avance,u.esperado)]:'no aplica',sinRef(u)||'']))};
 // ---------- riesgo ----------
 function ranking(){
  const T=D.total,U=D.ues;
@@ -370,8 +400,8 @@ function ranking(){
  document.getElementById('avbar').innerHTML=`<div class="escala" role="img" aria-label="Avance real ${P(T.avance)}; referencia ${P(esp)}"><i style="width:${100*T.avance/tope}%;background:${ca}"></i><span class="mk" style="left:${100*esp/tope}%"></span>
  <span class="et abajo" style="left:${Math.max(8,100*T.avance/tope)}%;background:${ca}22;color:${ca}">Avance real<br>${P(T.avance)}</span><span class="et" style="left:${Math.min(92,100*esp/tope)}%;background:#eef1f6;color:var(--navy)">Referencia<br>${P(esp)}</span></div>
  <div class="ejeP" style="margin-top:48px" aria-hidden="true">${Array.from({length:6},(_,k)=>`<span>${(100*tope*k/5).toFixed(0)} %</span>`).join('')}</div>`;
- const ref=D.ues.filter(u=>u.saldo_ini>0&&u.esperado>0),bajos=ref.filter(u=>u.avance<0.6*u.esperado).length;
- document.getElementById('avmsg').innerHTML=aviso(`El pliego va ${ta}. ${bajos} de ${ref.length} unidades van muy por debajo de su referencia. <small>No es un incumplimiento: falta la programación de cada unidad.</small>`,bajos?'ambar':'',bajos?I_ALE:I_OK)+`<div class="btns"><button class="btn lleno" type="button" id="ver-debajo">Ver esas unidades en el cuadro</button></div>`;
+ const ref=D.ues.filter(u=>u.saldo_ini>0&&u.esperado>0),bajos=ref.filter(u=>CLASE(u.avance,u.esperado)==='Muy').length,sinr=D.ues.filter(u=>sinRef(u)).length;
+ document.getElementById('avmsg').innerHTML=aviso(`Avance: ${P(T.avance)} · Referencia: ${P(esp)} (${ta}). ${bajos} de ${ref.length} unidades con referencia van muy por debajo${sinr?`; ${sinr} sin referencia`:''}. <small>Umbral: al menos el 90 % de la referencia estadística. No equivale a cumplir una meta.</small>`,bajos?'ambar':'',bajos?I_ALE:I_OK)+`<div class="btns"><button class="btn lleno" type="button" id="ver-debajo">Ver esas unidades en el cuadro</button></div>`;
  document.getElementById('ver-debajo').onclick=()=>{chip='debajo';chips();tabla();document.getElementById('cuadro').scrollIntoView({behavior:'smooth'})};
 }
 function contexto(){const T=D.total,el=document.getElementById('ctx');
@@ -380,6 +410,44 @@ function contexto(){const T=D.total,el=document.getElementById('ctx');
  if(REF&&REF.pruebas)REF.pruebas.forEach(p=>{h+=`<div><span class="tg">Prueba con ${p.anio}, misma fecha</span><b>${M(p.estimado)} → ${M(p.real)}</b><small>El escenario según ejecución reciente estimó ${M(p.estimado)} de RO sin devengar; el saldo RO real al 31/12 fue ${M(p.real)}.</small></div>`});
  h+='</div><p class="nota">Ninguno de los dos escenarios es un límite: en 2024 y 2025 el saldo final fue menor. La cifra de cierre debe construirse con la previsión documentada de cada unidad.</p>';
  el.innerHTML=h}
+// ---------- procedencia y revisiones ----------
+function revisiones(){
+ const par=D.parametros,pr=par.procedencia||[{componente:'Cifras del día por unidad',fuente:par.fuente+' al '+F(D.corte)},{componente:'Ritmo, detalle por meta y genérica, devengado mensual',fuente:'Datos Abiertos al '+F(par.corte_detalle||D.corte)}];
+ document.getElementById('procedencia').innerHTML=`<p id="procedencia-t"><b>Procedencia de cada componente del corte ${F(D.corte)}.</b> Se genera con cada actualización; la cabecera y las fichas usan esta misma información.</p>
+ <table class="rev"><thead><tr><th scope="col">Componente</th><th scope="col">Fuente usada</th></tr></thead><tbody>${pr.map(x=>`<tr><td>${esc(x.componente)}</td><td>${esc(x.fuente)}</td></tr>`).join('')}</tbody></table>
+ <p class="nota">La Consulta Amigable se usa para las cifras del día solo cuando trae un corte más reciente que Datos Abiertos. Método vigente: ${esc(par.metodo||(REV&&REV.metodo_vigente)||'—')}.</p>`;
+ const el=document.getElementById('revtab');if(!REV){el.innerHTML='<p class="nota">No se pudo cargar el registro de revisiones.</p>';return}
+ const hora=t=>{const[d,h]=(t||'').split('T');return d?`${F(d)}${h?' '+h:''}`:'—'};
+ const filas=[...REV.revisiones].reverse();
+ const primera=REV.primera_publicacion||{};
+ el.innerHTML=`<p class="ps">Cuando un corte ya publicado vuelve a publicarse con otras cifras, aquí queda la fecha, el motivo y el efecto. Los valores con que cada corte se publicó por primera vez se conservan.</p>
+ <div class="tabla" style="max-height:none"><table class="rev"><thead><tr><th scope="col">Registrado</th><th scope="col">Corte</th><th scope="col">Indicador</th><th scope="col" class="n">Antes</th><th scope="col" class="n">Después</th><th scope="col" class="n">Efecto</th><th scope="col">Motivo</th></tr></thead><tbody>
+ ${filas.length?filas.map(x=>`<tr><td>${hora(x.registrado)}</td><td>${F(x.corte)}</td><td>${esc(x.indicador)}</td><td class="n">${x.antes==null?'Sin dato':M(x.antes)}</td><td class="n">${x.despues==null?'Sin dato':M(x.despues)}</td><td class="n">${x.antes==null||x.despues==null?'—':(x.despues>=x.antes?'+':'')+M(x.despues-x.antes).replace('−','−')}</td><td>${esc(x.motivo)}</td></tr>`).join(''):'<tr><td colspan="7">Sin revisiones.</td></tr>'}</tbody></table></div>
+ <details class="valores"><summary>Ver los valores publicados por primera vez en cada corte</summary><table class="ttab"><thead><tr><th scope="col">Corte</th><th scope="col">Publicado</th><th scope="col">Fuente</th><th scope="col">Devengado</th><th scope="col">Saldo</th><th scope="col">Riesgo (ejecución reciente)</th><th scope="col">Patrones 2023–2025</th></tr></thead><tbody>${Object.entries(primera).sort().map(([c,v])=>`<tr><td>${F(c)}</td><td>${hora(v.publicado)}</td><td>${esc(v.fuente||'—')}</td><td>${M(v.DEVENGADO)}</td><td>${M(v.saldo)}</td><td>${M(v.riesgo)}</td><td>${v.riesgo_hist==null?'Sin dato':M(v.riesgo_hist)}</td></tr>`).join('')}</tbody></table></details>
+ ${(REV.metodos||[]).length?`<details class="valores"><summary>Ver las versiones del método</summary><ul>${REV.metodos.map(m=>`<li><b>${esc(m.version)}</b> (desde el ${F(m.desde)}): ${esc(m.cambio)}</li>`).join('')}</ul></details>`:''}`;
+ // aviso arriba si el corte vigente fue revisado
+ const rc=REV.revisiones.filter(x=>x.corte===D.corte&&x.antes!=null&&x.despues!=null&&/^Riesgo estimado/.test(x.indicador));
+ if(rc.length){const x=rc[rc.length-1],v=document.getElementById('vigencia');
+  v.insertAdjacentHTML('beforeend',aviso(`<b>Cifras del corte ${F(D.corte)} revisadas el ${hora(x.registrado)}:</b> el riesgo estimado (ejecución reciente) pasó de ${M(x.antes)} a ${M(x.despues)}. <small>${esc(x.motivo)} <a href="#revisiones">Ver todas las revisiones</a></small>`,'',I_INFO))}
+}
+// ---------- reloj de la próxima revisión del MEF ----------
+// La tarea automática revisa a los :23 de cada hora, de 7:23 a 23:23 (hora de Lima). GitHub puede demorar el inicio unos minutos.
+function proximaRevision(now){const L=new Date(now.getTime()-5*36e5);   // Lima no tiene horario de verano: UTC−5 todo el año
+ for(let d=0;d<2;d++)for(let h=7;h<=23;h++){const t=Date.UTC(L.getUTCFullYear(),L.getUTCMonth(),L.getUTCDate()+d,h,23)+5*36e5;if(t>now.getTime())return new Date(t)}}
+function reloj(){const el=document.getElementById('radar');if(!el||!D)return;el.hidden=false;
+ const svg=`<svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1f8f6a" stop-opacity="0"/><stop offset="1" stop-color="#1f8f6a" stop-opacity=".55"/></linearGradient></defs><circle cx="20" cy="20" r="18" fill="#eef6f2" stroke="#1f8f6a" stroke-opacity=".35"/><circle cx="20" cy="20" r="11.5" fill="none" stroke="#1f8f6a" stroke-opacity=".25"/><circle cx="20" cy="20" r="5" fill="none" stroke="#1f8f6a" stroke-opacity=".2"/><circle class="eco" cx="20" cy="20" r="18" fill="none" stroke="#1f8f6a" stroke-width="1.2"/><g class="barrido"><path d="M20 20 L20 2 A18 18 0 0 1 35.6 11 Z" fill="url(#rg)"/><line x1="20" y1="20" x2="20" y2="2" stroke="#0f7a62" stroke-width="1.6"/></g><circle cx="20" cy="20" r="2" fill="#0f7a62"/></svg>`;
+ el.innerHTML=svg+'<span><span class="rd-t">Próxima revisión del MEF</span><span class="rd-b" id="rd-b">--:--</span> <span id="rd-h"></span></span>';
+ let meta=proximaRevision(new Date()),pasada=(()=>{let c=proximaRevision(new Date(Date.now()-18*36e5)),n;while((n=proximaRevision(new Date(c.getTime()+1000)))<=new Date())c=n;return c<=new Date()?c:null})(),base=D.actualizado,vigilando=0,hay=false;
+ const tic=()=>{const now=new Date(),b=document.getElementById('rd-b'),h=document.getElementById('rd-h');if(!b||hay)return;
+  if(now>=meta){pasada=meta;meta=proximaRevision(new Date(meta.getTime()+1000))}
+  const tras=pasada?(now-pasada)/6e4:1e9;                       // minutos desde la última revisión programada
+  // Durante 45 minutos después de cada revisión se consulta cada minuto si hay datos nuevos (la actualización completa tarda 10 a 40 min).
+  if(tras<45&&now-vigilando>60000){vigilando=+now;fetch('datos.json?'+Date.now()).then(r=>r.json()).then(j=>{if(j.actualizado!==base){hay=true;el.classList.remove('activo');b.textContent='Datos nuevos';h.innerHTML='<button class="nuevo" type="button" onclick="location.reload()">Actualizar la página</button>'}}).catch(()=>{})}
+  if(tras<10){el.classList.add('activo');b.textContent='Revisando';h.textContent='· si el MEF publicó datos nuevos, aquí aparecerá el aviso'}
+  else{el.classList.remove('activo');const seg=Math.max(0,Math.round((meta-now)/1000)),hh=Math.floor(seg/3600),mm=Math.floor(seg%3600/60),ss=seg%60;
+   b.textContent=(hh?hh+':'+String(mm).padStart(2,'0'):mm)+':'+String(ss).padStart(2,'0');
+   const hora=meta.toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'numeric',minute:'2-digit'});h.textContent='· a las '+hora;el.setAttribute('aria-label','Próxima revisión del MEF a las '+hora)}};
+ tic();setInterval(tic,1000)}
 // ---------- evolución ----------
 function linea(el,fechas,series,fmt=M,alto=230){
  const W=560,H=alto,pl=58,pr=16,pt=26,pb=34,vals=series.flatMap(s=>s.v).filter(v=>v!=null),[mx,pso]=escala(Math.max(...vals)*1.12||1),nt=Math.round(mx/pso);
@@ -412,6 +480,21 @@ function evolucion(){
  if(D.serie.avance&&D.serie.avance.some(v=>v!=null))linea(document.getElementById('gav'),D.fechas,[{n:'Avance real',v:D.serie.avance,c:'#0f8f72'},{n:'Referencia estadística',v:D.serie.esperado,c:'#13294b',dash:1}],P,220);
  else document.getElementById('gav').innerHTML='<p class="nota">La serie de avance empieza con el primer corte que la registra.</p>';
 }
+// ---------- por qué cambió el riesgo estimado ----------
+function fichaRiesgo(u){if(u.et==null||u.dri==null)return'';
+ const tot=u.ep+u.ed+u.et,ok=Math.abs(tot-u.dri)<1,dd=u.dev-u.dev_ant;
+ const fz=D.fuentes||[],fa=fz[fz.length-2],fb=fz[fz.length-1],cambioFuente=!!(fa&&fb&&fa!==fb);
+ let txt;
+ if(Math.abs(u.dri)<0.5)txt='El riesgo estimado no cambió entre cortes.';
+ else if(u.dri>0&&u.et>0.5&&dd>0.5)txt=`La unidad devengó ${M(dd)} entre cortes. Con menos tiempo hasta el 31/12, el cálculo ya contaba con que devengara unos ${M(u.et)} en ese lapso según su ritmo reciente. Como devengó menos, la estimación sube. Esto no demuestra por sí solo falta de ejecución: planillas, entregas y valorizaciones se concentran en ciertas fechas.`;
+ else if(u.dri>0&&dd<=0.5)txt=`No hubo devengado entre cortes${dd<-0.5?' (hubo un ajuste negativo)':''} y queda menos tiempo hasta el 31/12; por eso la estimación sube.`;
+ else if(u.dri>0)txt='El aumento viene de la variación del PIM o de un cambio en los supuestos del cálculo, como se ve en el cuadro.';
+ else if(dd>0.5&&dd>u.et)txt=`El devengado entre cortes (${M(dd)}) superó lo que el ritmo reciente preveía para ese lapso; por eso la estimación baja.`;
+ else txt='La estimación baja por los componentes que muestra el cuadro.';
+ if(Math.abs(u.ep)>=0.5)txt+=` El PIM cambió en ${M(u.ep)}, lo que también mueve el saldo y el riesgo.`;
+ return `<h4 style="margin:12px 0 4px;color:var(--navy)">Por qué cambió el riesgo estimado</h4><p class="ps" style="margin:0 0 4px">${txt} <b>Causa por verificar con la unidad.</b></p>
+ <table class="descomp"><tbody><tr><td>Variación del PIM</td><td>${MS(u.ep)}</td></tr><tr><td>Efecto del devengado entre cortes (un devengado positivo lo reduce; un ajuste negativo lo aumenta)</td><td>${MS(u.ed)}</td></tr><tr><td>Menor tiempo restante y supuestos del cálculo (ritmo, tope en el saldo${cambioFuente?', cambio de fuente entre cortes':''})</td><td>${MS(u.et)}</td></tr><tr><td>Variación del riesgo estimado${ok?'':' (no concilia: revisar)'}</td><td>${MS(u.dri)}</td></tr></tbody></table>
+ <p class="nota" style="margin-top:2px">Riesgo = saldo − lo que el ritmo reciente prevé devengar hasta el 31/12. Por eso su variación = variación del PIM − devengado entre cortes − variación de lo previsto. Los tres términos suman la variación total.</p>`}
 // ---------- ficha de la unidad ----------
 function detalle(s,ir){
  const u=filas().find(x=>x.sec===s);if(!u)return;if(sel!==s){uq='';uver=15;usolo=false;uord='ri';udir=-1}sel=s;tabla();
@@ -420,8 +503,10 @@ function detalle(s,ir){
  const et=[['Sin certificar',u.pim-u.cert],['Certificado sin compromiso',u.cert-u.comp],['Comprometido sin devengar',u.comp-u.dev]];
  document.getElementById('det').innerHTML=`<p class="volver"><button class="btn" type="button" id="volver">← Volver al cuadro</button></p>
  <div class="det-cab"><h3>${esc(u.ue)}</h3><span class="nivel ${u.nivel}">Nivel de riesgo ${u.nivel.toLowerCase()}</span></div>
- <p class="ps" style="margin:4px 0 0">Código ${u.sec} · Recursos Ordinarios · corte ${F(D.corte)}${ant?` (anterior: ${F(ant)})`:''} · fuente: ${esc(D.parametros.fuente)}</p>
- <div class="mini"><div><b>${M(u.saldo)}</b><small>Saldo por devengar</small>${dlt(u.dsal)}</div><div><b>${u.dd==null?'Sin dato':M(u.dd)}</b><small>Devengado entre cortes${u.dd<-0.5?' (ajuste negativo)':''}</small></div><div><b>${u.dpim==null?'Sin dato':Math.abs(u.dpim)<0.5?'Sin variación':M(u.dpim)}</b><small>Variación del PIM entre cortes</small></div><div><b style="color:#a86a12">${M(u.riesgo)}</b><small>Riesgo estimado (ejecución reciente)</small>${dlt(u.dri)}</div><div><b>${u.riesgo_hist==null?'—':M(u.riesgo_hist)}</b><small>Según patrones 2023–2025${u.rh_bajo!=null?` (${M(u.rh_bajo)} a ${M(u.rh_alto)})`:''}</small></div><div><b>${u.saldo_ini>0?P(u.avance):'No aplica'}</b><small>Avance del saldo al ${F5(D.parametros.fecha_base)}${u.esperado>0?` · referencia ${P(u.esperado)}`:''}</small></div></div>
+ <p class="ps" style="margin:4px 0 0">Código ${u.sec} · Recursos Ordinarios · corte ${F(D.corte)}${ant?` (anterior: ${F(ant)})`:''} · cifras del día: ${esc(D.parametros.fuente)} · ritmo y detalle: Datos Abiertos al ${F(D.parametros.corte_detalle||D.corte)}</p>
+ <div class="mini"><div><b>${M(u.saldo)}</b><small>Saldo por devengar</small>${dlt(u.dsal)}</div><div><b>${u.dd==null?'Sin dato':M(u.dd)}</b><small>Devengado entre cortes${u.dd<-0.5?' (ajuste negativo)':''}</small></div><div><b>${u.dpim==null?'Sin dato':Math.abs(u.dpim)<0.5?'Sin variación':M(u.dpim)}</b><small>Variación del PIM entre cortes</small></div><div><b style="color:#a86a12">${M(u.riesgo)}</b><small>Riesgo estimado (ejecución reciente)</small>${dlt(u.dri)}</div><div><b>${u.riesgo_hist==null?'—':M(u.riesgo_hist)}</b><small>Según patrones 2023–2025${u.rh_bajo!=null?` (${M(u.rh_bajo)} a ${M(u.rh_alto)})`:''}</small></div><div><b>${u.saldo_ini>0?P(u.avance):'No aplica'}</b><small>Avance del saldo desde el ${F5(D.parametros.fecha_base)}${u.esperado>0?` · referencia ${P(u.esperado)} · ${CORTO[CLASE(u.avance,u.esperado)]}`:u.saldo_ini>0?' · sin referencia':''}</small></div></div>
+ ${sinRef(u)&&u.saldo_ini>0?aviso(`<b>Sin referencia estadística.</b> ${sinRef(u)} <small>No se clasifica como «alcanza el umbral» ni como atraso.</small>`,'',I_INFO):''}
+ ${fichaRiesgo(u)}
  <h4 style="margin:6px 0;color:var(--navy)">Saldo por etapa presupuestaria</h4>
  <table class="ttab"><thead><tr><th scope="col">Etapa</th><th scope="col">Monto</th><th scope="col">% del saldo</th><th scope="col">Qué verificar</th></tr></thead><tbody>
  ${et.map(([n,v],k)=>`<tr><td>${n}</td><td>${M(v)}</td><td>${P(u.saldo?v/u.saldo:0)}</td><td style="text-align:left;white-space:normal">${['Si se certificará este año o si corresponde sincerar el PIM.','Si los procesos de selección o contratos se firmarán antes del cierre; anular lo que no se use.','Si las entregas, conformidades o valorizaciones llegarán antes del 31/12.'][k]}</td></tr>`).join('')}</tbody></table>

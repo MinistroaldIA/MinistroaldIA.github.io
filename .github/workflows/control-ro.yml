@@ -12,6 +12,10 @@ on:
         description: "Actualizar aunque el MEF no haya publicado nada nuevo"
         type: boolean
         default: true
+      rehacer_informe:
+        description: "Rehacer también el informe con el mismo archivo del MEF (tras un cambio en el núcleo)"
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -97,13 +101,17 @@ jobs:
           else
             python herramientas/tablero_ro.py minsa
           fi
+      - name: Verificar el control antes de publicar (si falla, se conserva el último corte válido)
+        run: python herramientas/verificar_control.py minsa
       - name: Actualizar el informe de saldos si el MEF publicó un archivo nuevo
         if: env.HAY_NUCLEO == 'true'
         run: |
           nuevo=$(python -c "import re;s=open('$GASTO').read(600);print(re.search(r'\"publicado\":\s*\"([^\"]+)\"',s).group(1))")
           previo=$(python -c "import json;print(json.load(open('minsa/estado_informe.json')).get('publicado') or '')" 2>/dev/null || echo "")
           echo "archivo del MEF: $nuevo · informe publicado con: $previo"
-          if [ "$nuevo" = "$previo" ]; then echo "El informe ya está al día."; exit 0; fi
+          if [ "$nuevo" = "$previo" ] && [ "${{ inputs.rehacer_informe }}" != "true" ]; then echo "El informe ya está al día."; exit 0; fi
+          # LibreOffice recalcula las fórmulas del Excel para que guarde sus resultados (comprobación 10)
+          (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends libreoffice-calc >/dev/null) || echo "::warning::No se pudo instalar LibreOffice; la comprobación del Excel fallará y se conservará el informe anterior."
           python kronos/pliegos/datos/descargar_pliego.py minsa --solo-inversiones
           if python kronos/pliegos/automatico.py minsa; then
             W=kronos/salida/pliegos/minsa/web_publica
@@ -125,7 +133,7 @@ jobs:
         run: |
           git config user.name "MinistroaldIA"
           git config user.email "noreply@users.noreply.github.com"
-          git add minsa/ro/historial.csv minsa/ro/datos.json minsa/ro/proyectos.json minsa/ro/historial_proyectos.csv minsa/ro/referencias.json minsa/ro/fuentes_vistas.json
+          git add minsa/ro/historial.csv minsa/ro/datos.json minsa/ro/proyectos.json minsa/ro/historial_proyectos.csv minsa/ro/referencias.json minsa/ro/fuentes_vistas.json minsa/ro/revisiones.json
           git add -A minsa/index.html minsa/anexos.html minsa/estado_informe.json minsa/descargas index.html 2>/dev/null || true
           if git diff --cached --quiet; then echo "Sin cambios."; exit 0; fi
           inf=""

@@ -1,0 +1,24 @@
+{
+ "descripcion": "Revisiones de cifras y de método del control diario de RO. Cada fila dice qué cambió, cuándo, por qué y cuánto. Los valores publicados por primera vez se conservan en «primera_publicacion».",
+ "metodo_vigente": "2026-11-13.2",
+ "metodos": [
+  {"version": "2026-11-12.1", "desde": "2026-11-12", "cambio": "Primera versión: riesgo estimado por unidad, meta y genérica con el ritmo de los tres últimos meses completos."},
+  {"version": "2026-11-13.1", "desde": "2026-11-13", "cambio": "Cifras del día desde la Consulta Amigable cuando trae un corte más reciente que Datos Abiertos; riesgo por producto, actividad y proyecto, cada uno con su propio tope."},
+  {"version": "2026-11-13.2", "desde": "2026-11-13", "cambio": "Se agrega el escenario según patrones de 2023–2025 (valor central y rango). Los cortes del 10/11 y 11/11 no tienen ese escenario: la serie empieza el 12/11."}
+ ],
+ "primera_publicacion": {
+  "2026-11-10": {"publicado": "2026-11-12T05:51", "fuente": "Datos Abiertos", "corte_detalle": "2026-11-10", "PIM": 10425228243.0, "DEVENGADO": 8347550145.09, "saldo": 2077678097.91, "no_certificado": 517436565.55, "riesgo": 1177027848.67, "riesgo_hist": null},
+  "2026-11-11": {"publicado": "2026-11-12T10:45", "fuente": "Datos Abiertos", "corte_detalle": "2026-11-11", "PIM": 10425228243.0, "DEVENGADO": 8377773738.89, "saldo": 2047454504.11, "no_certificado": 497014143.94, "riesgo": 1168790562.86, "riesgo_hist": null},
+  "2026-11-12": {"publicado": "2026-11-13T12:20", "fuente": "Consulta Amigable", "corte_detalle": "2026-11-11", "PIM": 10425228243.0, "DEVENGADO": 8440102447.82, "saldo": 1985125795.18, "no_certificado": 513803758.54, "riesgo": 1124393771.13, "riesgo_hist": null}
+ },
+ "revisiones": [
+  {"registrado": "2026-11-13T13:07", "corte": "2026-11-12", "indicador": "Riesgo estimado (ejecución reciente)", "antes": 1124393771.13, "despues": 1124631871.05,
+   "motivo": "Cambio de método (versión 2026-11-13.1): el riesgo de cada unidad pasó a sumarse desde sus productos, actividades y proyectos, cada uno con su propio tope en el saldo.", "tipo": "método"},
+  {"registrado": "2026-11-13T14:40", "corte": "2026-11-12", "indicador": "Riesgo según patrones 2023–2025", "antes": null, "despues": 200053552.88,
+   "motivo": "Cambio de método (versión 2026-11-13.2): se agrega este escenario. Los cortes anteriores no se recalcularon; la serie empieza el 12/11.", "tipo": "método"},
+  {"registrado": "2026-11-13T16:39", "corte": "2026-11-12", "indicador": "Riesgo estimado (ejecución reciente)", "antes": 1124631871.05, "despues": 1139140817.49,
+   "motivo": "Cambio de fuente: las cifras del día pasaron de la Consulta Amigable a Datos Abiertos al 12/11, y el ritmo y el detalle por meta pasaron de Datos Abiertos al 11/11 al del 12/11. El PIM, el devengado y el saldo no cambiaron.", "tipo": "fuente"},
+  {"registrado": "2026-11-13T16:39", "corte": "2026-11-12", "indicador": "Riesgo según patrones 2023–2025", "antes": 200053552.88, "despues": 202519487.03,
+   "motivo": "Mismo cambio de fuente (detalle por genérica de Datos Abiertos al 12/11).", "tipo": "fuente"}
+ ]
+}
