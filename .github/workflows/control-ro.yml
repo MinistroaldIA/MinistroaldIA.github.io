@@ -72,4 +72,4 @@ jobs:
           if ! git diff --cached --quiet -- minsa/index.html; then inf=" · informe al $(python -c "import json;print(json.load(open('minsa/estado_informe.json'))['corte_txt'])")"; fi
           if git diff --cached --quiet -- minsa/ro/historial.csv minsa/ro/proyectos.json; then msg="consulta sin corte nuevo"; else msg="corte $(python -c "import json;print(json.load(open('minsa/ro/datos.json'))['corte'])")"; fi
           git commit -m "Control RO MINSA: ${msg}${inf}"
-          git push
+          for i in 1 2 3; do git pull --rebase -q origin main && git push && break; sleep 10; done
