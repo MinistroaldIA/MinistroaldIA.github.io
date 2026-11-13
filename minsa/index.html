@@ -50,6 +50,39 @@ ol.rec{padding-left:22px;max-width:900px}ol.rec li{margin-bottom:14px;text-align
 .buscar span{font:500 13px var(--f-m);color:var(--muted)}
 th.ord{cursor:pointer}th.ord::after{content:" ↕";opacity:.5}th.asc::after{content:" ↑";opacity:1}th.desc::after{content:" ↓";opacity:1}
 .anexo-desc{color:var(--muted);font-size:14px;margin:0 0 8px}
+.res-cab{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.res-cab .sub2{color:var(--muted);margin:2px 0 0}
+.corte{text-align:right}.corte b{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;font:600 15px var(--f-t);color:var(--navy)}
+.corte small{display:block;color:var(--muted);font-size:12.5px;margin-top:6px}
+.hero{background:linear-gradient(135deg,#0f2240,#13294b 60%,#183560);color:#fff;border-radius:16px;padding:24px 26px;display:grid;grid-template-columns:1fr auto;gap:26px;align-items:center}
+.hero .tres{display:grid;grid-template-columns:repeat(3,1fr)}
+.hero .tres>div{padding:0 22px;border-left:1px solid rgba(255,255,255,.18)}.hero .tres>div:first-child{padding-left:0;border-left:0}
+.hero .et{font:700 12.5px/1.3 var(--f-t);letter-spacing:.05em;text-transform:uppercase;color:#dbe3ef}
+.hero .num{font:700 clamp(26px,3.4vw,38px)/1.15 var(--f-t);margin:8px 0 4px;white-space:nowrap}
+.hero .ds{font-size:13.5px;color:#cfd8e6}
+.hero .barra2{display:flex;height:20px;border-radius:999px;overflow:hidden;background:#3b4f72;margin:20px 0 10px;font:600 12px/20px var(--f-t)}
+.hero .barra2 i{display:block;background:#19c39c;color:#0d2b3e;text-align:center;font-style:normal}.hero .barra2 span{flex:1;text-align:center;color:#e8eef7}
+.hero .pie2{font-size:13px;color:#cfd8e6}
+.anillo{width:150px;height:150px;position:relative}.anillo svg{transform:rotate(-90deg)}
+.anillo div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.anillo b{font:700 27px/1 var(--f-t)}.anillo small{font-size:13px;color:#dbe3ef;margin-top:4px}
+.fuentes-cab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin:30px 0 12px}
+.fuentes-cab h3{margin:0;font:700 22px/1.2 var(--f-t)}.fuentes-cab span{color:var(--muted);font-size:13.5px}
+.fuentes{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:14px}
+.fte{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column}
+.fte.top{border:2px solid var(--c);background:color-mix(in srgb,var(--c) 7%,#fff)}
+.fte .fc{display:flex;align-items:center;gap:10px;min-height:30px}.fte svg{flex:none;color:var(--c)}
+.fte .sg{font:700 13px var(--f-t);padding:3px 11px;border-radius:999px;background:color-mix(in srgb,var(--c) 16%,#fff);color:color-mix(in srgb,var(--c) 75%,#000)}
+.fte .badge{margin-left:auto;font:600 11.5px var(--f-t);padding:3px 9px;border-radius:999px;background:color-mix(in srgb,var(--c) 22%,#fff);color:color-mix(in srgb,var(--c) 70%,#000);white-space:nowrap}
+.fte h4{font:700 15.5px/1.25 var(--f-t);color:var(--navy);margin:10px 0 0;min-height:3.75em}
+.fte .l2{font-size:13px;color:var(--muted);margin-top:12px}
+.fte .mo{font:700 26px/1.15 var(--f-t);color:var(--navy);margin:2px 0 12px;white-space:nowrap}
+.fte .fl{display:flex;justify-content:space-between;font-size:13.5px;padding:7px 0;border-top:1px solid var(--line)}
+.fte .fl b{font-weight:600}
+.fte .bar{height:9px;background:#e6e9f0;border-radius:999px;overflow:hidden;margin-top:6px}.fte .bar i{display:block;height:100%;background:var(--c);border-radius:999px}
+.idea{display:flex;align-items:center;gap:12px;background:#e3f4ef;border-radius:12px;padding:13px 16px;margin:16px 0 6px;font:600 15.5px var(--f-t);color:var(--navy)}
+.idea svg{flex:none;color:#1f6f68}
+@media(max-width:820px){.hero{grid-template-columns:1fr;padding:20px}.hero .tres{grid-template-columns:1fr;gap:14px}.hero .tres>div{padding:0;border-left:0}.anillo{display:none}.corte{text-align:left}.fte h4{min-height:0}}
 footer{margin-top:40px;border-top:1px solid var(--line);padding:22px 0 40px;color:var(--muted);font-size:13px}
 
 /* —— capa premium: escala tipográfica modular (1.25), ritmo vertical de 8 px y detalles editoriales —— */
@@ -113,10 +146,25 @@ a.ax .f{font:500 12px var(--f-m);color:var(--tono)}
 <div class="meta">Pliego 011 · 34 unidades ejecutoras · Datos del MEF al 11/11/2026 · Importes en millones de soles</div></div></header>
 <nav class="saltos" aria-label="Secciones"><div class="wrap"><a href="#resumen">Resumen</a><a href="#unidades">Unidades ejecutoras</a><a href="#ro">Recursos Ordinarios</a><a href="#ro26">RO – genérica 2.6</a><a href="#g26">Crédito e inversiones</a><a class="prim" href="anexos.html">Anexos</a><a class="prim" style="background:#a86a12;border-color:#a86a12" href="ro/">Control diario de RO</a></div></nav>
 <main>
-<section id="resumen"><div class="wrap"><h2>Resumen ejecutivo</h2>
-<div class="kpis">
-<div class="k"><div class="v">S/ 2,632.3 M</div><div class="l">Saldo por ejecutar del pliego</div><small>PIM S/ 11,816.0 M − devengado S/ 9,183.7 M · ejecución 77.7 %</small></div>
-<div class="k oro"><div class="v">S/ 2,047.5 M</div><div class="l">Saldo en Recursos Ordinarios</div><small>Sin devengar al 31/12: S/ 1,168.8 M por ritmo · S/ 207.1 M histórico</small></div>
+<section id="resumen"><div class="wrap"><div class="res-cab"><div><h2>Resumen ejecutivo</h2><p class="sub2">Presupuesto y saldos por fuente de financiamiento</p></div>
+<div class="corte"><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Corte: 11/11/2026</b><small>Importes en millones de soles (M)</small></div></div>
+<div class="hero"><div><div class="tres">
+<div><div class="et">PIM total · todas las fuentes</div><div class="num">S/ 11,816.0 M</div><div class="ds">Presupuesto Institucional Modificado</div></div>
+<div><div class="et">Devengado</div><div class="num">S/ 9,183.7 M</div><div class="ds">Gasto ya reconocido</div></div>
+<div><div class="et">Saldo por devengar</div><div class="num">S/ 2,632.3 M</div><div class="ds">22.3 % del PIM</div></div></div>
+<div class="barra2" role="img" aria-label="Ejecutado 77.7 %, por devengar 22.3 %"><i style="width:77.7%">77.7 %</i><span>22.3 %</span></div>
+<div class="pie2">34 unidades ejecutoras · Año fiscal 2026</div></div>
+<div class="anillo"><svg width="150" height="150" viewBox="0 0 150 150" aria-hidden="true"><circle cx="75" cy="75" r="62" fill="none" stroke="#3b4f72" stroke-width="14"/>
+<circle cx="75" cy="75" r="62" fill="none" stroke="#19c39c" stroke-width="14" stroke-linecap="round" stroke-dasharray="302.8 389.6"/></svg>
+<div><b>77.7 %</b><small>Ejecución</small></div></div></div>
+<div class="fuentes-cab"><h3>Saldos por fuente de financiamiento</h3><span>Saldo = PIM − devengado</span></div>
+<div class="fuentes"><article class="fte top" style="--c:#12a37f"><div class="fc"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6"/><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6"/></svg><span class="sg">RO</span><span class=badge>Mayor saldo</span></div><h4>Recursos Ordinarios</h4><div class="l2">Saldo por devengar</div><div class="mo">S/ 2,047.5 M</div><div class="fl"><span>PIM</span><b>S/ 10,425.2 M</b></div><div class="fl" style="border-bottom:0"><span>Ejecución</span><b>80.4 %</b></div><div class="bar" role="img" aria-label="Ejecución 80.4 %"><i style="width:80.4%"></i></div></article><article class="fte" style="--c:#2f80ed"><div class="fc"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M12 8v8M8 12h8"/></svg><span class="sg">RDR</span></div><h4>Recursos Directamente Recaudados</h4><div class="l2">Saldo por devengar</div><div class="mo">S/ 114.8 M</div><div class="fl"><span>PIM</span><b>S/ 263.4 M</b></div><div class="fl" style="border-bottom:0"><span>Ejecución</span><b>56.4 %</b></div><div class="bar" role="img" aria-label="Ejecución 56.4 %"><i style="width:56.4%"></i></div></article><article class="fte" style="--c:#7c4dff"><div class="fc"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 3 8l9 5 9-5-9-5z"/><path d="m3 13 9 5 9-5"/><path d="m3 17.5 9 5 9-5"/></svg><span class="sg">ROOC</span></div><h4>Recursos por Operaciones Oficiales de Crédito</h4><div class="l2">Saldo por devengar</div><div class="mo">S/ 305.7 M</div><div class="fl"><span>PIM</span><b>S/ 387.3 M</b></div><div class="fl" style="border-bottom:0"><span>Ejecución</span><b>21.1 %</b></div><div class="bar" role="img" aria-label="Ejecución 21.1 %"><i style="width:21.1%"></i></div></article><article class="fte" style="--c:#d99a06"><div class="fc"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="13" rx="1.5"/><path d="M12 8v13M3 12.5h18"/><path d="M12 8c-1.5-3.5-5.5-4-5.5-1.5S9.5 8 12 8s5.5 0 5.5-1.5S13.5 4.5 12 8z"/></svg><span class="sg">DyT</span></div><h4>Donaciones y Transferencias</h4><div class="l2">Saldo por devengar</div><div class="mo">S/ 164.2 M</div><div class="fl"><span>PIM</span><b>S/ 740.0 M</b></div><div class="fl" style="border-bottom:0"><span>Ejecución</span><b>77.8 %</b></div><div class="bar" role="img" aria-label="Ejecución 77.8 %"><i style="width:77.8%"></i></div></article><article class="fte" style="--c:#4b5d7a"><div class="fc"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 20V12M10 20V7M15 20v-5M20 20V4"/><path d="M3 20h19"/></svg><span class="sg">RD</span></div><h4>Recursos Determinados</h4><div class="l2">Saldo por devengar</div><div class="mo">S/ 0.088 M</div><div class="fl"><span>PIM</span><b>S/ 0.137 M</b></div><div class="fl" style="border-bottom:0"><span>Ejecución</span><b>35.6 %</b></div><div class="bar" role="img" aria-label="Ejecución 35.6 %"><i style="width:35.6%"></i></div></article></div>
+<div class="idea"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg>
+<span>RO concentra el 77.8 % del saldo total por devengar.</span></div>
+<p class="nota">Fuente: MEF · Datos al 11/11/2026. El saldo por devengar no equivale a disponibilidad de caja.</p>
+<h3>Puntos de atención</h3>
+<div class="kpis" style="margin-top:8px">
+<div class="k oro"><div class="v">S/ 1,168.8 M</div><div class="l">RO que quedaría sin devengar al 31/12</div><small>Si las unidades siguen su ritmo actual. Con el comportamiento de años anteriores: S/ 207.1 M. <a href="ro/">Ver el control diario</a></small></div>
 <div class="k"><div class="v">S/ 451.2 M</div><div class="l">Saldo en la genérica 2.6</div><small>Ejecución 77.5 % · 23 proyectos con ejecución ≤ 50 %</small></div>
 <div class="k oro"><div class="v">S/ 770.1 M</div><div class="l">PIM no certificado</div><small>S/ 497.0 M en Recursos Ordinarios</small></div>
 </div>
