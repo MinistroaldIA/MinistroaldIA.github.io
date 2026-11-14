@@ -44,3 +44,12 @@ Versión `2026-11-14.1`, anotada en `minsa/ro/revisiones.json`. El corte publica
 ## Para probar con datos reales sin tocar el sitio
 
 Ejecutar a mano el workflow «Control diario de Recursos Ordinarios» eligiendo la rama `auditoria-r1-correcciones`. El paso «Publicar» empuja a la rama donde corre la tarea, no a `main`.
+
+## Hallazgos nuevos (no estaban en la revisión 1)
+
+Se agregan para que la próxima revisión los considere. No tienen corrección en esta rama.
+
+| ID | Prioridad | Hallazgo | Evidencia | Corrección propuesta |
+|---|---|---|---|---|
+| N01 | Alta, con fecha límite: antes del primer corte de 2027 | El control falla en enero. Para proyectar el saldo se usa el promedio de los tres meses completos anteriores al corte, y el código no cambia de año: en enero busca los meses −2, −1 y 0. | `herramientas/tablero_ro.py`, función `calcular`: `completos = [M - 3, M - 2, M - 1]` (y `[M - 2, M - 1, M]` a fin de mes) con columnas de meses 1 a 12. Lo mismo vale para `mes_base = 10` y para el calendario de feriados de diciembre. | Parametrizar el ejercicio, el mes base y el calendario. Tomar los meses del año anterior cuando corresponda o declarar «sin referencia». Pruebas con cortes del 5/01, del 31/01, de febrero y del 31/12. |
+| N02 | Alta para el aseguramiento | La ruta que más se usa no está auditada. En producción el control lee el archivo de gasto que prepara el núcleo privado (`AlcaldealdIA/kronos-nucleo`, `descargar_pliego.py`), no el lector público de Datos Abiertos. | Corrida real n.º 30 del 14/11/2026 sobre esta rama (`tablero_ro.py minsa --json …`). El informe de la revisión 1 excluye expresamente el núcleo de su alcance. El lector público reforzado en M03 queda como ruta de respaldo. | Auditar en el núcleo la descarga, la validación del esquema y de los importes, y la caché. Aplicarle las mismas pruebas de M03. Hoy el control solo valida que los importes del JSON sean números finitos. |
