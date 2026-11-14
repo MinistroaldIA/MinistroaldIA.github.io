@@ -23,6 +23,13 @@ h1{font:700 clamp(26px,3.6vw,36px)/1.15 var(--f-t);color:var(--navy);margin:4px 
 .indep{display:inline-block;margin-top:6px;font-size:12.5px;font-weight:600;color:#5c3a08;background:var(--ambar-t);border-radius:999px;padding:2px 10px}
 .corte{display:flex;flex-direction:column;align-items:flex-end;gap:6px;max-width:420px}
 .corte>b{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;font:600 15px var(--f-t);color:var(--navy)}
+/* reloj (radar) de la próxima consulta: gira siempre; rápido solo cuando GitHub informa una consulta en curso */
+.radar{display:flex;align-items:center;gap:10px;padding:6px 12px 6px 8px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12.5px;color:var(--muted);line-height:1.25}
+.radar svg{flex:none}.radar .rd-b{font:700 15px var(--f-t);color:var(--navy);font-variant-numeric:tabular-nums}.radar .rd-t{display:block;color:var(--navy);font-weight:600}
+.radar .barrido{transform-origin:20px 20px;animation:giro 4s linear infinite}.radar .eco{transform-origin:20px 20px;animation:eco 4s ease-out infinite}
+.radar.activo .barrido{animation-duration:1.2s}.radar.mal svg circle:first-child{fill:#fbeccc;stroke:#8a5508}
+@keyframes giro{to{transform:rotate(360deg)}}@keyframes eco{0%{transform:scale(.3);opacity:.7}100%{transform:scale(1);opacity:0}}
+@media (prefers-reduced-motion:reduce){.radar .barrido,.radar .eco{animation:none}}
 .op{border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;font-size:13px;line-height:1.4;color:var(--muted)}
 .op p{margin:2px 0}.op b{color:var(--navy)}.op .mal{color:#8c231a;font-weight:600}.op .bien{color:#0b5e4a}
 .op .nuevo{all:unset;cursor:pointer;color:#fff;background:var(--turq-d);border-radius:999px;padding:3px 10px;font-weight:600;margin-top:4px;display:inline-block}
@@ -137,7 +144,7 @@ footer{margin:28px 0 30px;font-size:13px;color:var(--muted)}
 <h1>Control diario de Recursos Ordinarios</h1>
 <p class="meta" id="meta">Cargando…</p>
 <span class="indep" id="indep">Proyecto independiente. No es un portal oficial.</span></div>
-<div class="corte"><b id="cortetx">Cargando…</b><div class="op" id="op" aria-live="polite"></div></div>
+<div class="corte"><b id="cortetx">Cargando…</b><div class="radar" id="radar" role="timer" aria-live="off" hidden></div><div class="op" id="op" aria-live="polite"></div></div>
 </div></div></header>
 <nav class="top" aria-label="Secciones"><div class="wrap" id="nav"><a href="../../">Portada</a><a class="act" href="#inicio" aria-current="page">Control diario</a><span class="sep" aria-hidden="true"></span><a class="sub" href="#cuadro">Unidades</a><a class="sub" href="#buscador">Proyectos</a><a class="sub" href="#metodo">Cómo se calcula</a></div></nav>
 <main><div class="wrap">
@@ -347,25 +354,23 @@ function proximaConsulta(now){const L=new Date(now.getTime()-5*36e5);
 let RUN=null,RUN_ERR=false,AVISO='';
 function estadoOperativo(){
  fetch('estado.json?'+Date.now()).then(r=>r.ok?r.json():null).then(e=>{EO=e;pintarOp()}).catch(()=>{EO=null;pintarOp()});
- consultarRun();setInterval(consultarRun,20*6e4);setInterval(vigilar,10*6e4);setInterval(pintarOp,6e4)}
+ consultarRun();setInterval(()=>consultarRun(),20*6e4);setInterval(vigilar,10*6e4);setInterval(pintarOp,6e4);reloj()}
 // La API pública admite 60 consultas por hora y por IP (una oficina entera puede compartir IP): se guarda la respuesta 10 minutos
 // en el navegador y se comparte entre pestañas. Si no responde, la página lo dice y no afirma nada sobre el MEF.
 const RUN_KEY='control-ro-run:'+REPO;
-function consultarRun(){let c=null;try{c=JSON.parse(localStorage.getItem(RUN_KEY)||'null')}catch(e){}
- if(c&&Date.now()-c.t<10*6e4&&!(c.run&&c.run.status!=='completed'&&Date.now()-c.t>2*6e4)){RUN=c.run;RUN_ERR=false;pintarOp();return}
+function consultarRun(forzar){let c=null;try{c=JSON.parse(localStorage.getItem(RUN_KEY)||'null')}catch(e){}
+ if(!forzar&&c&&Date.now()-c.t<10*6e4&&!(c.run&&c.run.status!=='completed'&&Date.now()-c.t>2*6e4)){RUN=c.run;RUN_ERR=false;pintarOp();return}
  fetch(`https://api.github.com/repos/${REPO}/actions/workflows/control-ro.yml/runs?per_page=1&branch=main`,{headers:{Accept:'application/vnd.github+json'}})
  .then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{const w=(j.workflow_runs||[])[0]||null;RUN=w&&{status:w.status,conclusion:w.conclusion,run_started_at:w.run_started_at,created_at:w.created_at,html_url:w.html_url};RUN_ERR=false;
   try{localStorage.setItem(RUN_KEY,JSON.stringify({t:Date.now(),run:RUN}))}catch(e){}pintarOp()})
  .catch(()=>{RUN_ERR=!RUN;pintarOp()})}
 function pintarOp(){const el=document.getElementById('op');if(!el||!D)return;const L=[];
- const prox=proximaConsulta(new Date()).toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false});
  if(RUN){const t=HL(RUN.run_started_at||RUN.created_at),lk=RUN.html_url?` <a href="${esc(RUN.html_url)}" target="_blank" rel="noopener">registro</a>`:'';
   if(RUN.status!=='completed')L.push(`<b>Consultando al MEF</b> (desde ${t}).${lk}`);
   else if(RUN.conclusion==='success')L.push(`Última consulta automática: <b>${t}</b>, <span class="bien">terminó sin errores</span>.${lk}`);
   else L.push(`<span class="mal">La última consulta automática (${t}) no terminó bien: no se pudo verificar si hay datos más recientes.</span>${lk}`)}
  else if(RUN_ERR)L.push('No se pudo leer el estado de la consulta automática.');
  if(EO){const tx=(EO.textos||{})[EO.resultado]||EO.resultado;L.push(`Última actualización publicada: <b>${HLi(EO.ultimo_intento)}</b> · ${esc(tx)}.`)}
- L.push(`Próxima consulta prevista: <b>${prox}</b> <span title="GitHub puede iniciar las tareas programadas con retraso">(aprox.)</span>`);
  if(AVISO)L.push(AVISO);
  el.innerHTML=L.map(x=>`<p>${x}</p>`).join('');
  const nb=el.querySelector('.nuevo');if(nb)nb.onclick=()=>location.reload();
@@ -374,6 +379,25 @@ function pintarOp(){const el=document.getElementById('op');if(!el||!D)return;con
  if(EO&&EO.resultado==='corte_retenido')h=`<div class="alerta am">${esc(EO.detalle||'Se conservó el corte publicado porque la fuente disponible traía un corte anterior.')}</div>`;
  else if(RUN&&RUN.status==='completed'&&RUN.conclusion!=='success')h=`<div class="alerta am">No se pudo verificar si hay datos más recientes que el corte del ${F(D.corte)} (la consulta automática de las ${HL(RUN.run_started_at||RUN.created_at)} no terminó bien).</div>`;
  v.innerHTML=h}
+// Reloj de la próxima consulta (cuenta regresiva cada segundo). No deduce nada de la hora: «Consultando al MEF» solo
+// aparece cuando GitHub informa una corrida en curso. Poco después de cada hora programada se lee ese estado real.
+function ultimaProgramada(now){let c=proximaConsulta(new Date(now.getTime()-18*36e5)),n;while((n=proximaConsulta(new Date(c.getTime()+1000)))<=now)c=n;return c<=now?c:null}
+function reloj(){const el=document.getElementById('radar');if(!el)return;el.hidden=false;
+ const svg=`<svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1f8f6a" stop-opacity="0"/><stop offset="1" stop-color="#1f8f6a" stop-opacity=".55"/></linearGradient></defs><circle cx="20" cy="20" r="18" fill="#eef6f2" stroke="#1f8f6a" stroke-opacity=".35"/><circle cx="20" cy="20" r="11.5" fill="none" stroke="#1f8f6a" stroke-opacity=".25"/><circle cx="20" cy="20" r="5" fill="none" stroke="#1f8f6a" stroke-opacity=".2"/><circle class="eco" cx="20" cy="20" r="18" fill="none" stroke="#1f8f6a" stroke-width="1.2"/><g class="barrido"><path d="M20 20 L20 2 A18 18 0 0 1 35.6 11 Z" fill="url(#rg)"/><line x1="20" y1="20" x2="20" y2="2" stroke="#0f7a62" stroke-width="1.6"/></g><circle cx="20" cy="20" r="2" fill="#0f7a62"/></svg>`;
+ el.innerHTML=svg+'<span><span class="rd-t" id="rd-t">Próxima consulta al MEF</span><span class="rd-b" id="rd-b">--:--</span> <span id="rd-h"></span></span>';
+ let meta=proximaConsulta(new Date()),leida=null;
+ const tic=()=>{const now=new Date(),t=document.getElementById('rd-t'),b=document.getElementById('rd-b'),h=document.getElementById('rd-h');if(!b)return;
+  if(now>=meta)meta=proximaConsulta(new Date(now.getTime()+1000));
+  const ult=ultimaProgramada(now);                                   // entre 1,5 y 30 min después de la hora programada: leer el estado real una vez
+  if(ult&&now-ult>90e3&&now-ult<30*6e4&&leida!==+ult){leida=+ult;consultarRun(true)}
+  el.classList.toggle('mal',!!(RUN&&RUN.status==='completed'&&RUN.conclusion!=='success'));
+  if(RUN&&RUN.status!=='completed'){el.classList.add('activo');t.textContent='Consultando al MEF';b.textContent='ahora';
+   h.textContent='· desde las '+new Date(RUN.run_started_at||RUN.created_at).toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false});el.setAttribute('aria-label','Consulta al MEF en curso')}
+  else{el.classList.remove('activo');t.textContent='Próxima consulta al MEF';const seg=Math.max(0,Math.round((meta-now)/1000)),hh=Math.floor(seg/3600),mm=Math.floor(seg%3600/60),ss=seg%60;
+   b.textContent=(hh?hh+':'+String(mm).padStart(2,'0'):mm)+':'+String(ss).padStart(2,'0');
+   const hora=meta.toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false});
+   h.innerHTML=`· a las ${hora} <span title="GitHub puede iniciar las tareas programadas con retraso">(aprox.)</span>`;el.setAttribute('aria-label','Próxima consulta prevista a las '+hora+' (aproximada)')}};
+ tic();setInterval(tic,1000)}
 // Aviso de cambios: compara el CORTE y las revisiones, no la hora de la última consulta.
 function vigilar(){fetch('datos.json?'+Date.now()).then(r=>r.json()).then(j=>{
  if(j.corte!==D.corte)AVISO=`<button class="nuevo" type="button">Nuevo corte: ${F(j.corte)} · actualizar</button>`;
