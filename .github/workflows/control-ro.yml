@@ -177,4 +177,5 @@ jobs:
           if [ -f "$P/estado_informe.json" ] && ! git diff --cached --quiet -- "$P/index.html"; then inf=" · informe al $(python -c "import json;print(json.load(open('$P/estado_informe.json'))['corte_txt'])")"; fi
           if git diff --cached --quiet -- "$P/ro/historial.csv" "$P/ro/proyectos.json"; then msg="consulta sin corte nuevo"; else msg="corte $(python -c "import json;print(json.load(open('$P/ro/datos.json'))['corte'])")"; fi
           git commit -m "Control RO ${{ steps.ent.outputs.sigla }}: ${msg}${inf}"
-          ok=0; for i in 1 2 3 4 5; do git pull --rebase -q origin main && git push && ok=1 && break; sleep $((5 + RANDOM % 20)); done; [ "$ok" = 1 ]
+          # se publica en la rama donde corre la tarea (main en el portal; una rama de prueba no toca el sitio)
+          ok=0; for i in 1 2 3 4 5; do git pull --rebase -q origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && ok=1 && break; git rebase --abort 2>/dev/null || true; sleep $((5 + RANDOM % 20)); done; [ "$ok" = 1 ]
