@@ -2,6 +2,7 @@ name: Control diario de Recursos Ordinarios
 
 # Sigue el ritmo del MEF: cada hora, de 7:23 a 23:23 (hora de Lima), una revisión liviana pregunta si la Consulta Amigable
 # o el archivo diario de Datos Abiertos cambiaron. Solo si hay novedad se descarga, se calcula y se publica.
+# Sirve para todas las entidades de herramientas/pliegos.json (salvo "control": false): una corrida por entidad.
 on:
   schedule:
     - cron: "23 12-23 * * *"   # 7:23 a 18:23 hora de Lima
@@ -16,6 +17,10 @@ on:
         description: "Rehacer también el informe con el mismo archivo del MEF (tras un cambio en el núcleo)"
         type: boolean
         default: false
+      pliego:
+        description: "Solo esta entidad (su clave en pliegos.json, por ejemplo minsa). Vacío = todas"
+        type: string
+        default: ""
 
 permissions:
   contents: write
@@ -29,39 +34,52 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     outputs:
-      novedad: ${{ steps.mef.outputs.novedad }}
+      novedad: ${{ steps.lista.outputs.novedad }}
+      pliegos: ${{ steps.lista.outputs.pliegos }}
       ca_fecha: ${{ steps.mef.outputs.ca_fecha }}
       da_publicado: ${{ steps.mef.outputs.da_publicado }}
       da_clave: ${{ steps.mef.outputs.da_clave }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          sparse-checkout: |
-            herramientas
-            minsa/ro
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
       - run: pip install -q requests
       - name: Revisar si el MEF publicó algo nuevo
         id: mef
-        run: python herramientas/vigilar_mef.py
-      - name: Resultado
+        run: python herramientas/vigilar_mef.py ${{ inputs.pliego }}
+      - name: Entidades por actualizar
+        id: lista
+        env:
+          PEDIDO: ${{ inputs.pliego }}
+          FORZAR: ${{ github.event_name == 'workflow_dispatch' && inputs.forzar }}
+          PEND: ${{ steps.mef.outputs.pliegos }}
         run: |
-          if [ "${{ steps.mef.outputs.novedad }}" = "true" ] || [ "${{ github.event_name }}" = "workflow_dispatch" -a "${{ inputs.forzar }}" = "true" ]; then
-            echo "::notice::Se actualiza: ${{ steps.mef.outputs.motivo }}"
+          if [ "$FORZAR" = "true" ]; then
+            # a pedido: la entidad indicada o todas las activas
+            pl=$(python -c "import json,os;P=json.load(open('herramientas/pliegos.json'));p=os.environ['PEDIDO'].strip();print(json.dumps([p] if p else [k for k,v in P.items() if v.get('control',True)]))")
           else
-            echo "::notice::Sin novedades del MEF; no se descarga nada."
+            pl="$PEND"
           fi
+          [ -z "$pl" ] && pl="[]"
+          nov=$([ "$pl" = "[]" ] && echo false || echo true)
+          echo "pliegos=$pl" >> "$GITHUB_OUTPUT"
+          echo "novedad=$nov" >> "$GITHUB_OUTPUT"
+          if [ "$nov" = "true" ]; then echo "::notice::Se actualiza: $pl · ${{ steps.mef.outputs.motivo }}"; else echo "::notice::Sin novedades del MEF; no se descarga nada."; fi
 
   actualizar:
     needs: vigilar
-    if: needs.vigilar.outputs.novedad == 'true' || (github.event_name == 'workflow_dispatch' && inputs.forzar)
+    if: needs.vigilar.outputs.novedad == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 170
+    strategy:
+      fail-fast: false
+      max-parallel: 2
+      matrix:
+        pliego: ${{ fromJSON(needs.vigilar.outputs.pliegos) }}
     env:
+      P: ${{ matrix.pliego }}
       HAY_NUCLEO: ${{ secrets.KRONOS_DEPLOY_KEY != '' }}
-      GASTO: kronos/pliegos/entidades/minsa/datos/pliego_minsa_gasto_2026.json
       DA_CLAVE: ${{ needs.vigilar.outputs.da_clave }}
     steps:
       - uses: actions/checkout@v4
@@ -70,6 +88,16 @@ jobs:
           python-version: "3.12"
       - name: Instalar dependencias
         run: pip install pandas requests openpyxl lxml beautifulsoup4 markdown html5lib python-docx pypdf qrcode
+      - name: Datos de la entidad
+        id: ent
+        run: |
+          python - <<'PY' >> "$GITHUB_OUTPUT"
+          import json, os
+          P = os.environ["P"]
+          c = json.load(open("herramientas/pliegos.json", encoding="utf-8"))[P]
+          print(f"anio={c['anio']}")
+          print(f"sigla={c.get('sigla') or P.upper()}")
+          PY
       - name: Traer el núcleo de análisis (repositorio privado)
         if: env.HAY_NUCLEO == 'true'
         uses: actions/checkout@v4
@@ -77,48 +105,56 @@ jobs:
           repository: AlcaldealdIA/kronos-nucleo
           ssh-key: ${{ secrets.KRONOS_DEPLOY_KEY }}
           path: kronos
+      - name: ¿La entidad tiene informe en el núcleo?
+        id: nucleo
+        run: |
+          if [ "$HAY_NUCLEO" = "true" ] && [ -f "kronos/pliegos/entidades/$P/pliego.json" ]; then echo "si=true" >> "$GITHUB_OUTPUT"; else echo "si=false" >> "$GITHUB_OUTPUT"; fi
+          echo "gasto=kronos/pliegos/entidades/$P/datos/pliego_${P}_gasto_${{ steps.ent.outputs.anio }}.json" >> "$GITHUB_OUTPUT"
       - name: Reusar el archivo de gasto si ya se leyó esta misma publicación del MEF
         id: cache
-        if: env.HAY_NUCLEO == 'true' && env.DA_CLAVE != 'sin-fecha'
+        if: steps.nucleo.outputs.si == 'true' && env.DA_CLAVE != 'sin-fecha'
         uses: actions/cache/restore@v4
         with:
-          path: ${{ env.GASTO }}
-          key: gasto-minsa-2026-${{ env.DA_CLAVE }}
+          path: ${{ steps.nucleo.outputs.gasto }}
+          key: gasto-${{ matrix.pliego }}-${{ steps.ent.outputs.anio }}-${{ env.DA_CLAVE }}
       - name: Descargar el gasto del pliego (todas las fuentes, una sola lectura del archivo del MEF)
-        if: env.HAY_NUCLEO == 'true' && steps.cache.outputs.cache-hit != 'true'
-        run: python kronos/pliegos/datos/descargar_pliego.py minsa --sin-inversiones
+        if: steps.nucleo.outputs.si == 'true' && steps.cache.outputs.cache-hit != 'true'
+        run: python kronos/pliegos/datos/descargar_pliego.py "$P" --sin-inversiones
       - name: Guardar el archivo de gasto para las próximas corridas
-        if: env.HAY_NUCLEO == 'true' && steps.cache.outputs.cache-hit != 'true' && env.DA_CLAVE != 'sin-fecha'
+        if: steps.nucleo.outputs.si == 'true' && steps.cache.outputs.cache-hit != 'true' && env.DA_CLAVE != 'sin-fecha'
         continue-on-error: true
         uses: actions/cache/save@v4
         with:
-          path: ${{ env.GASTO }}
-          key: gasto-minsa-2026-${{ env.DA_CLAVE }}
+          path: ${{ steps.nucleo.outputs.gasto }}
+          key: gasto-${{ matrix.pliego }}-${{ steps.ent.outputs.anio }}-${{ env.DA_CLAVE }}
       - name: Calcular el control diario de RO
         run: |
-          if [ "$HAY_NUCLEO" = "true" ]; then
-            python herramientas/tablero_ro.py minsa --json "$GASTO"
+          # con núcleo: lee el archivo de gasto ya descargado; sin él, el control descarga y filtra Datos Abiertos por su cuenta
+          if [ "${{ steps.nucleo.outputs.si }}" = "true" ]; then
+            python herramientas/tablero_ro.py "$P" --json "${{ steps.nucleo.outputs.gasto }}"
           else
-            python herramientas/tablero_ro.py minsa
+            python herramientas/tablero_ro.py "$P"
           fi
       - name: Verificar el control antes de publicar (si falla, se conserva el último corte válido)
-        run: python herramientas/verificar_control.py minsa
+        run: python herramientas/verificar_control.py "$P"
       - name: Actualizar el informe de saldos si el MEF publicó un archivo nuevo
-        if: env.HAY_NUCLEO == 'true'
+        if: steps.nucleo.outputs.si == 'true'
         run: |
+          GASTO="${{ steps.nucleo.outputs.gasto }}"
           nuevo=$(python -c "import re;s=open('$GASTO').read(600);print(re.search(r'\"publicado\":\s*\"([^\"]+)\"',s).group(1))")
-          previo=$(python -c "import json;print(json.load(open('minsa/estado_informe.json')).get('publicado') or '')" 2>/dev/null || echo "")
+          previo=$(python -c "import json;print(json.load(open('$P/estado_informe.json')).get('publicado') or '')" 2>/dev/null || echo "")
           echo "archivo del MEF: $nuevo · informe publicado con: $previo"
           if [ "$nuevo" = "$previo" ] && [ "${{ inputs.rehacer_informe }}" != "true" ]; then echo "El informe ya está al día."; exit 0; fi
           # LibreOffice recalcula las fórmulas del Excel para que guarde sus resultados (comprobación 10)
           (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends libreoffice-calc >/dev/null) || echo "::warning::No se pudo instalar LibreOffice; la comprobación del Excel fallará y se conservará el informe anterior."
-          python kronos/pliegos/datos/descargar_pliego.py minsa --solo-inversiones
-          if python kronos/pliegos/automatico.py minsa; then
-            W=kronos/salida/pliegos/minsa/web_publica
-            cp $W/index.html $W/anexos.html $W/estado_informe.json minsa/
-            rm -f minsa/descargas/*.xlsx && cp $W/descargas/*.xlsx minsa/descargas/
-            cp $W/ro_referencias.json minsa/ro/referencias.json
-            python herramientas/actualizar_portada.py
+          python kronos/pliegos/datos/descargar_pliego.py "$P" --solo-inversiones
+          if python kronos/pliegos/automatico.py "$P"; then
+            W=kronos/salida/pliegos/$P/web_publica
+            mkdir -p "$P/descargas"
+            cp $W/index.html $W/anexos.html $W/estado_informe.json "$P/"
+            rm -f "$P"/descargas/*.xlsx && cp $W/descargas/*.xlsx "$P/descargas/"
+            [ -f $W/ro_referencias.json ] && cp $W/ro_referencias.json "$P/ro/referencias.json"
+            python herramientas/actualizar_portada.py "$P"
           else
             touch /tmp/informe_fallo
             echo "::warning::Una comprobación del informe falló; se conserva la versión anterior."
@@ -127,17 +163,19 @@ jobs:
         run: |
           # Si el informe falló, no se da por vista la publicación de Datos Abiertos: la próxima revisión volverá a intentarlo.
           da="${{ needs.vigilar.outputs.da_publicado }}"
-          if [ -f /tmp/informe_fallo ] || [ "$HAY_NUCLEO" != "true" ]; then da=""; fi
-          python herramientas/vigilar_mef.py --guardar "${{ needs.vigilar.outputs.ca_fecha }}" "$da"
+          # Tampoco si la entidad tiene informe publicado pero esta corrida no pudo rehacerlo (sin acceso al núcleo).
+          if [ -f /tmp/informe_fallo ] || { [ "${{ steps.nucleo.outputs.si }}" != "true" ] && [ -f "$P/estado_informe.json" ]; }; then da=""; fi
+          python herramientas/vigilar_mef.py --guardar "${{ needs.vigilar.outputs.ca_fecha }}" "$da" "$P"
       - name: Publicar
         run: |
           git config user.name "MinistroaldIA"
           git config user.email "noreply@users.noreply.github.com"
-          git add minsa/ro/historial.csv minsa/ro/datos.json minsa/ro/proyectos.json minsa/ro/historial_proyectos.csv minsa/ro/referencias.json minsa/ro/fuentes_vistas.json minsa/ro/revisiones.json
-          git add -A minsa/index.html minsa/anexos.html minsa/estado_informe.json minsa/descargas index.html 2>/dev/null || true
+          git add -A "$P/ro"
+          git add -A "$P/index.html" "$P/anexos.html" "$P/estado_informe.json" "$P/descargas" index.html 2>/dev/null || true
           if git diff --cached --quiet; then echo "Sin cambios."; exit 0; fi
           inf=""
-          if ! git diff --cached --quiet -- minsa/index.html; then inf=" · informe al $(python -c "import json;print(json.load(open('minsa/estado_informe.json'))['corte_txt'])")"; fi
-          if git diff --cached --quiet -- minsa/ro/historial.csv minsa/ro/proyectos.json; then msg="consulta sin corte nuevo"; else msg="corte $(python -c "import json;print(json.load(open('minsa/ro/datos.json'))['corte'])")"; fi
-          git commit -m "Control RO MINSA: ${msg}${inf}"
-          ok=0; for i in 1 2 3; do git pull --rebase -q origin main && git push && ok=1 && break; sleep 10; done; [ "$ok" = 1 ]
+          if [ -f "$P/estado_informe.json" ] && ! git diff --cached --quiet -- "$P/index.html"; then inf=" · informe al $(python -c "import json;print(json.load(open('$P/estado_informe.json'))['corte_txt'])")"; fi
+          if git diff --cached --quiet -- "$P/ro/historial.csv" "$P/ro/proyectos.json"; then msg="consulta sin corte nuevo"; else msg="corte $(python -c "import json;print(json.load(open('$P/ro/datos.json'))['corte'])")"; fi
+          git commit -m "Control RO ${{ steps.ent.outputs.sigla }}: ${msg}${inf}"
+          # se publica en la rama donde corre la tarea (main en el portal; una rama de prueba no toca el sitio)
+          ok=0; for i in 1 2 3 4 5; do git pull --rebase -q origin "$GITHUB_REF_NAME" && git push origin "HEAD:$GITHUB_REF_NAME" && ok=1 && break; git rebase --abort 2>/dev/null || true; sleep $((5 + RANDOM % 20)); done; [ "$ok" = 1 ]

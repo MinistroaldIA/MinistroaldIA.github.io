@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Control diario de Recursos Ordinarios · MINSA</title>
-<meta name="description" content="PIM, saldo por devengar, saldo proyectado al 31/12 y devengado diario de Recursos Ordinarios por unidad ejecutora del Ministerio de Salud.">
+<title>Control diario de Recursos Ordinarios</title>
+<meta name="description" content="PIM, saldo por devengar, saldo proyectado al 31/12 y devengado diario de Recursos Ordinarios por unidad ejecutora.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ccircle cx=%228%22 cy=%228%22 r=%227%22 fill=%22%2313294b%22/%3E%3C/svg%3E">
@@ -100,12 +100,12 @@ details.met li{margin:4px 0;font-size:14.5px}
 <body>
 <a href="#cuadro" style="position:absolute;left:-999px" onfocus="this.style.left='8px'" onblur="this.style.left='-999px'">Saltar al cuadro por unidad</a>
 <header><div class="wrap"><div class="hcab">
-<div><div class="eyebrow">Ministerio de Salud · Pliego 011 · Recursos Ordinarios</div>
+<div><div class="eyebrow" id="ent">Recursos Ordinarios</div>
 <h1>Control diario de Recursos Ordinarios</h1>
 <p class="meta" id="meta">Cargando…</p></div>
 <div class="corte"><b id="cortetx">Cargando…</b><div class="radar" id="radar" role="timer" aria-live="off" hidden></div></div>
 </div></div></header>
-<nav class="top" aria-label="Secciones"><div class="wrap"><a href="../#resumen">Resumen</a><a href="../#unidades">Unidades</a><a href="../#ro">RO</a><a href="../#ro26">RO–2.6</a><a href="../#g26">Inversiones</a><a href="../anexos.html">Anexos</a><a class="act" href="#inicio" aria-current="page">Control diario</a><span class="sep" aria-hidden="true"></span><a class="sub" href="#cuadro">Unidades</a><a class="sub" href="#buscador">Proyectos</a><a class="sub" href="#metodo">Cómo se calcula</a></div></nav>
+<nav class="top" aria-label="Secciones"><div class="wrap" id="nav"><a href="../../">Portada</a><a class="act" href="#inicio" aria-current="page">Control diario</a><span class="sep" aria-hidden="true"></span><a class="sub" href="#cuadro">Unidades</a><a class="sub" href="#buscador">Proyectos</a><a class="sub" href="#metodo">Cómo se calcula</a></div></nav>
 <main><div class="wrap">
 <div id="vigencia"></div>
 <section id="inicio" style="padding-top:4px" aria-label="Tiempo y ritmo">
@@ -137,7 +137,7 @@ details.met li{margin:4px 0;font-size:14.5px}
 <li><b>Necesario por semana</b> = saldo por devengar ÷ días hábiles que quedan × 5. Es lo que habría que devengar cada semana para no dejar saldo.</li>
 <li><b>Se devenga por semana</b>: promedio de los últimos días hábiles con datos (o desde el inicio del mes, mientras no haya una semana de historial), llevado a 5 días.</li>
 <li><b>Último día</b>: devengado entre el corte anterior y el actual.</li>
-<li><b>Días hábiles sin devengar</b>: días hábiles desde el último corte en que la unidad registró devengado. «2+» significa al menos 2 (el historial empieza el 10/11).</li>
+<li><b>Días hábiles sin devengar</b>: días hábiles desde el último corte en que la unidad registró devengado. «2+» significa al menos 2 (el historial empieza el <span id="hini">primer corte registrado</span>).</li>
 <li><b>Días hábiles</b>: lunes a viernes, sin los feriados del 8, 9 y 25 de diciembre. Después del 31/12 no se compromete ni se devenga con cargo al año (D. Leg. 1440, art. 36); en Recursos Ordinarios lo no devengado no pasa al año siguiente.</li>
 </ul>
 <div id="procedencia"></div><div id="revisiones"></div>
@@ -149,11 +149,11 @@ const M=v=>{if(v==null||isNaN(v))return'—';const a=Math.abs(v);if(a<0.5)return
 const P=v=>v!=null&&isFinite(v)?(100*v).toFixed(1)+' %':'—';
 const F=s=>{const[y,m,d]=s.split('-');return`${d}/${m}/${y}`};const F5=s=>F(s).slice(0,5);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const nom=u=>u.sigla||u.ue.replace('Dirección de Redes Integradas de Salud','DIRIS').replace('Instituto Nacional de Salud del Niño - San Borja','INSN San Borja').replace('Instituto Nacional de Salud del Niño','INSN').replace('Hospital Nacional','Hosp.').replace('Hospital','Hosp.').replace('Instituto Nacional','Inst. Nac.').replace(' - MINSA','');
+const nom=u=>u.sigla||u.ue.replace('Dirección de Redes Integradas de Salud','DIRIS').replace('Instituto Nacional de Salud del Niño - San Borja','INSN San Borja').replace('Instituto Nacional de Salud del Niño','INSN').replace('Hospital Nacional','Hosp.').replace('Hospital','Hosp.').replace('Instituto Nacional','Inst. Nac.').replace(/^(Regi[oó]n|Gob\.\s?Reg\.(\s?de)?|Gobierno Regional( del Departamento)?( de)?)\s?[A-Za-zÁÉÍÓÚáéíóúÑñ ]+?\s?-\s?(?=\S)/i,'').replace('Gobierno Regional','GORE').replace('Dirección Regional','Dir. Reg.').replace('Unidad de Gestión Educativa Local','UGEL').replace(new RegExp(' - '+(D.sigla||'#').replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$'),'');
 const GEN={"1":"2.1 Personal y obligaciones sociales","2":"2.2 Pensiones","3":"2.3 Bienes y servicios","4":"2.4 Donaciones y transferencias","5":"2.5 Otros gastos","6":"2.6 Activos no financieros","7":"2.7 Activos financieros","8":"2.8 Deuda"};
 const colR=r=>r>=0.9?'#19c39c':r>=0.5?'#e0a526':'#e8604c';
 const DIAS=u=>{if(u.dias_sin==null)return'—';const d=u.dias_sin,t=u.dias_sin_tipo;const txt=t==='min'?d+'+':String(d),c=d>=3?'r':d>=1?'a':'v';
- return `<span class="dias ${c}" title="${t==='base'?'Sin devengado desde el inicio del mes':t==='min'?'Al menos '+d+' días hábiles (el historial empieza el '+F5(D.fechas[0])+')':d+' días hábiles'}">${txt}</span>`};
+ return `<span class="dias ${c}" title="${t==='base'?'Sin devengado desde el inicio del mes':t==='min'?'Al menos '+d+' días hábiles (el historial empieza el '+F5(D.hist_inicio||D.fechas[0])+')':d+' días hábiles'}">${txt}</span>`};
 let D,PJ=null,REV=null,chip='todas',ord='riesgo',dir=-1,sel=null;
 const PASO=u=>u.nec_sem>0?u.real_sem/u.nec_sem:null;
 const CHIPS=[['todas','Todas',u=>true],['ult0','Sin devengado en el último día',u=>u.ult!=null&&u.ult<=0.5&&u.saldo>0.5],
@@ -169,6 +169,7 @@ fetch('datos.json?'+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then
 function pintar(){
  const T=D.total,S=D.semana||{},p=D.parametros;
  document.getElementById('cortetx').textContent='Datos al '+F(D.corte);
+ identidad();
  const rv=(D.revisiones_corte||[]).filter(r=>r.corte===D.corte).length;
  document.getElementById('meta').innerHTML=`Fuente: ${esc(p.fuente)} del MEF${p.publicado_lima?' · publicado el '+esc(p.publicado_lima):''}${rv?` · <a href="#metodo" onclick="document.querySelector('details.met').open=true">cifras revisadas</a>`:''}`;
  // ¿el dato está atrasado más de un día hábil?
@@ -187,11 +188,19 @@ function pintar(){
   .map(([a,b,c])=>`<div><div class="et">${a}</div><div class="num">${b}</div><div class="ds">${c}</div></div>`).join('');
  document.getElementById('nproy').textContent='Saldo proyectado: en 2024 y 2025 el saldo real al cierre fue menor, porque diciembre se acelera.';
  const A=filas(),u0=A.filter(CHIPS[1][2]),u3=A.filter(CHIPS[2][2]);
- document.getElementById('alerta').innerHTML=u0.length||u3.length?`<div class="alerta"><span>⚠</span><span>${u0.length?`<b>${u0.length} unidad${u0.length>1?'es':''} sin devengado en el último día:</b> ${u0.map(u=>esc(u.n)).join(', ')}. <button type="button" data-c="ult0">Ver en el cuadro</button>`:''}${u0.length&&u3.length?'<br>':''}${u3.length?`<b>${u3.length} con 3 días hábiles o más sin devengar.</b> <button type="button" data-c="d3">Ver en el cuadro</button>`:''}</span></div>`
-  :'<div class="alerta ok"><span>✓</span><span>Todas las unidades con saldo registraron devengado en el último día.</span></div>';
+ document.getElementById('alerta').innerHTML=u0.length||u3.length?`<div class="alerta"><span>⚠</span><span>${u0.length?`<b>${u0.length} unidad${u0.length>1?'es':''} sin devengado en el último día:</b> ${u0.slice(0,8).map(u=>esc(u.n)).join(', ')}${u0.length>8?` y ${u0.length-8} más`:''}. <button type="button" data-c="ult0">Ver en el cuadro</button>`:''}${u0.length&&u3.length?'<br>':''}${u3.length?`<b>${u3.length} con 3 días hábiles o más sin devengar.</b> <button type="button" data-c="d3">Ver en el cuadro</button>`:''}</span></div>`
+  :D.corte_anterior?'<div class="alerta ok"><span>✓</span><span>Todas las unidades con saldo registraron devengado en el último día.</span></div>'
+  :'<div class="alerta ok" style="background:var(--soft);color:var(--ink)"><span>ℹ</span><span>Es el primer corte registrado: el devengado de cada día y los días sin devengar aparecen desde el próximo corte.</span></div>';
  document.querySelectorAll('#alerta button[data-c]').forEach(b=>b.onclick=()=>{chip=b.dataset.c;chips();tabla();document.getElementById('cuadro').scrollIntoView()});
  diario();chips();tabla();procedencia();
  document.getElementById('q').oninput=tabla;document.getElementById('bcsv').onclick=descargar;
+}
+// Entidad: nombre, código de pliego y enlaces al informe (solo si la entidad lo tiene). La página es la misma para todas.
+function identidad(){const sg=D.sigla||D.pliego;
+ document.getElementById('ent').textContent=`${D.pliego} · Pliego ${D.codigo} · Recursos Ordinarios`;
+ document.title=`Control diario de Recursos Ordinarios · ${sg}`;
+ if(D.hist_inicio)document.getElementById('hini').textContent=F(D.hist_inicio);
+ if(D.informe)document.getElementById('nav').insertAdjacentHTML('afterbegin',[['../#resumen','Resumen'],['../#unidades','Unidades'],['../#ro','RO'],['../#ro26','RO–2.6'],['../#g26','Inversiones'],['../anexos.html','Anexos']].map(([h,t])=>`<a href="${h}">${t}</a>`).join(''));
 }
 function filas(){return D.ues.map(u=>({...u,n:nom(u),ej:u.pim?u.dev/u.pim:0}))}
 function filtradas(){const q=document.getElementById('q').value.trim().toLowerCase(),f=CHIPS.find(c=>c[0]===chip)[2];
@@ -206,7 +215,7 @@ function tabla(){const R=filtradas();
   <td>${M(u.nec_sem)}</td><td>${M(u.real_sem)}${r!=null?`<span class="mini" title="${P(r)} de lo necesario"><i style="width:${Math.min(100,100*r)}%;background:${colR(r)}"></i></span>`:''}</td>
   <td class="${u.ult!=null&&u.ult<=0.5&&u.saldo>0.5?'cero':''}">${u.ult==null?'—':M(u.ult)}</td><td>${DIAS(u)}</td></tr>`}).join('')||`<tr><td class="t" colspan="9">Ninguna unidad cumple el filtro.</td></tr>`;
  const s=k=>R.reduce((a,u)=>a+(u[k]||0),0);
- document.getElementById('pie').innerHTML=`<tr><td class="t">Total (${R.length})</td><td>${M(s('pim'))}</td><td>${P(s('dev')/s('pim'))}</td><td>${M(s('saldo'))}</td><td>${M(s('riesgo'))}</td><td>${M(s('nec_sem'))}</td><td>${M(s('real_sem'))}</td><td>${M(s('ult'))}</td><td></td></tr>`;
+ document.getElementById('pie').innerHTML=`<tr><td class="t">Total (${R.length})</td><td>${M(s('pim'))}</td><td>${P(s('dev')/s('pim'))}</td><td>${M(s('saldo'))}</td><td>${M(s('riesgo'))}</td><td>${M(s('nec_sem'))}</td><td>${M(s('real_sem'))}</td><td>${R.some(u=>u.ult!=null)?M(s('ult')):'—'}</td><td></td></tr>`;
  document.querySelectorAll('#cuerpo tr[data-s]').forEach(tr=>{tr.onclick=()=>detalle(tr.dataset.s,true);tr.onkeydown=e=>{if(e.key==='Enter')detalle(tr.dataset.s,true)}});
  document.getElementById('ncuadro').textContent=`${R.length} de ${D.ues.length} unidades. En rojo: sin devengado en el último día o con 3 días hábiles o más sin devengar. Elija una unidad para ver su detalle.`}
 function diario(){const S=D.semana||{},C=(S.cortes||[]).slice(-20),el=document.getElementById('dia');

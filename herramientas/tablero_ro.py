@@ -19,6 +19,8 @@ import datetime as dt
 import io
 import json
 import os
+import re
+import shutil
 import sys
 from email.utils import parsedate_to_datetime
 
@@ -27,8 +29,9 @@ import pandas as pd
 AQUI = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.dirname(AQUI)
 URL = "https://fs.datosabiertos.mef.gob.pe/datastorefiles/{anio}-Gasto-Diario.csv"
-C = {"MES": 1, "NIVEL": 2, "SECTOR": 4, "PLIEGO": 6, "SEC_EJEC": 8, "EJEC_NOM": 10, "SEC_FUNC": 17, "TIPO": 20, "PROD": 22,
+C = {"MES": 1, "NIVEL": 2, "SECTOR": 4, "PLIEGO": 6, "SEC_EJEC": 8, "EJEC_NOM": 10, "SEC_FUNC": 17, "TIPO": 20, "PROD": 22, "PROD_NOM": 23,
      "META": 32, "FUENTE": 37, "RUBRO": 39, "GEN": 46, "GEN_NOM": 47, "M0": 56}
+PROD_NOM = {}                    # nombres de productos y proyectos según Datos Abiertos (respaldo de los de la Consulta Amigable)
 MONTOS = ["PIA", "PIM", "CERTIFICADO", "COMPROMETIDO_ANUAL", "COMPROMETIDO", "DEVENGADO", "GIRADO"]
 LLAVES = ["SEC_EJEC", "SEC_FUNC", "TIPO_ACT_PROY", "PRODUCTO_PROYECTO", "META", "RUBRO", "GENERICA"]
 METODO = "2026-11-13.2"     # subir la versión (y describirla en <id>/ro/revisiones.json) cada vez que cambie el cálculo
@@ -41,15 +44,23 @@ _TILDE = {"Administracion": "Administración", "Direccion": "Dirección", "Credi
           "Movil": "Móvil", "Huaycan": "Huaycán", "Lima Este - Vitarte": "Lima Este - Vitarte", "Bartolome": "Bartolomé", "Valdizan": "Valdizán", "Ampliacion": "Ampliación", "Preparacion": "Preparación", "Recuperacion": "Recuperación",
           "Implementacion": "Implementación", "Adquisicion": "Adquisición", "Instalacion": "Instalación", "Construccion": "Construcción",
           "Prevencion": "Prevención", "Vacunacion": "Vacunación", "Gestion": "Gestión", "Infeccion": "Infección", "Nutricion": "Nutrición",
-          "Poblacion": "Población", "Evaluacion": "Evaluación", "Proteccion": "Protección", "Rehabilitacion": "Rehabilitación"}
+          "Poblacion": "Población", "Evaluacion": "Evaluación", "Proteccion": "Protección", "Rehabilitacion": "Rehabilitación",
+          "Educacion": "Educación", "Region": "Región", "Produccion": "Producción", "Comunicacion": "Comunicación",
+          "Informacion": "Información", "Agricola": "Agrícola", "Energia": "Energía", "Mineria": "Minería", "Economia": "Economía", "Publico": "Público", "Publica": "Pública",
+          "Ejecucion": "Ejecución", "Supervision": "Supervisión", "Formacion": "Formación", "Tecnico": "Técnico", "Tecnica": "Técnica", "Transito": "Tránsito"}
+# siglas que el paso a minúsculas no debe alterar (se comparan sin distinguir mayúsculas)
+_SIGLAS = {"MINSA", "MINEDU", "GORE", "DIRESA", "DISA", "DIRIS", "UGEL", "DRE", "DRA", "DREP", "PRONIS", "PCRIS", "CENARES", "INEN", "INSN", "ESSALUD",
+           "SENASA", "MTC", "PROVIAS", "IGSS", "PNP", "SIS", "UE", "PIP", "ONP", "SUNAT", "SUNARP", "INEI", "INDECI", "CENEPRED", "SERFOR", "ANA", "MIDIS", "MIMP", "MEF"}
 
 
 def nombre(t):
     """Nombre oficial en mayúsculas → forma legible con tildes, sin alterar siglas."""
     w = str(t).strip().title().split()
-    t = " ".join(x.lower() if (i and x in _MIN) else x for i, x in enumerate(w)).replace("Minsa", "MINSA").replace(" Ii ", " II ").replace(" Iii ", " III ")
+    w = [x.upper() if x.strip("()-.,").upper() in _SIGLAS else x for x in w]
+    t = " ".join(x.lower() if (i and x in _MIN) else x for i, x in enumerate(w))
+    t = re.sub(r"\b(Iii|Ii|Iv|Vii|Viii)\b", lambda m: m.group(0).upper(), t)     # números romanos (II-2, III-1)
     for a, b in _TILDE.items():
-        t = t.replace(a, b)
+        t = re.sub(r"\b" + re.escape(a) + r"\b", b, t)                            # palabra completa: «Region» no toca «Regional»
     return t
 
 
@@ -81,6 +92,7 @@ def descargar(cfg):
             except ValueError:
                 pass
         nombres[f[C["SEC_EJEC"]]] = f[C["EJEC_NOM"]]
+        PROD_NOM[f[C["PROD"]]] = f[C["PROD_NOM"]]
     print(f"líneas leídas: {n:,} · combinaciones RO: {len(agg):,}")
     df = pd.DataFrame([list(k) + v for k, v in agg.items()], columns=["MES_EJE"] + LLAVES + MONTOS)
     return df, nombres, publicado
@@ -91,6 +103,7 @@ def desde_json(ruta, excluir=()):
     J = json.load(open(ruta, encoding="utf-8"))
     df = pd.DataFrame(J["filas"], columns=J["claves"] + J["montos"])
     df = df[(df.FUENTE == "1") & ~df.SEC_EJEC.isin(list(excluir))].drop(columns="FUENTE")
+    PROD_NOM.update(J["nombres"].get("prod", {}))
     df["MES_EJE"] = df.MES_EJE.astype(int)
     for c in MONTOS:
         df[c] = df[c].astype(float)
@@ -202,10 +215,12 @@ def mensual_(d):
     return d.GENERICA.astype(str).isin(["1", "2"]) | (d.TIPO_ACT_PROY.astype(str) == "2")
 
 
-PERFIL = os.path.join(AQUI, "perfil_historico_minsa.json")
+def perfil_de(eid):
+    """Perfil histórico de la entidad (devengado mensual RO por UE × genérica de los años cerrados). Es opcional: sin él no hay escenario según patrones."""
+    return os.path.join(AQUI, f"perfil_historico_{eid}.json")
 
 
-def tasas_hist(corte, perfil=PERFIL):
+def tasas_hist(corte, perfil):
     """Escenario según patrones de años anteriores: para cada unidad y genérica, parte del saldo pendiente a la misma fecha
     que se devengó hasta el 31/12 en cada año cerrado (mismo método del informe de saldos)."""
     if not os.path.isfile(perfil):
@@ -230,10 +245,10 @@ def tasas_hist(corte, perfil=PERFIL):
     return pd.DataFrame({"central": T.mean(axis=1), "min": T.min(axis=1), "max": T.max(axis=1)})
 
 
-def riesgo_hist_ue(UG, corte):
+def riesgo_hist_ue(UG, corte, perfil):
     """Fracción del saldo de cada unidad que quedaría sin devengar según los patrones de 2023–2025 (central, mínimo y máximo).
     Las combinaciones sin historia comparable conservan el escenario según ejecución reciente, como en el informe."""
-    T = tasas_hist(corte)
+    T = tasas_hist(corte, perfil)
     if T is None:
         return None
     G = UG.join(T, how="left")
@@ -318,14 +333,14 @@ def guardar_proyectos(PR, fc, out):
     cols = ["fecha_corte", "SEC_EJEC", "cod", "DEVENGADO"]          # basta el devengado: el del día sale de la resta
     PR = PR.copy()
     fj = os.path.join(out, "proyectos.json")
-    previos = {}                                    # Datos Abiertos no trae nombres: se conservan los de la última consulta
+    previos = {}                                    # nombre: Consulta Amigable del día; si no, el de la última consulta; si no, el de Datos Abiertos
     if os.path.isfile(fj):
         try:
             for lst in json.load(open(fj, encoding="utf-8"))["ues"].values():
                 previos.update({x["c"]: x["n"] for x in lst if x["n"] != x["c"]})
         except (ValueError, KeyError):
             pass
-    PR["nombre"] = [previos.get(c, n) if n == c else nombre(n) for c, n in zip(PR.cod, PR.nombre)]
+    PR["nombre"] = [nombre(n) if n != c else (previos.get(c) or (nombre(PROD_NOM[c]) if PROD_NOM.get(c) else c)) for c, n in zip(PR.cod, PR.nombre)]
     H = pd.read_csv(fh, dtype={"SEC_EJEC": str, "cod": str}) if os.path.isfile(fh) else pd.DataFrame(columns=cols)
     H = H[H.fecha_corte != fc]
     prev = sorted(H.fecha_corte.unique())[-1] if len(H) else None
@@ -440,7 +455,7 @@ def main():
     par["da_publicado"] = publicado
     par["procedencia"] = procedencia(fuente, corte, corte_da, publicado, PR_ca=(fuente == "Consulta Amigable"))
     # escenario según patrones de 2023–2025, aplicado a la fecha de corte que se publica
-    RH = riesgo_hist_ue(calcular.UG, corte)
+    RH = riesgo_hist_ue(calcular.UG, corte, perfil_de(eid))
     if RH is not None:
         for k, col in (("central", "riesgo_hist"), ("bajo", "rh_bajo"), ("alto", "rh_alto")):
             fr = (RH[k] / RH.saldo).where(RH.saldo.abs() > 0.5)
@@ -514,6 +529,8 @@ def main():
                 return hab_hasta(fds[i]), ""
         if dev_base <= 0.5:
             return par["habiles_desde_base"], "base"
+        if len(fds) < 2:                    # un solo corte: todavía no se puede saber desde cuándo no devenga
+            return None, ""
         return hab_hasta(fds[0]), "min"
     for u in ues:
         r_ = real_ue(u["sec"], u["dev"])
@@ -529,7 +546,8 @@ def main():
               "real_sem": round(sum(u["real_sem"] for u in ues), 2), "base": base_v, "base_dias": dias_v,
               "ult": round(dserie[-1] - dserie[-2], 2) if len(dserie) > 1 else None, "ult_dias": par.get("habiles_entre"),
               "cortes": [[fechas[i], round(dserie[i] - dserie[i - 1], 2), dias_habiles(fds[i - 1] + dt.timedelta(days=1), fds[i])] for i in range(1, len(fechas))]}
-    J = {"pliego": cfg["nombre"], "anio": cfg["anio"], "corte": fc, "corte_anterior": prev, "parametros": par,
+    J = {"id": eid, "pliego": cfg["nombre"], "sigla": cfg.get("sigla", ""), "codigo": cfg["pliego"], "nivel": cfg["nivel"], "sector": cfg["sector"],
+         "informe": os.path.isfile(os.path.join(RAIZ, eid, "index.html")), "hist_inicio": fechas[0], "anio": cfg["anio"], "corte": fc, "corte_anterior": prev, "parametros": par,
          "actualizado": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
          "total": {k: (None if pd.isna(v) else v) for k, v in serie.loc[fc].to_dict().items()},
          "serie": {k: [None if pd.isna(x) else x for x in serie[k].tolist()] for k in serie.columns}, "fechas": list(serie.index),
@@ -540,6 +558,8 @@ def main():
          "mensual": mensual.round(2).tolist(), "semana": semana, "ues": ues}
     revisar(out, J)
     json.dump(J, open(os.path.join(out, "datos.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    # la página es la misma para todas las entidades: se copia de la plantilla en cada corrida (lee todo de datos.json)
+    shutil.copyfile(os.path.join(AQUI, "plantilla_control_ro.html"), os.path.join(out, "index.html"))
     print(f"corte {fc} · {len(ues)} UE · saldo RO S/ {J['total']['saldo'] / 1e6:,.1f} M · riesgo S/ {J['total']['riesgo'] / 1e6:,.1f} M")
 
 
