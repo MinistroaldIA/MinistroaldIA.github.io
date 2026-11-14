@@ -190,7 +190,7 @@ details.valores{margin-top:8px;font-size:13px}details.valores summary{cursor:poi
 <dt>Corte</dt><dd>Fecha hasta la que el MEF registra la ejecución.</dd>
 </dl></details>
 </div></header>
-<nav class="top" aria-label="Secciones"><div class="wrap"><a href="../#resumen">Resumen</a><a href="../#unidades">Unidades</a><a href="../#ro">RO</a><a href="../#ro26">RO–2.6</a><a href="../#g26">Inversiones</a><a href="../anexos.html">Anexos</a><a class="act" href="#indicadores" aria-current="page">Control diario</a><span class="sep" aria-hidden="true"></span><a class="sub" href="#cuadro">Cuadro</a><a class="sub" href="#evolucion">Evolución</a><a class="sub" href="#metodo">Método</a></div></nav>
+<nav class="top" aria-label="Secciones"><div class="wrap"><a href="../#resumen">Resumen</a><a href="../#unidades">Unidades</a><a href="../#ro">RO</a><a href="../#ro26">RO–2.6</a><a href="../#g26">Inversiones</a><a href="../anexos.html">Anexos</a><a class="act" href="#indicadores" aria-current="page">Control diario</a><span class="sep" aria-hidden="true"></span><a class="sub" href="#cuadro">Cuadro</a><a class="sub" href="#buscador">Proyectos</a><a class="sub" href="#evolucion">Evolución</a><a class="sub" href="#metodo">Método</a></div></nav>
 <main><div class="wrap">
 <div id="vigencia" role="status"></div>
 
@@ -212,6 +212,11 @@ details.valores{margin-top:8px;font-size:13px}details.valores summary{cursor:poi
 <div class="tarjetas" id="tarjetas"></div>
 <p class="nota" id="nota-cuadro"></p>
 </section>
+
+<section id="buscador" aria-label="Buscador de proyectos"><div class="panel2"><h3>Buscar un proyecto de inversión</h3>
+<p class="ps">Escriba el CUI o parte del nombre. Se muestran hasta 8 proyectos con Recursos Ordinarios; «Ver la unidad» abre la ficha de su unidad ejecutora.</p>
+<div class="buscar"><input id="bq" type="search" placeholder="CUI o nombre del proyecto…" aria-label="Buscar proyecto por CUI o nombre" autocomplete="off"></div>
+<div id="bres" aria-live="polite"><p class="nota">Cargando proyectos…</p></div></div></section>
 
 <section id="detalle" hidden><div class="panel2" id="det" tabindex="-1"></div></section>
 
@@ -282,7 +287,7 @@ const hoyLima=()=>new Date(new Date().toLocaleString('en-US',{timeZone:'America/
 fetch('datos.json?'+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{D=j;pintar();
  fetch('revisiones.json?'+Date.now()).then(r=>r.ok?r.json():null).then(x=>{REV=x;revisiones()}).catch(()=>revisiones());
  fetch('referencias.json?'+Date.now()).then(r=>r.ok?r.json():null).then(x=>{REF=x;contexto()}).catch(()=>contexto());
- fetch('proyectos.json?'+Date.now()).then(r=>r.json()).then(p=>{PJ=p;if(sel)detalle(sel,false)}).catch(()=>{const ps=document.getElementById('psub');if(ps)ps.textContent='No se pudo cargar el detalle por proyecto. Intente recargar la página.'})
+ fetch('proyectos.json?'+Date.now()).then(r=>r.json()).then(p=>{PJ=p;buscador();if(sel)detalle(sel,false)}).catch(()=>{const ps=document.getElementById('psub');if(ps)ps.textContent='No se pudo cargar el detalle por proyecto. Intente recargar la página.'})
 }).catch(()=>{document.getElementById('vigencia').innerHTML=aviso('No se pudieron cargar los datos. Revise su conexión e intente recargar la página.','rojo',I_ALE);document.getElementById('cortetx').textContent='Sin datos'});
 
 function pintar(){
@@ -406,6 +411,18 @@ function reloj(){const el=document.getElementById('radar');if(!el||!D)return;el.
    b.textContent=(hh?hh+':'+String(mm).padStart(2,'0'):mm)+':'+String(ss).padStart(2,'0');
    const hora=meta.toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'numeric',minute:'2-digit'});h.textContent='· a las '+hora;el.setAttribute('aria-label','Próxima revisión del MEF a las '+hora)}};
  tic();setInterval(tic,1000)}
+// ---------- buscador de proyectos (por CUI o nombre, sin saber la unidad) ----------
+function buscador(){const inp=document.getElementById('bq'),el=document.getElementById('bres');if(!inp||!el||!PJ)return;
+ const un=Object.fromEntries(D.ues.map(u=>[u.sec,u]));
+ const L=Object.entries(PJ.ues).flatMap(([ue,l])=>l.filter(x=>x.t==='P').map(x=>({...x,ue})));
+ const sinTilde=t=>String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
+ const pintarB=()=>{const q=sinTilde(inp.value.trim());
+  if(q.length<2){el.innerHTML=`<p class="nota">${L.length} proyectos con Recursos Ordinarios en ${new Set(L.map(x=>x.ue)).size} unidades. Escriba al menos 2 caracteres.</p>`;return}
+  const R=L.filter(x=>sinTilde(x.c+' '+x.n).includes(q)).sort((a,b)=>b.ri-a.ri);
+  if(!R.length){el.innerHTML='<p class="nota">No se encontró ningún proyecto con ese CUI o nombre.</p>';return}
+  el.innerHTML=`<div class="tabla" style="max-height:none"><table><thead><tr><th scope="col">CUI</th><th class="t" scope="col">Proyecto</th><th class="t" scope="col">Unidad ejecutora</th><th scope="col">Saldo por devengar</th><th scope="col">Riesgo estimado</th><th scope="col"><span class="sr" style="position:absolute;left:-9999px">Acción</span></th></tr></thead><tbody>${R.slice(0,8).map(x=>`<tr style="cursor:default"><td>${esc(x.c)}</td><td class="t" style="min-width:240px;white-space:normal">${esc(x.n)}</td><td class="t">${esc(un[x.ue]?nom(un[x.ue]):x.ue)}</td><td>${M(x.s)}</td><td><b>${M(x.ri)}</b></td><td><button class="btn" type="button" data-ue="${x.ue}">Ver la unidad</button></td></tr>`).join('')}</tbody></table></div><p class="nota">${R.length>8?`Se muestran 8 de ${R.length} coincidencias, por riesgo estimado. Precise la búsqueda.`:`${R.length} coincidencia${R.length>1?'s':''}, por riesgo estimado.`}</p>`;
+  el.querySelectorAll('button[data-ue]').forEach(b=>b.onclick=()=>detalle(b.dataset.ue,true))};
+ inp.oninput=pintarB;pintarB()}
 // ---------- evolución ----------
 function linea(el,fechas,series,fmt=M,alto=230){
  const W=560,H=alto,pl=58,pr=16,pt=26,pb=34,vals=series.flatMap(s=>s.v).filter(v=>v!=null),[mx,pso]=escala(Math.max(...vals)*1.12||1),nt=Math.round(mx/pso);
