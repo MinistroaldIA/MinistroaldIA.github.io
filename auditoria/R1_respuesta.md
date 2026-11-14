@@ -8,12 +8,12 @@
 ## Cómo reproducir
 
 ```
-python -X utf8 herramientas/pruebas_control.py              # 37 pruebas sin red (corre también en la tarea, antes de calcular)
+python -X utf8 herramientas/pruebas_control.py              # 40 pruebas sin red (corre también en la tarea, antes de calcular)
 python -X utf8 herramientas/pruebas_control.py --interfaz   # +19 pruebas en Chromium (320/360/390/412/1280 px), requiere Playwright
 python -X utf8 herramientas/verificar_control.py minsa      # 41 verificaciones del corte publicado
 ```
 
-Resultado: 56 de 56 pruebas y 41 de 41 verificaciones conformes, con Python 3.13 + pandas 3.0.5 y con Python 3.12 (la versión del workflow) + pandas 3.1.1.
+Resultado: 59 de 59 pruebas y 41 de 41 verificaciones conformes, con Python 3.13 + pandas 3.0.5 y con Python 3.12 (la versión del workflow) + pandas 3.1.1.
 
 Además, se sembraron errores en el generador y en el vigilante (ajuste tratado como «sin variación», racha que ignora huecos, vuelta del `except` silencioso, barrera desactivada, anterior = `fechas[-2]`, vigilante que calla fallos). En los seis casos fallaron entre 2 y 4 pruebas.
 
@@ -47,9 +47,9 @@ Ejecutar a mano el workflow «Control diario de Recursos Ordinarios» eligiendo 
 
 ## Hallazgos nuevos (no estaban en la revisión 1)
 
-Se agregan para que la próxima revisión los considere. No tienen corrección en esta rama.
+Se agregan para que la próxima revisión los considere. N01 quedó corregido en esta rama; N02 sigue pendiente.
 
 | ID | Prioridad | Hallazgo | Evidencia | Corrección propuesta |
 |---|---|---|---|---|
-| N01 | Alta, con fecha límite: antes del primer corte de 2027 | El control falla en enero. Para proyectar el saldo se usa el promedio de los tres meses completos anteriores al corte, y el código no cambia de año: en enero busca los meses −2, −1 y 0. | `herramientas/tablero_ro.py`, función `calcular`: `completos = [M - 3, M - 2, M - 1]` (y `[M - 2, M - 1, M]` a fin de mes) con columnas de meses 1 a 12. Lo mismo vale para `mes_base = 10` y para el calendario de feriados de diciembre. | Parametrizar el ejercicio, el mes base y el calendario. Tomar los meses del año anterior cuando corresponda o declarar «sin referencia». Pruebas con cortes del 5/01, del 31/01, de febrero y del 31/12. |
+| N01 | Alta, con fecha límite: antes del primer corte de 2027 | El control falla en enero. Para proyectar el saldo se usa el promedio de los tres meses completos anteriores al corte, y el código no cambia de año: en enero busca los meses −2, −1 y 0. | `herramientas/tablero_ro.py`, función `calcular`: `completos = [M - 3, M - 2, M - 1]` (y `[M - 2, M - 1, M]` a fin de mes) con columnas de meses 1 a 12. Lo mismo vale para `mes_base = 10` y para el calendario de feriados de diciembre. | **Resuelto y verificado** (método 2026-11-14.2, función `calendario_corte`). Un corte posterior al 31/12 se trata como cierre: saldo final, sin días por delante. En un ejercicio nuevo, sin meses completos, el ritmo es provisional (mes en curso llevado a mes completo) y el mes base pasa al 31/12 del año previo. Pruebas `[N01]` ×3: con el código anterior fallan con el error previsto (`KeyError [-2, -1, 0]`); con el nuevo pasan, incluida la verificación completa. Para seguir 2027 basta cambiar `anio` en `pliegos.json`. |
 | N02 | Alta para el aseguramiento | La ruta que más se usa no está auditada. En producción el control lee el archivo de gasto que prepara el núcleo privado (`AlcaldealdIA/kronos-nucleo`, `descargar_pliego.py`), no el lector público de Datos Abiertos. | Corrida real n.º 30 del 14/11/2026 sobre esta rama (`tablero_ro.py minsa --json …`). El informe de la revisión 1 excluye expresamente el núcleo de su alcance. El lector público reforzado en M03 queda como ruta de respaldo. | Auditar en el núcleo la descarga, la validación del esquema y de los importes, y la caché. Aplicarle las mismas pruebas de M03. Hoy el control solo valida que los importes del JSON sean números finitos. |

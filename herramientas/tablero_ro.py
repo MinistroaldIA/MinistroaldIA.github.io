@@ -38,7 +38,7 @@ COLUMNAS = {"MES": "MES_EJE", "NIVEL": "NIVEL_GOBIERNO", "SECTOR": "SECTOR", "PL
 PROD_NOM = {}                    # nombres de productos y proyectos según Datos Abiertos (respaldo de los de la Consulta Amigable)
 MONTOS = ["PIA", "PIM", "CERTIFICADO", "COMPROMETIDO_ANUAL", "COMPROMETIDO", "DEVENGADO", "GIRADO"]
 LLAVES = ["SEC_EJEC", "SEC_FUNC", "TIPO_ACT_PROY", "PRODUCTO_PROYECTO", "META", "RUBRO", "GENERICA"]
-METODO = "2026-11-14.1"     # subir la versión (y describirla en <id>/ro/revisiones.json) cada vez que cambie el cálculo
+METODO = "2026-11-14.2"     # subir la versión (y describirla en <id>/ro/revisiones.json) cada vez que cambie el cálculo
 TOL_VAR = 1.0               # soles: una variación del devengado entre cortes dentro de ±1 sol cuenta como «sin variación»
 ESTADOS = {"aumento": "Aumento del devengado", "sin_variacion": "Sin variación del devengado",
            "ajuste_negativo": "Ajuste neto negativo", "sin_comparacion": "Sin comparación"}
@@ -202,18 +202,41 @@ def dias_habiles(desde, hasta):
     return n
 
 
+def calendario_corte(corte, anio, mes_base=10):
+    """Calendario del ejercicio `anio` visto desde una fecha de corte (hallazgo N01: cambio de año).
+    - Un corte posterior al 31/12 del ejercicio (el MEF sigue publicando el archivo del año en enero) se trata como CIERRE:
+      los cálculos usan el 31/12, ya no quedan meses ni días hábiles y el saldo no devengado es definitivo.
+    - Meses completos para el ritmo: los tres anteriores al corte, solo dentro del ejercicio (nunca meses 0 o negativos).
+      Si aún no hay ninguno (enero de un ejercicio nuevo), el ritmo es lo devengado en el mes en curso llevado a mes completo,
+      y se rotula como provisional.
+    - Mes base del avance: el configurado si ya pasó; si no (p. ej., enero con mes base 10), el mes anterior al corte,
+      o el 31/12 del año previo cuando el corte está en enero."""
+    fin = dt.date(anio, 12, 31)
+    cierre = corte > fin
+    c = min(corte, fin)
+    if c.year < anio:
+        raise DatosInvalidos(f"el corte {corte} es anterior al ejercicio {anio}")
+    M, dia = c.month, c.day
+    dmes = calendar.monthrange(anio, M)[1]
+    completo = dia == dmes
+    frac = 0.0 if completo else (dmes - dia) / dmes
+    completos = [m for m in ([M - 2, M - 1, M] if completo else [M - 3, M - 2, M - 1]) if m >= 1]
+    mb = mes_base if mes_base < M or (mes_base == M and completo) else M - 1
+    fin_b = dt.date(anio - 1, 12, 31) if mb == 0 else dt.date(anio, mb, calendar.monthrange(anio, mb)[1])
+    return {"c": c, "cierre": cierre, "M": M, "dia": dia, "dmes": dmes, "frac": frac, "completos": completos,
+            "parcial": not completos, "mes_base": mb, "fin_base": fin_b, "meses_rest": 0.0 if cierre else frac + (12 - M)}
+
+
 def tiempo(corte, anio, mes_base=10):
     """Meses que faltan al 31/12, días hábiles y avance esperado (lineal y por mes cerrado) a una fecha de corte."""
-    M, dia = corte.month, corte.day
-    dmes = calendar.monthrange(anio, M)[1]
-    meses_rest = (0.0 if dia == dmes else (dmes - dia) / dmes) + (12 - M)
-    fin_b = dt.date(anio, mes_base, calendar.monthrange(anio, mes_base)[1])
+    k = calendario_corte(corte, anio, mes_base)
+    c, M, mb, fin_b = k["c"], k["M"], k["mes_base"], k["fin_base"]
     ht = dias_habiles(fin_b + dt.timedelta(days=1), dt.date(anio, 12, 31))
-    hp = dias_habiles(fin_b + dt.timedelta(days=1), corte)
-    mc = (M - mes_base - 1) + (1 if dia == dmes else 0)
-    return {"meses_rest": meses_rest, "habiles_rest": dias_habiles(corte + dt.timedelta(days=1), dt.date(anio, 12, 31)),
+    hp = dias_habiles(fin_b + dt.timedelta(days=1), c)
+    mc = (M - mb - 1) + (1 if k["dia"] == k["dmes"] else 0)
+    return {"meses_rest": k["meses_rest"], "habiles_rest": dias_habiles(c + dt.timedelta(days=1), dt.date(anio, 12, 31)),
             "fin_base": fin_b, "habiles_total": ht, "habiles_pasados": hp, "esp_lin": hp / ht if ht else 0.0,
-            "esp_mes": max(0, mc) / (12 - mes_base)}
+            "esp_mes": max(0, mc) / (12 - mb)}
 
 
 def por_proyecto(PDA, prod, t0, t1):
@@ -362,19 +385,17 @@ def calcular(df, publicado, anio, mes_base=10):
     """El archivo se publica en la mañana (hora de Lima) con datos hasta el día anterior."""
     lima = parsedate_to_datetime(publicado) - dt.timedelta(hours=5)
     corte = lima.date() - dt.timedelta(days=1)
-    M, dia = corte.month, corte.day
-    dmes = calendar.monthrange(anio, M)[1]
-    if dia == dmes:
-        frac, completos = 0.0, [M - 2, M - 1, M]
-    else:
-        frac, completos = (dmes - dia) / dmes, [M - 3, M - 2, M - 1]
-    meses_rest = frac + (12 - M)
+    k = calendario_corte(corte, anio, mes_base)           # todos los cálculos de tiempo usan la fecha efectiva (≤ 31/12)
+    c, M, dia, dmes, frac, completos, meses_rest = k["c"], k["M"], k["dia"], k["dmes"], k["frac"], k["completos"], k["meses_rest"]
+    mes_base = k["mes_base"]
     tot = df.groupby(LLAVES)[MONTOS].sum()
     mens = df[df.MES_EJE > 0].pivot_table(index=LLAVES, columns="MES_EJE", values="DEVENGADO", aggfunc="sum") \
         .reindex(columns=range(1, 13)).fillna(0.0)
     U = tot.join(mens, how="left").fillna(0.0).reset_index()
     U["saldo"] = U.PIM - U.DEVENGADO
-    adic = (U[completos].mean(axis=1) * meses_rest).clip(lower=0)
+    # ritmo mensual de referencia: promedio de los meses completos; sin ninguno, el mes en curso llevado a mes completo
+    U["_rit"] = U[completos].mean(axis=1) if completos else U[M] * dmes / max(dia, 1)
+    adic = (U["_rit"] * meses_rest).clip(lower=0)
     U["adicional"] = pd.concat([adic, U.saldo.clip(lower=0)], axis=1).min(axis=1)
     U["riesgo"] = U.saldo - U.adicional
     g = U.groupby("SEC_EJEC").agg(PIM=("PIM", "sum"), CERTIFICADO=("CERTIFICADO", "sum"), COMPROMETIDO=("COMPROMETIDO_ANUAL", "sum"),
@@ -387,9 +408,9 @@ def calcular(df, publicado, anio, mes_base=10):
     g["dev_desde_base"] = U.groupby("SEC_EJEC").dev_desde_base.sum()
     # Avance esperado: la planilla y las pensiones (2.1 y 2.2) se devengan una vez al mes, así que su meta avanza por mes cerrado;
     # el resto, por días hábiles transcurridos. La meta de cada unidad pondera ambas por su saldo al cierre del mes base.
-    fin_b = dt.date(anio, mes_base, calendar.monthrange(anio, mes_base)[1])
+    fin_b = k["fin_base"]
     _ht = dias_habiles(fin_b + dt.timedelta(days=1), dt.date(anio, 12, 31))
-    esp_lin = dias_habiles(fin_b + dt.timedelta(days=1), corte) / _ht if _ht else 0.0
+    esp_lin = dias_habiles(fin_b + dt.timedelta(days=1), c) / _ht if _ht else 0.0
     _mc = (M - mes_base - 1) + (1 if dia == dmes else 0)          # meses completos cerrados después del mes base
     esp_mes = max(0, _mc) / (12 - mes_base)
     U["saldo_ini"] = U.saldo + U.dev_desde_base
@@ -398,15 +419,15 @@ def calcular(df, publicado, anio, mes_base=10):
     g["esperado"] = (_w.esp_w / U.assign(si=U.saldo_ini.clip(lower=0)).groupby("SEC_EJEC").si.sum()).fillna(0.0)
     _si = U.assign(si=U.saldo_ini.clip(lower=0))
     g["w_planilla"] = (_si[mensual_(_si)].groupby("SEC_EJEC").si.sum() / _si.groupby("SEC_EJEC").si.sum()).reindex(g.index).fillna(0.0)
-    g["ritmo_mensual"] = U.groupby("SEC_EJEC")[completos].sum().mean(axis=1)
+    g["ritmo_mensual"] = U.groupby("SEC_EJEC")["_rit"].sum()
     gen = U.groupby(["SEC_EJEC", "GENERICA"])[["PIM", "DEVENGADO", "saldo", "riesgo"]].sum().reset_index()
     mensual = df[df.MES_EJE > 0].groupby("MES_EJE").DEVENGADO.sum().reindex(range(1, 13)).fillna(0.0)
-    hab = dias_habiles(corte + dt.timedelta(days=1), dt.date(anio, 12, 31))
-    fin_base = dt.date(anio, mes_base, calendar.monthrange(anio, mes_base)[1])
+    hab = dias_habiles(c + dt.timedelta(days=1), dt.date(anio, 12, 31))
+    fin_base = k["fin_base"]
     hab_tot = dias_habiles(fin_base + dt.timedelta(days=1), dt.date(anio, 12, 31))
-    hab_pas = dias_habiles(fin_base + dt.timedelta(days=1), corte)
+    hab_pas = dias_habiles(fin_base + dt.timedelta(days=1), c)
     _U = U.assign(si=U.saldo_ini.clip(lower=0), pl=mensual_(U),
-                  rit=U[completos].mean(axis=1), hb=U.DEVENGADO - U.dev_desde_base)
+                  rit=U["_rit"], hb=U.DEVENGADO - U.dev_desde_base)
     _U["si_pl"] = _U.si.where(_U.pl, 0.0)
     PDA = _U.groupby(["SEC_EJEC", "PRODUCTO_PROYECTO"]).agg(tipo=("TIPO_ACT_PROY", "first"), PIM=("PIM", "sum"), DEVENGADO=("DEVENGADO", "sum"),
                                                           adicional=("adicional", "sum"), ritmo=("rit", "sum"), hasta_base=("hb", "sum"),
@@ -415,6 +436,8 @@ def calcular(df, publicado, anio, mes_base=10):
     calcular.PDA = PDA
     calcular.UG = U.groupby(["SEC_EJEC", "GENERICA"])[["saldo", "adicional"]].sum()
     return corte, g[g.PIM > 0].reset_index(), gen, mensual, {"meses_ritmo": completos, "meses_restantes": round(meses_rest, 4),
+                                                              "cierre": k["cierre"], "ritmo_parcial": [M, dia] if k["parcial"] else None,
+                                                              "fecha_efectiva": c.isoformat(),
                                                               "dias_habiles": hab, "publicado_lima": lima.strftime("%d/%m/%Y %H:%M"),
                                                               "fecha_base": fin_base.isoformat(), "habiles_desde_base": hab_pas,
                                                               "habiles_total": hab_tot, "avance_esperado": round(hab_pas / hab_tot, 4) if hab_tot else 0}
@@ -637,6 +660,16 @@ def meses_txt(meses):
     return (", ".join(n[:-1]) + " y " + n[-1]) if len(n) > 1 else "".join(n)
 
 
+def ritmo_txt(par):
+    """Texto del supuesto de la proyección («si continúa el promedio de …»)."""
+    if par.get("cierre"):
+        return ""
+    if par.get("ritmo_parcial"):
+        m, d = par["ritmo_parcial"]
+        return f"lo devengado en {MESES_TXT[m - 1]} hasta el día {d} (provisional: aún no hay meses completos)"
+    return meses_txt(par.get("meses_ritmo", []))
+
+
 def recalcular_actividad(eid):
     """Aplica el método vigente de actividad (estados y racha) al último corte ya publicado, sin consultar al MEF.
     Sirve al cambiar de método: las cifras presupuestales (PIM, devengado, saldo, riesgo) no se tocan."""
@@ -651,7 +684,7 @@ def recalcular_actividad(eid):
         S["var"], S["var_dias"] = S.pop("ult", S.get("var")), S.pop("ult_dias", S.get("var_dias"))
         S["cortes"] = [c if len(c) > 3 else c + [anterior_a(J["fechas"], c[0])] for c in S.get("cortes", [])]
     par["metodo"], par["tolerancia_variacion"] = METODO, TOL_VAR
-    par["meses_ritmo_txt"] = meses_txt(par.get("meses_ritmo", []))
+    par["meses_ritmo_txt"] = ritmo_txt(par)
     for c in J.get("controles", []):
         if c["regla"].startswith("Devengado entre cortes sin ajustes negativos"):
             neg = [u["sec"] for u in J["ues"] if u["estado"] == "ajuste_negativo"]
@@ -708,14 +741,14 @@ def main():
     par["da_publicado"] = publicado
     par["procedencia"] = procedencia(fuente, corte, corte_da, publicado, PR_ca=(fuente == "Consulta Amigable"))
     # escenario según patrones de 2023–2025, aplicado a la fecha de corte que se publica
-    RH = riesgo_hist_ue(calcular.UG, corte, perfil_de(eid))
+    RH = riesgo_hist_ue(calcular.UG, calendario_corte(corte, cfg["anio"], cfg.get("mes_base", 10))["c"], perfil_de(eid))
     if RH is not None:
         for k, col in (("central", "riesgo_hist"), ("bajo", "rh_bajo"), ("alto", "rh_alto")):
             fr = (RH[k] / RH.saldo).where(RH.saldo.abs() > 0.5)
             g[col] = (g.SEC_EJEC.map(fr) * g.saldo).fillna(g.riesgo)
         par["hist_anios"] = "2023–2025"
     par["tolerancia_variacion"] = TOL_VAR
-    par["meses_ritmo_txt"] = meses_txt(par.get("meses_ritmo", []))
+    par["meses_ritmo_txt"] = ritmo_txt(par)
     guardar_proyectos(PR, fc, os.path.join(RAIZ, eid, "ro"))
     g.insert(0, "fecha_corte", fc)
     g["UE"] = g.SEC_EJEC.map(lambda x: nombre(nombres.get(x, x)))
@@ -783,7 +816,7 @@ def main():
     comparacion = aplicar_actividad(ues, H, fc)
     tot_ = serie.loc[fc]
     dserie = serie.DEVENGADO.tolist()
-    semana = {"dias_cal": (dt.date(cfg["anio"], 12, 31) - corte).days, "dias_habiles": hab_rest,
+    semana = {"dias_cal": max(0, (dt.date(cfg["anio"], 12, 31) - corte).days), "dias_habiles": hab_rest,
               "nec_sem": round(float(tot_.saldo) / hab_rest * 5, 2) if hab_rest else 0.0,
               "real_sem": round(sum(u["real_sem"] for u in ues), 2), "base": base_v, "base_dias": dias_v,
               "var": round(dserie[-1] - dserie[-2], 2) if len(dserie) > 1 else None, "var_dias": par.get("habiles_entre"),

@@ -203,10 +203,11 @@ def _():
     assert T.verificar_cronologia("2026-11-12", "2026-11-12", ["2026-11-10", "2026-11-12"]) == "2026-11-12"
 
 
-def json_sintetico(ruta, publicado, dev_117=500.0):
+def json_sintetico(ruta, publicado, dev_117=500.0, meses=range(1, 12)):
     claves = ["MES_EJE", "SEC_EJEC", "SEC_FUNC", "TIPO_ACT_PROY", "PRODUCTO_PROYECTO", "META", "RUBRO", "GENERICA", "FUENTE"]
     filas = []
-    for mes in range(1, 12):
+    meses = list(meses)
+    for mes in meses:
         filas.append([mes, "117", "1", "3", "3999999", "1", "00", "3", "1", 0, 0, 0, 0, 0, 40.0 if mes < 11 else dev_117 - 400, 0])
         filas.append([mes, "1345", "2", "3", "3999999", "2", "00", "3", "1", 0, 0, 0, 0, 0, 10.0, 0])
     filas += [[0, "117", "1", "3", "3999999", "1", "00", "3", "1", 1000, 1000, 900, 800, 700, 0, 0],
@@ -216,9 +217,18 @@ def json_sintetico(ruta, publicado, dev_117=500.0):
     json.dump(J, open(ruta, "w", encoding="utf-8"))
 
 
-def correr_main(raiz, args):
-    viejo = (T.RAIZ, T.perfil_de, sys.argv)
-    T.RAIZ, T.perfil_de, sys.argv = raiz, (lambda eid: os.path.join(raiz, "sin_perfil.json")), ["tablero_ro.py", "minsa"] + args
+def correr_main(raiz, args, anio=None):
+    """Corre el generador completo sobre una carpeta temporal (sin red). anio: ejercicio distinto al de pliegos.json."""
+    viejo = (T.RAIZ, T.AQUI, T.perfil_de, sys.argv)
+    aqui = T.AQUI
+    if anio:
+        aqui = os.path.join(raiz, "_herr")
+        os.makedirs(aqui, exist_ok=True)
+        cfg = json.load(open(os.path.join(AQUI, "pliegos.json"), encoding="utf-8"))
+        cfg["minsa"]["anio"] = anio
+        json.dump(cfg, open(os.path.join(aqui, "pliegos.json"), "w", encoding="utf-8"))
+        shutil.copyfile(os.path.join(AQUI, "plantilla_control_ro.html"), os.path.join(aqui, "plantilla_control_ro.html"))
+    T.RAIZ, T.AQUI, T.perfil_de, sys.argv = raiz, aqui, (lambda eid: os.path.join(raiz, "sin_perfil.json")), ["tablero_ro.py", "minsa"] + args
     T.FUENTES.clear()
     try:
         T.main()
@@ -226,7 +236,7 @@ def correr_main(raiz, args):
     except SystemExit as e:
         return e.code
     finally:
-        T.RAIZ, T.perfil_de, sys.argv = viejo
+        T.RAIZ, T.AQUI, T.perfil_de, sys.argv = viejo
 
 
 @prueba("M05", "Aceptación obligatoria: 10 → 12 → fallo de fuente → candidato 11: el portal sigue en 12, sin variación artificial, con el motivo registrado")
@@ -270,6 +280,60 @@ def _():
     finally:
         shutil.rmtree(tmp)
 
+
+
+# ------------------------------------------------------------------ N01: cambio de año
+D_ = __import__("datetime").date
+
+
+@prueba("N01", "Calendario: meses completos solo dentro del ejercicio, mes base válido y cierre después del 31/12")
+def _():
+    k = T.calendario_corte
+    assert k(D_(2026, 11, 13), 2026)["completos"] == [8, 9, 10] and k(D_(2026, 11, 13), 2026)["mes_base"] == 10
+    a = k(D_(2026, 12, 31), 2026)
+    assert a["completos"] == [10, 11, 12] and a["meses_rest"] == 0 and not a["cierre"]
+    b = k(D_(2027, 1, 4), 2026)                                   # el MEF sigue publicando el archivo 2026 en enero
+    assert b["cierre"] and b["c"] == D_(2026, 12, 31) and b["meses_rest"] == 0
+    e = k(D_(2027, 1, 5), 2027)                                   # ejercicio nuevo, primer corte de enero
+    assert e["parcial"] and e["completos"] == [] and e["mes_base"] == 0 and e["fin_base"] == D_(2026, 12, 31)
+    assert k(D_(2027, 1, 31), 2027)["completos"] == [1]
+    f = k(D_(2027, 2, 1), 2027)
+    assert f["completos"] == [1] and f["mes_base"] == 1 and min(f["completos"]) >= 1
+    assert all(min(k(D_(2027, m, 15), 2027)["completos"] or [1]) >= 1 for m in range(1, 13))
+    falla_con(T.DatosInvalidos, k, D_(2025, 12, 30), 2026)
+
+
+@prueba("N01", "Cierre: un corte de enero del archivo 2026 no rompe el control; saldo final = saldo proyectado y verificación completa")
+def _():
+    tmp = tempfile.mkdtemp()
+    try:
+        js = os.path.join(tmp, "g.json")
+        json_sintetico(js, "Tue, 05 Jan 2027 14:00:00 GMT", 520.0, range(1, 13))
+        assert correr_main(tmp, ["--json", js, "--sin-ca"]) == 0
+        D = json.load(open(os.path.join(tmp, "minsa", "ro", "datos.json"), encoding="utf-8"))
+        assert D["corte"] == "2027-01-04" and D["parametros"]["cierre"] is True and D["semana"]["dias_habiles"] == 0
+        assert D["semana"]["dias_cal"] == 0 and abs(D["total"]["riesgo"] - D["total"]["saldo"]) < 1
+        malas = [r for r in V.verificar(D, json.load(open(os.path.join(tmp, "minsa", "ro", "proyectos.json"), encoding="utf-8"))) if not r[0]]
+        assert not malas, malas
+    finally:
+        shutil.rmtree(tmp)
+
+
+@prueba("N01", "Ejercicio nuevo: primer corte de enero 2027 calcula con ritmo provisional del mes en curso y pasa la verificación")
+def _():
+    tmp = tempfile.mkdtemp()
+    try:
+        js = os.path.join(tmp, "g.json")
+        json_sintetico(js, "Wed, 06 Jan 2027 14:00:00 GMT", 450.0, [1])
+        assert correr_main(tmp, ["--json", js, "--sin-ca"], anio=2027) == 0
+        D = json.load(open(os.path.join(tmp, "minsa", "ro", "datos.json"), encoding="utf-8"))
+        p = D["parametros"]
+        assert D["corte"] == "2027-01-05" and p["ritmo_parcial"] == [1, 5] and p["fecha_base"] == "2026-12-31"
+        assert "provisional" in p["meses_ritmo_txt"] and D["semana"]["dias_habiles"] > 200
+        malas = [r for r in V.verificar(D, json.load(open(os.path.join(tmp, "minsa", "ro", "proyectos.json"), encoding="utf-8"))) if not r[0]]
+        assert not malas, malas
+    finally:
+        shutil.rmtree(tmp)
 
 # ------------------------------------------------------------------ M04
 @prueba("M04", "Vigilancia: una fuente ilegible no cuenta como novedad ni como «sin novedades» verificadas")

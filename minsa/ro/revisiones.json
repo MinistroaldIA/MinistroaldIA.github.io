@@ -1,6 +1,6 @@
 {
  "descripcion": "Revisiones de cifras y de método del control diario de RO. Cada fila dice qué cambió, cuándo, por qué y cuánto. Los valores publicados por primera vez se conservan en «primera_publicacion».",
- "metodo_vigente": "2026-11-14.1",
+ "metodo_vigente": "2026-11-14.2",
  "metodos": [
   {
    "version": "2026-11-12.1",
@@ -21,6 +21,11 @@
    "version": "2026-11-14.1",
    "desde": "2026-11-14",
    "cambio": "Actividad entre cortes con estados excluyentes (aumento, sin variación, ajuste neto negativo y sin comparación) y tolerancia de S/ 1; «días sin devengar» se sustituye por «cortes sin aumento neto», sin inferir inactividad de los ajustes ni de los huecos del historial. Lector del MEF con validación de encabezado e importes y barrera contra el retroceso del corte. Las cifras presupuestales no cambian."
+  },
+  {
+   "version": "2026-11-14.2",
+   "desde": "2026-11-14",
+   "cambio": "Cambio de año: un corte posterior al 31/12 se trata como cierre del ejercicio (sin meses ni días hábiles por delante; el saldo no devengado es definitivo). En un ejercicio nuevo, sin meses completos, la proyección usa provisionalmente lo devengado en el mes en curso, y el mes base pasa al 31/12 del año previo. Para los cortes de noviembre y diciembre de 2026 las cifras no cambian."
   }
  ],
  "primera_publicacion": {

@@ -229,7 +229,8 @@ function pintar(){
   <div><div class="et">Se devenga por semana</div><div class="num" style="color:${colR(r??1)}">${M(S.real_sem)}</div><div class="ds">${esc(S.base)}</div></div></div>
   <div class="compara"><div class="bar" role="img" aria-label="Se devenga el ${P(r)} de lo necesario"><i style="width:${Math.min(100,100*(r||0))}%;background:${colR(r??1)}"></i></div>
   <p>Se devenga el <b>${P(r)}</b> de lo que se necesita cada semana.${S.var!=null?` Variación entre cortes ${CMP(false)}: <b>${MS(S.var)}</b>.`:''}</p></div>`;
- const mt=p.meses_ritmo_txt?`si continúa el promedio de ${p.meses_ritmo_txt}`:'si continúa el promedio de los tres últimos meses completos';
+ const mt=p.cierre?`ejercicio ${D.anio} cerrado: es el saldo final no devengado`:p.meses_ritmo_txt?`si continúa el promedio de ${p.meses_ritmo_txt}`:'si continúa el promedio de los tres últimos meses completos';
+ if(p.cierre)document.getElementById('alerta').insertAdjacentHTML('beforebegin',`<div class="alerta inf"><span aria-hidden="true">ℹ</span><span><b>El ejercicio ${D.anio} cerró el 31/12/${D.anio}.</b> Ya no se puede devengar con cargo a ese año: el saldo por devengar es definitivo. Las cifras se siguen mostrando hasta que se configure el ejercicio ${D.anio+1}.</span></div>`);
  document.getElementById('pliego').innerHTML=[['PIM vigente',M(T.PIM),''],['Devengado',M(T.DEVENGADO),P(T.DEVENGADO/T.PIM)+' del PIM'],
   ['Saldo por devengar',M(T.saldo),P(T.saldo/T.PIM)+' del PIM'],['Saldo proyectado al 31/12',M(T.riesgo),mt]]
   .map(([a,b,c])=>`<div><div class="et">${a}</div><div class="num">${b}</div><div class="ds">${esc(c)}</div></div>`).join('');

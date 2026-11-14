@@ -1,12 +1,12 @@
 {
- "ultimo_intento": "2026-11-14T11:22",
+ "ultimo_intento": "2026-11-14T11:34",
  "fuentes": {
   "Consulta Amigable": "no consultada (recálculo local)",
   "Datos Abiertos": "no consultado (recálculo local)"
  },
- "metodo": "2026-11-14.1",
+ "metodo": "2026-11-14.2",
  "resultado": "recalculo",
- "detalle": "Corte 13/11/2026 recalculado con el método 2026-11-14.1 (estados de variación y racha), sin consultar al MEF. Las cifras presupuestales no cambiaron.",
+ "detalle": "Corte 13/11/2026 recalculado con el método 2026-11-14.2 (estados de variación y racha), sin consultar al MEF. Las cifras presupuestales no cambiaron.",
  "corte_publicado": "2026-11-13",
  "corte_candidato": "2026-11-13",
  "textos": {
