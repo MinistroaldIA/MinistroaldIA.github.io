@@ -1,0 +1,18 @@
+{
+ "revisiones": [],
+ "primera_publicacion": {
+  "2026-11-12": {
+   "publicado": "2026-11-13T22:33",
+   "fuente": "Datos Abiertos",
+   "corte_detalle": "2026-11-12",
+   "PIM": 606979548.0,
+   "DEVENGADO": 494020010.69,
+   "saldo": 112959537.31,
+   "no_certificado": 5752765.62,
+   "riesgo": 49379960.99,
+   "riesgo_hist": null
+  }
+ },
+ "metodos": [],
+ "metodo_vigente": "2026-11-13.2"
+}
