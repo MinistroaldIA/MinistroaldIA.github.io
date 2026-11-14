@@ -29,8 +29,9 @@ import pandas as pd
 AQUI = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.dirname(AQUI)
 URL = "https://fs.datosabiertos.mef.gob.pe/datastorefiles/{anio}-Gasto-Diario.csv"
-C = {"MES": 1, "NIVEL": 2, "SECTOR": 4, "PLIEGO": 6, "SEC_EJEC": 8, "EJEC_NOM": 10, "SEC_FUNC": 17, "TIPO": 20, "PROD": 22,
+C = {"MES": 1, "NIVEL": 2, "SECTOR": 4, "PLIEGO": 6, "SEC_EJEC": 8, "EJEC_NOM": 10, "SEC_FUNC": 17, "TIPO": 20, "PROD": 22, "PROD_NOM": 23,
      "META": 32, "FUENTE": 37, "RUBRO": 39, "GEN": 46, "GEN_NOM": 47, "M0": 56}
+PROD_NOM = {}                    # nombres de productos y proyectos según Datos Abiertos (respaldo de los de la Consulta Amigable)
 MONTOS = ["PIA", "PIM", "CERTIFICADO", "COMPROMETIDO_ANUAL", "COMPROMETIDO", "DEVENGADO", "GIRADO"]
 LLAVES = ["SEC_EJEC", "SEC_FUNC", "TIPO_ACT_PROY", "PRODUCTO_PROYECTO", "META", "RUBRO", "GENERICA"]
 METODO = "2026-11-13.2"     # subir la versión (y describirla en <id>/ro/revisiones.json) cada vez que cambie el cálculo
@@ -91,6 +92,7 @@ def descargar(cfg):
             except ValueError:
                 pass
         nombres[f[C["SEC_EJEC"]]] = f[C["EJEC_NOM"]]
+        PROD_NOM[f[C["PROD"]]] = f[C["PROD_NOM"]]
     print(f"líneas leídas: {n:,} · combinaciones RO: {len(agg):,}")
     df = pd.DataFrame([list(k) + v for k, v in agg.items()], columns=["MES_EJE"] + LLAVES + MONTOS)
     return df, nombres, publicado
@@ -101,6 +103,7 @@ def desde_json(ruta, excluir=()):
     J = json.load(open(ruta, encoding="utf-8"))
     df = pd.DataFrame(J["filas"], columns=J["claves"] + J["montos"])
     df = df[(df.FUENTE == "1") & ~df.SEC_EJEC.isin(list(excluir))].drop(columns="FUENTE")
+    PROD_NOM.update(J["nombres"].get("prod", {}))
     df["MES_EJE"] = df.MES_EJE.astype(int)
     for c in MONTOS:
         df[c] = df[c].astype(float)
@@ -330,14 +333,14 @@ def guardar_proyectos(PR, fc, out):
     cols = ["fecha_corte", "SEC_EJEC", "cod", "DEVENGADO"]          # basta el devengado: el del día sale de la resta
     PR = PR.copy()
     fj = os.path.join(out, "proyectos.json")
-    previos = {}                                    # Datos Abiertos no trae nombres: se conservan los de la última consulta
+    previos = {}                                    # nombre: Consulta Amigable del día; si no, el de la última consulta; si no, el de Datos Abiertos
     if os.path.isfile(fj):
         try:
             for lst in json.load(open(fj, encoding="utf-8"))["ues"].values():
                 previos.update({x["c"]: x["n"] for x in lst if x["n"] != x["c"]})
         except (ValueError, KeyError):
             pass
-    PR["nombre"] = [previos.get(c, n) if n == c else nombre(n) for c, n in zip(PR.cod, PR.nombre)]
+    PR["nombre"] = [nombre(n) if n != c else (previos.get(c) or (nombre(PROD_NOM[c]) if PROD_NOM.get(c) else c)) for c, n in zip(PR.cod, PR.nombre)]
     H = pd.read_csv(fh, dtype={"SEC_EJEC": str, "cod": str}) if os.path.isfile(fh) else pd.DataFrame(columns=cols)
     H = H[H.fecha_corte != fc]
     prev = sorted(H.fecha_corte.unique())[-1] if len(H) else None
