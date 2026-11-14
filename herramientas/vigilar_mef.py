@@ -9,6 +9,8 @@ Las señales son las mismas para todas las entidades; lo visto se guarda por ent
 Revisa cada entidad de herramientas/pliegos.json (salvo "control": false) y escribe en GITHUB_OUTPUT: novedad (true/false),
 pliegos (lista JSON de las entidades que deben actualizarse), motivo, ca_fecha, da_publicado y da_clave (para la caché).
 Si nada cambió pero la última actualización de una entidad tiene más de 24 horas, también la actualiza (red de seguridad).
+Una fuente que no se pudo leer se informa como advertencia y no cuenta como «sin novedades»; si no se pudo leer ninguna,
+la tarea termina con error (la página lo muestra como «No se pudo verificar si hay datos más recientes»).
 
 Uso:  python herramientas/vigilar_mef.py [id ...]
       python herramientas/vigilar_mef.py --guardar CA_FECHA DA_PUBLICADO ID
@@ -101,16 +103,26 @@ def main():
         print(f"guardado ({a[3]}): {nuevo}")
         return
     ids = a or ACTIVOS
+    if any(i not in PLIEGOS for i in ids):              # la entidad pedida llega como dato: solo se aceptan claves conocidas
+        print(f"::error::Entidad desconocida: {[i for i in ids if i not in PLIEGOS]}. Válidas: {list(PLIEGOS)}")
+        sys.exit(1)
+    errores = {}
     try:
         ca = fecha_consulta_amigable()
+        if not ca:
+            errores["Consulta Amigable"] = "la página no muestra la fecha de actualización"
     except Exception as e:
-        print(f"No se pudo leer la Consulta Amigable: {e}")
+        errores["Consulta Amigable"] = str(e)[:200]
         ca = None
     try:
         da = publicado_datos_abiertos()
+        if not da:
+            errores["Datos Abiertos"] = "el archivo no informa su fecha de publicación"
     except Exception as e:
-        print(f"No se pudo leer Datos Abiertos: {e}")
+        errores["Datos Abiertos"] = str(e)[:200]
         da = None
+    for f, e in errores.items():
+        print(f"::warning::No se pudo verificar {f}: {e}")
     pend, motivos = [], []
     for eid in ids:
         ruta = vistas_de(eid)
@@ -124,6 +136,11 @@ def main():
             motivos.append(f"{eid}: {motivo}")
     salida(novedad=str(bool(pend)).lower(), pliegos=json.dumps(pend), motivo=" | ".join(motivos) or "sin novedades del MEF",
            ca_fecha=ca or "", da_publicado=da or "", da_clave=clave(da))
+    # Si no se pudo leer NINGUNA fuente, la consulta no verificó nada: la tarea termina con error para que la página diga
+    # «No se pudo verificar si hay datos más recientes» y no «sin novedades».
+    if len(errores) == 2:
+        print("::error::No se pudo verificar ninguna fuente del MEF; no se afirma que no haya datos nuevos.")
+        sys.exit(1)
 
 
 if __name__ == "__main__":

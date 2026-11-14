@@ -18,6 +18,7 @@ import csv
 import datetime as dt
 import io
 import json
+import math
 import os
 import re
 import shutil
@@ -29,12 +30,29 @@ import pandas as pd
 AQUI = os.path.dirname(os.path.abspath(__file__))
 RAIZ = os.path.dirname(AQUI)
 URL = "https://fs.datosabiertos.mef.gob.pe/datastorefiles/{anio}-Gasto-Diario.csv"
-C = {"MES": 1, "NIVEL": 2, "SECTOR": 4, "PLIEGO": 6, "SEC_EJEC": 8, "EJEC_NOM": 10, "SEC_FUNC": 17, "TIPO": 20, "PROD": 22, "PROD_NOM": 23,
-     "META": 32, "FUENTE": 37, "RUBRO": 39, "GEN": 46, "GEN_NOM": 47, "M0": 56}
+# Columnas del archivo de Datos Abiertos, buscadas por su NOMBRE en el encabezado (no por posición): si el MEF reordena
+# columnas se siguen leyendo bien; si falta alguna, se rechaza el archivo y queda publicado el último corte válido.
+COLUMNAS = {"MES": "MES_EJE", "NIVEL": "NIVEL_GOBIERNO", "SECTOR": "SECTOR", "PLIEGO": "PLIEGO", "SEC_EJEC": "SEC_EJEC",
+            "EJEC_NOM": "EJECUTORA_NOMBRE", "SEC_FUNC": "SEC_FUNC", "TIPO": "TIPO_ACT_PROY", "PROD": "PRODUCTO_PROYECTO",
+            "PROD_NOM": "PRODUCTO_PROYECTO_NOMBRE", "META": "META", "FUENTE": "FUENTE_FINANCIAMIENTO", "RUBRO": "RUBRO", "GEN": "GENERICA"}
 PROD_NOM = {}                    # nombres de productos y proyectos según Datos Abiertos (respaldo de los de la Consulta Amigable)
 MONTOS = ["PIA", "PIM", "CERTIFICADO", "COMPROMETIDO_ANUAL", "COMPROMETIDO", "DEVENGADO", "GIRADO"]
 LLAVES = ["SEC_EJEC", "SEC_FUNC", "TIPO_ACT_PROY", "PRODUCTO_PROYECTO", "META", "RUBRO", "GENERICA"]
-METODO = "2026-11-13.2"     # subir la versión (y describirla en <id>/ro/revisiones.json) cada vez que cambie el cálculo
+METODO = "2026-11-14.1"     # subir la versión (y describirla en <id>/ro/revisiones.json) cada vez que cambie el cálculo
+TOL_VAR = 1.0               # soles: una variación del devengado entre cortes dentro de ±1 sol cuenta como «sin variación»
+ESTADOS = {"aumento": "Aumento del devengado", "sin_variacion": "Sin variación del devengado",
+           "ajuste_negativo": "Ajuste neto negativo", "sin_comparacion": "Sin comparación"}
+
+
+class DatosInvalidos(ValueError):
+    """El insumo del MEF no tiene la forma esperada: no se publica nada y queda el último corte válido."""
+
+
+FUENTES = {}               # resultado de cada fuente en esta corrida (se publica en estado.json)
+
+
+class CorteRetrocede(RuntimeError):
+    """La fuente disponible trae un corte anterior al ya publicado: se conserva el publicado."""
 FERIADOS_DIC = {8, 9, 25}   # feriados nacionales de diciembre: Inmaculada Concepción, Batalla de Ayacucho (Ley 31381) y Navidad
 CALENDARIO = ("Días hábiles: lunes a viernes, sin los feriados nacionales del 8, 9 y 25 de diciembre. Se cuentan desde el día siguiente al corte "
               "hasta el 31 de diciembre. No incluye días no laborables que el Gobierno decrete después.")
@@ -64,6 +82,78 @@ def nombre(t):
     return t
 
 
+def monto(texto, donde):
+    """Importe del archivo del MEF. Vacío = 0 (el MEF deja en blanco los montos nulos); cualquier otro texto que no sea un
+    número finito invalida el lote completo, en vez de sumarse como cero en silencio."""
+    t = texto.strip()
+    if t == "":
+        return 0.0
+    try:
+        v = float(t)
+    except ValueError:
+        raise DatosInvalidos(f"importe no numérico «{texto[:30]}» en {donde}") from None
+    if not math.isfinite(v):
+        raise DatosInvalidos(f"importe no finito «{texto[:30]}» en {donde}")
+    return v
+
+
+def esquema(encabezado):
+    """Posición de cada columna requerida según el encabezado real. Falla si falta alguna o si hay nombres repetidos."""
+    cab = next(csv.reader([encabezado.lstrip("﻿")]))
+    cab = [c.strip().upper() for c in cab]
+    if len(cab) < 10:
+        raise DatosInvalidos(f"encabezado con {len(cab)} columna(s): el separador o el formato no es el esperado")
+    rep = sorted({c for c in cab if cab.count(c) > 1})
+    if rep:
+        raise DatosInvalidos(f"columnas repetidas en el encabezado: {rep}")
+    req = dict(COLUMNAS, **{f"M_{m}": f"MONTO_{m}" for m in MONTOS})
+    falt = sorted(v for v in req.values() if v not in cab)
+    if falt:
+        raise DatosInvalidos(f"faltan columnas en el encabezado: {falt}")
+    return {k: cab.index(v) for k, v in req.items()}, len(cab)
+
+
+def leer_filas(lineas, cfg):
+    """Agrega las filas RO del pliego. `lineas` = iterador de líneas en bytes, la primera es el encabezado.
+    Valida esquema, número de campos e importes; ante cualquier anomalía lanza DatosInvalidos (no publica)."""
+    lineas = iter(lineas)
+    try:
+        cab = next(lineas)
+    except StopIteration:
+        raise DatosInvalidos("archivo vacío") from None
+    pos, ncol = esquema(cab.decode("utf-8", "replace"))
+    clave = f'"{cfg["pliego"]}"'.encode()
+    agg, nombres, n = {}, {}, 0
+    for b in lineas:
+        n += 1
+        if clave not in b:                          # filtro rápido: solo se analizan las filas que mencionan el pliego
+            continue
+        f = next(csv.reader([b.decode("utf-8", "replace").rstrip("\r")]))
+        if len(f) != ncol:
+            raise DatosInvalidos(f"la línea {n + 1:,} tiene {len(f)} campos y el encabezado {ncol} (fila truncada o mal formada)")
+        if f[pos["NIVEL"]] != cfg["nivel"] or f[pos["SECTOR"]] != cfg["sector"] or f[pos["PLIEGO"]] != cfg["pliego"] or f[pos["FUENTE"]] != "1":
+            continue
+        try:
+            mes = int(f[pos["MES"]])
+        except ValueError:
+            raise DatosInvalidos(f"mes no numérico «{f[pos['MES']]}» en la línea {n + 1:,}") from None
+        if not 0 <= mes <= 12:
+            raise DatosInvalidos(f"mes fuera de rango ({mes}) en la línea {n + 1:,}")
+        k = (mes, f[pos["SEC_EJEC"]], f[pos["SEC_FUNC"]], f[pos["TIPO"]], f[pos["PROD"]], f[pos["META"]], f[pos["RUBRO"]], f[pos["GEN"]])
+        a = agg.get(k)
+        if a is None:
+            a = agg[k] = [0.0] * len(MONTOS)
+        for i, m in enumerate(MONTOS):
+            a[i] += monto(f[pos[f"M_{m}"]], f"la línea {n + 1:,}, columna MONTO_{m}")
+        nombres[f[pos["SEC_EJEC"]]] = f[pos["EJEC_NOM"]]
+        PROD_NOM[f[pos["PROD"]]] = f[pos["PROD_NOM"]]
+    if not agg:
+        raise DatosInvalidos(f"el archivo ({n:,} líneas) no trae filas de Recursos Ordinarios del pliego {cfg['pliego']}")
+    print(f"líneas leídas: {n:,} · combinaciones RO: {len(agg):,}")
+    df = pd.DataFrame([list(k) + v for k, v in agg.items()], columns=["MES_EJE"] + LLAVES + MONTOS)
+    return df, nombres
+
+
 def descargar(cfg):
     """Lee el CSV por partes y agrega en memoria. Devuelve (DataFrame, nombres de UE, fecha de publicación)."""
     import requests
@@ -71,31 +161,23 @@ def descargar(cfg):
     r = requests.get(url, stream=True, timeout=120, headers={"User-Agent": "Mozilla/5.0 (cuadro de control RO)"})
     r.raise_for_status()
     publicado = r.headers.get("Last-Modified")
-    clave = f'"{cfg["pliego"]}"'
-    agg, nombres, n = {}, {}, 0
-    lineas = r.iter_lines(chunk_size=1 << 20, decode_unicode=False)
-    next(lineas)                                    # encabezado
-    for b in lineas:
-        n += 1
-        if clave.encode() not in b:
-            continue
-        f = b.decode("utf-8", "replace").rstrip("\r").strip('"').split('","')
-        if f[C["NIVEL"]] != cfg["nivel"] or f[C["SECTOR"]] != cfg["sector"] or f[C["PLIEGO"]] != cfg["pliego"] or f[C["FUENTE"]] != "1":
-            continue
-        k = (int(f[C["MES"]]), f[C["SEC_EJEC"]], f[C["SEC_FUNC"]], f[C["TIPO"]], f[C["PROD"]], f[C["META"]], f[C["RUBRO"]], f[C["GEN"]])
-        a = agg.get(k)
-        if a is None:
-            a = agg[k] = [0.0] * len(MONTOS)
-        for i in range(len(MONTOS)):
-            try:
-                a[i] += float(f[C["M0"] + i] or 0)
-            except ValueError:
-                pass
-        nombres[f[C["SEC_EJEC"]]] = f[C["EJEC_NOM"]]
-        PROD_NOM[f[C["PROD"]]] = f[C["PROD_NOM"]]
-    print(f"líneas leídas: {n:,} · combinaciones RO: {len(agg):,}")
-    df = pd.DataFrame([list(k) + v for k, v in agg.items()], columns=["MES_EJE"] + LLAVES + MONTOS)
+    df, nombres = leer_filas(r.iter_lines(chunk_size=1 << 20, decode_unicode=False), cfg)
+    # descarga incompleta: los bytes recibidos deben coincidir con los anunciados por el servidor
+    cl, enc = r.headers.get("Content-Length"), r.headers.get("Content-Encoding")
+    if cl and not enc and hasattr(r.raw, "tell") and r.raw.tell() != int(cl):
+        raise DatosInvalidos(f"descarga incompleta: {r.raw.tell():,} de {int(cl):,} bytes")
     return df, nombres, publicado
+
+
+def validar_montos(df, origen):
+    """Los importes deben ser números finitos (vale también para el JSON del núcleo)."""
+    for c in MONTOS:
+        v = pd.to_numeric(df[c], errors="coerce")
+        malos = df.loc[v.isna() | ~v.apply(lambda x: math.isfinite(x) if pd.notna(x) else False), c]
+        if len(malos):
+            raise DatosInvalidos(f"{origen}: {len(malos)} importe(s) inválido(s) en {c}, p. ej. «{malos.iloc[0]}»")
+        df[c] = v.astype(float)
+    return df
 
 
 def desde_json(ruta, excluir=()):
@@ -105,8 +187,9 @@ def desde_json(ruta, excluir=()):
     df = df[(df.FUENTE == "1") & ~df.SEC_EJEC.isin(list(excluir))].drop(columns="FUENTE")
     PROD_NOM.update(J["nombres"].get("prod", {}))
     df["MES_EJE"] = df.MES_EJE.astype(int)
-    for c in MONTOS:
-        df[c] = df[c].astype(float)
+    validar_montos(df, os.path.basename(ruta))
+    if df.empty:
+        raise DatosInvalidos(f"{os.path.basename(ruta)} no trae filas de Recursos Ordinarios")
     return df, J["nombres"]["ue"], J["meta"]["publicado"]
 
 
@@ -169,14 +252,23 @@ def con_consulta_amigable(g, par, corte_da, cfg):
         filas, fecha, prod = CA.por_ejecutora(cfg["anio"], cfg["nivel"], cfg["sector"], cfg["pliego"], "1", productos=True)
     except Exception as e:                                   # sin acceso o cambió la página: se sigue con Datos Abiertos
         print(f"Consulta Amigable no disponible ({e}); se usa Datos Abiertos")
+        FUENTES["Consulta Amigable"] = f"no disponible ({str(e)[:160]})"
         return g, par, corte_da, "Datos Abiertos", None
     if not fecha or fecha <= corte_da:
         print(f"Consulta Amigable al {fecha}: no es más reciente que Datos Abiertos ({corte_da})")
+        FUENTES["Consulta Amigable"] = f"leída: corte {fecha.strftime('%d/%m/%Y') if fecha else 'sin fecha'}, no más reciente que Datos Abiertos"
         return g, par, corte_da, "Datos Abiertos", None
     falt = sorted(set(g.SEC_EJEC) - set(filas))
     if falt:
         print(f"Consulta Amigable sin las UE {falt}; se usa Datos Abiertos")
+        FUENTES["Consulta Amigable"] = f"leída: corte {fecha.strftime('%d/%m/%Y')}, pero sin las unidades {falt}; no se usa"
         return g, par, corte_da, "Datos Abiertos", None
+    malos = [f"{u}/{k}" for u, m in filas.items() for k, v in m.items() if not math.isfinite(v)]
+    if malos:
+        print(f"Consulta Amigable con importes no finitos {malos[:5]}; se usa Datos Abiertos")
+        FUENTES["Consulta Amigable"] = f"importes inválidos en {malos[:5]}; no se usa"
+        return g, par, corte_da, "Datos Abiertos", None
+    FUENTES["Consulta Amigable"] = f"leída: corte {fecha.strftime('%d/%m/%Y')} (se usa para las cifras del día)"
     t0, t1 = tiempo(corte_da, cfg["anio"], cfg.get("mes_base", 10)), tiempo(fecha, cfg["anio"], cfg.get("mes_base", 10))
     g = g.copy()
     dev_da = g.DEVENGADO.copy()
@@ -196,8 +288,10 @@ def con_consulta_amigable(g, par, corte_da, cfg):
     PR = por_proyecto(calcular.PDA, prod, t0, t1) if prod else None
     if PR is not None and len(PR):
         sp = PR.groupby("SEC_EJEC")[["PIM", "DEVENGADO", "riesgo", "adicional"]].sum()
-        ok = (sp.PIM.reindex(g.SEC_EJEC).values - g.PIM.values)
-        cuadra = pd.Series(abs(ok) < 1.0, index=g.index)
+        # el agregado de proyectos se adopta solo si cuadra con la unidad en PIM y en devengado (no basta el PIM)
+        dp = sp.PIM.reindex(g.SEC_EJEC).values - g.PIM.values
+        dd = sp.DEVENGADO.reindex(g.SEC_EJEC).values - g.DEVENGADO.values
+        cuadra = pd.Series((abs(dp) < 1.0) & (abs(dd) < 1.0), index=g.index)
         g.loc[cuadra, "riesgo"] = g.loc[cuadra, "SEC_EJEC"].map(sp.riesgo)
         g.loc[cuadra, "adicional"] = g.loc[cuadra, "SEC_EJEC"].map(sp.adicional)
         if (~cuadra).any():
@@ -343,7 +437,7 @@ def guardar_proyectos(PR, fc, out):
     PR["nombre"] = [nombre(n) if n != c else (previos.get(c) or (nombre(PROD_NOM[c]) if PROD_NOM.get(c) else c)) for c, n in zip(PR.cod, PR.nombre)]
     H = pd.read_csv(fh, dtype={"SEC_EJEC": str, "cod": str}) if os.path.isfile(fh) else pd.DataFrame(columns=cols)
     H = H[H.fecha_corte != fc]
-    prev = sorted(H.fecha_corte.unique())[-1] if len(H) else None
+    prev = anterior_a(H.fecha_corte.unique(), fc)               # el mayor corte estrictamente anterior al que se publica
     ant = H[H.fecha_corte == prev].set_index(["SEC_EJEC", "cod"]).DEVENGADO if prev else None
     H = pd.concat([H, PR.assign(fecha_corte=fc)[cols]], ignore_index=True)
     fechas = sorted(H.fecha_corte.unique())[-20:]                      # se guardan los últimos 20 cortes
@@ -367,8 +461,9 @@ def controles(g, ues, tot, P):
     ok("Sin certificar = PIM − certificado", ((g.no_certificado - (g.PIM - g.CERTIFICADO)).abs() < 0.01).all())
     ok("La suma de las unidades coincide con el total del pliego", abs(g.saldo.sum() - tot["saldo"]) < 1 and abs(g.DEVENGADO.sum() - tot["DEVENGADO"]) < 1)
     if P is not None:
-        neg = [u["sec"] for u in ues if u.get("dev_ant") is not None and u["dev"] - u["dev_ant"] < -0.5]
-        ok("Devengado entre cortes sin ajustes negativos", not neg, ("Unidades con ajuste negativo: " + ", ".join(neg)) if neg else "")
+        neg = [u["sec"] for u in ues if u.get("var") is not None and u["var"] < -TOL_VAR]
+        ok("Ajustes netos negativos clasificados como ajuste, no como «sin variación»", all(u.get("estado") == "ajuste_negativo" for u in ues if u["sec"] in neg),
+           ("Unidades con ajuste neto negativo: " + ", ".join(neg)) if neg else "sin ajustes netos negativos")
         dP = g.PIM.sum() - P.PIM.sum()
         ok("Variación del saldo = variación del PIM − variación del devengado",
            abs((g.saldo.sum() - P.saldo.sum()) - (dP - (g.DEVENGADO.sum() - P.DEVENGADO.sum()))) < 1, f"Variación del PIM entre cortes: S/ {dP:,.2f}")
@@ -433,18 +528,176 @@ def revisar(out, J):
     J["revisiones_corte"] = [x for x in R["revisiones"] if x["corte"] == fc]
 
 
+# ---------------------------------------------------------------------------------------------------------------------
+# Actividad entre cortes (hallazgos M01 y M02 de la auditoría del 13/11/2026)
+# Lo único que se observa es el devengado ACUMULADO en cada corte. Su diferencia es una variación NETA entre dos cortes
+# (que pueden estar separados por más de un día hábil): un aumento no enumera las operaciones del periodo, una cifra
+# negativa es un ajuste neto (anulaciones o rebajas mayores que lo nuevo) y no prueba inactividad.
+# ---------------------------------------------------------------------------------------------------------------------
+def clasificar_variacion(v, tol=TOL_VAR):
+    """Estado excluyente de la variación neta del devengado entre dos cortes."""
+    if v is None or (isinstance(v, float) and math.isnan(v)):
+        return "sin_comparacion"
+    if v > tol:
+        return "aumento"
+    if v < -tol:
+        return "ajuste_negativo"
+    return "sin_variacion"
+
+
+def anterior_a(fechas, fc):
+    """El mayor corte estrictamente anterior a fc (o None). No depende del orden ni de cortes posteriores ya guardados."""
+    ant = [f for f in fechas if isinstance(f, str) and f < fc]
+    return max(ant) if ant else None
+
+
+def racha_sin_aumento(valores, fechas, tol=TOL_VAR):
+    """Cortes consecutivos, contados desde el último, sin aumento neto observado del devengado acumulado.
+    valores y fechas en orden cronológico (None/NaN = la unidad no figura en ese corte).
+    Devuelve None si no hay al menos dos cortes, o {"n", "desde", "minimo", "cobertura", "ajustes"}:
+      n         cortes sin aumento neto (0 si el último corte trae aumento);
+      desde     corte de referencia: el último que mostró aumento neto (o el primero disponible);
+      minimo    True si la racha llega al inicio del historial o a un hueco: entonces n es un mínimo («n o más»);
+      cobertura "completa" o "interrumpida" (la unidad falta en algún corte: no se infiere nada antes del hueco);
+      ajustes   cuántos de esos cortes fueron ajustes netos negativos (se informan, no se cuentan como inactividad aparte)."""
+    v = [None if (x is None or (isinstance(x, float) and math.isnan(x))) else float(x) for x in valores]
+    if len(v) < 2 or v[-1] is None:
+        return None
+    n = aj = 0
+    for i in range(len(v) - 1, 0, -1):
+        if v[i - 1] is None or v[i] is None:
+            return {"n": n, "desde": fechas[i], "minimo": True, "cobertura": "interrumpida", "ajustes": aj} if n or i < len(v) - 1 else None
+        d = v[i] - v[i - 1]
+        if d > tol:
+            return {"n": n, "desde": fechas[i], "minimo": False, "cobertura": "completa", "ajustes": aj}
+        n += 1
+        aj += d < -tol
+    return {"n": n, "desde": fechas[0], "minimo": True, "cobertura": "completa", "ajustes": aj}
+
+
+def aplicar_actividad(ues, H, fc, tol=TOL_VAR):
+    """Agrega a cada unidad su variación entre cortes, su estado y su racha de cortes sin aumento neto."""
+    fechas = sorted(f for f in H.fecha_corte.unique() if f <= fc)
+    DV = H[H.fecha_corte.isin(fechas)].pivot_table(index="fecha_corte", columns="SEC_EJEC", values="DEVENGADO", aggfunc="sum").reindex(fechas)
+    prev = anterior_a(fechas, fc)
+    hab = dias_habiles(dt.date.fromisoformat(prev) + dt.timedelta(days=1), dt.date.fromisoformat(fc)) if prev else None
+    for u in ues:
+        for k in ("ult", "dias_sin", "dias_sin_tipo"):           # campos del método anterior (sustituidos)
+            u.pop(k, None)
+        var = round(u["dev"] - u["dev_ant"], 2) if u.get("dev_ant") is not None else None
+        u["var"] = var
+        u["estado"] = clasificar_variacion(var, tol)
+        u["sin_aumento"] = racha_sin_aumento(DV[u["sec"]].tolist() if u["sec"] in DV else [], fechas, tol)
+    return {"desde": prev, "hasta": fc, "habiles": hab, "tolerancia": tol}
+
+
+def verificar_cronologia(candidato, publicado, fechas_hist):
+    """Barrera contra el retroceso del corte (M05). Se llama ANTES de escribir cualquier archivo.
+    Igual al último publicado: revisión de cifras (permitida). Anterior: CorteRetrocede (se conserva lo publicado)."""
+    ultimo = max([f for f in list(fechas_hist) + [publicado] if isinstance(f, str)], default=None)
+    if ultimo and candidato < ultimo:
+        raise CorteRetrocede(f"la fuente disponible trae el corte {fdm(candidato)}, anterior al ya publicado {fdm(ultimo)}")
+    return ultimo
+
+
+def guardar_estado(out, **kv):
+    """estado.json: estado operativo de la última corrida (separado de las cifras). La página lo muestra tal cual."""
+    ruta = os.path.join(out, "estado.json")
+    E = json.load(open(ruta, encoding="utf-8")) if os.path.isfile(ruta) else {}
+    ahora = dt.datetime.now(dt.timezone(dt.timedelta(hours=-5))).strftime("%Y-%m-%dT%H:%M")
+    E.update({"ultimo_intento": ahora, "fuentes": dict(FUENTES), "metodo": METODO}, **kv)
+    if kv.get("resultado") in ("nuevo_corte", "cifras_revisadas", "sin_cambios"):
+        E["ultimo_exito"] = ahora
+    E["textos"] = {"nuevo_corte": "Nuevo corte", "cifras_revisadas": "Cifras revisadas", "sin_cambios": "Consulta sin cambios",
+                   "corte_retenido": "Se conservó el corte publicado", "recalculo": "Recalculado con el método nuevo"}
+    json.dump(E, open(ruta, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    return E
+
+
+def ultimos_publicados(out):
+    """Corte publicado en datos.json y fechas de los historiales (para la barrera cronológica)."""
+    pub, fechas = None, []
+    try:
+        pub = json.load(open(os.path.join(out, "datos.json"), encoding="utf-8")).get("corte")
+    except (OSError, ValueError):
+        pass
+    for f in ("historial.csv", "historial_proyectos.csv"):
+        ruta = os.path.join(out, f)
+        if os.path.isfile(ruta):
+            fechas += list(pd.read_csv(ruta, usecols=["fecha_corte"], dtype=str).fecha_corte.unique())
+    return pub, fechas
+
+
+
+MESES_TXT = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "setiembre", "octubre", "noviembre", "diciembre"]
+
+
+def meses_txt(meses):
+    n = [MESES_TXT[m - 1] for m in meses if 1 <= m <= 12]
+    return (", ".join(n[:-1]) + " y " + n[-1]) if len(n) > 1 else "".join(n)
+
+
+def recalcular_actividad(eid):
+    """Aplica el método vigente de actividad (estados y racha) al último corte ya publicado, sin consultar al MEF.
+    Sirve al cambiar de método: las cifras presupuestales (PIM, devengado, saldo, riesgo) no se tocan."""
+    out = os.path.join(RAIZ, eid, "ro")
+    fd = os.path.join(out, "datos.json")
+    J = json.load(open(fd, encoding="utf-8"))
+    H = pd.read_csv(os.path.join(out, "historial.csv"), dtype={"SEC_EJEC": str})
+    fc, par = J["corte"], J["parametros"]
+    J["comparacion"] = aplicar_actividad(J["ues"], H, fc)
+    S = J.get("semana") or {}
+    if S:
+        S["var"], S["var_dias"] = S.pop("ult", S.get("var")), S.pop("ult_dias", S.get("var_dias"))
+        S["cortes"] = [c if len(c) > 3 else c + [anterior_a(J["fechas"], c[0])] for c in S.get("cortes", [])]
+    par["metodo"], par["tolerancia_variacion"] = METODO, TOL_VAR
+    par["meses_ritmo_txt"] = meses_txt(par.get("meses_ritmo", []))
+    for c in J.get("controles", []):
+        if c["regla"].startswith("Devengado entre cortes sin ajustes negativos"):
+            neg = [u["sec"] for u in J["ues"] if u["estado"] == "ajuste_negativo"]
+            c.update(regla="Ajustes netos negativos clasificados como ajuste, no como «sin variación»", ok=True,
+                     detalle=("Unidades con ajuste neto negativo: " + ", ".join(neg)) if neg else "sin ajustes netos negativos")
+    revisar(out, J)
+    json.dump(J, open(fd, "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
+    shutil.copyfile(os.path.join(AQUI, "plantilla_control_ro.html"), os.path.join(out, "index.html"))
+    FUENTES.update({"Consulta Amigable": "no consultada (recálculo local)", "Datos Abiertos": "no consultado (recálculo local)"})
+    guardar_estado(out, resultado="recalculo", detalle=f"Corte {fdm(fc)} recalculado con el método {METODO} (estados de variación y racha), "
+                   "sin consultar al MEF. Las cifras presupuestales no cambiaron.", corte_publicado=fc, corte_candidato=fc)
+    print(f"{eid}: actividad recalculada al {fdm(fc)} · " + ", ".join(f"{k}: {sum(u['estado'] == k for u in J['ues'])}" for k in ESTADOS))
+
+
+
 def main():
     eid = sys.argv[1]
     cfg = json.load(open(os.path.join(AQUI, "pliegos.json"), encoding="utf-8"))[eid]
     out = os.path.join(RAIZ, eid, "ro")
     os.makedirs(out, exist_ok=True)
+    previo = {}
+    try:
+        previo = json.load(open(os.path.join(out, "datos.json"), encoding="utf-8"))
+    except (OSError, ValueError):
+        pass
     df, nombres, publicado = desde_json(sys.argv[3], cfg.get("excluir_json", [])) if "--json" in sys.argv else descargar(cfg)
     corte, g, gen, mensual, par = calcular(df, publicado, cfg["anio"], cfg.get("mes_base", 10))
     par["corte_detalle"] = corte.isoformat()
+    FUENTES["Datos Abiertos"] = f"leído: archivo publicado {publicado}; corte {corte.strftime('%d/%m/%Y')} (día anterior a la publicación)"
     fuente, PR = "Datos Abiertos", None
     corte_da = corte
     if "--sin-ca" not in sys.argv:
         g, par, corte, fuente, PR = con_consulta_amigable(g, par, corte, cfg)
+    else:
+        FUENTES["Consulta Amigable"] = "no consultada (--sin-ca)"
+    fc = corte.isoformat()
+    # Barrera cronológica (M05): antes de escribir NADA. Si la única fuente disponible trae un corte anterior al publicado
+    # (p. ej., falla la Consulta Amigable y Datos Abiertos va un día atrás), se conserva lo publicado y se registra el motivo.
+    pub, fechas_pub = ultimos_publicados(out)
+    try:
+        verificar_cronologia(fc, pub, fechas_pub)
+    except CorteRetrocede as e:
+        guardar_estado(out, resultado="corte_retenido", detalle=f"No se publicó: {e}. Se mantiene el corte {fdm(pub)}.",
+                       corte_publicado=pub, corte_candidato=fc)
+        print(f"::warning::{e}; se conserva el corte publicado")
+        sys.exit(3)
     if PR is None:                       # sin Consulta Amigable: los proyectos salen de Datos Abiertos al mismo corte
         t = tiempo(corte, cfg["anio"], cfg.get("mes_base", 10))
         PR = por_proyecto(calcular.PDA, None, t, t)
@@ -461,7 +714,8 @@ def main():
             fr = (RH[k] / RH.saldo).where(RH.saldo.abs() > 0.5)
             g[col] = (g.SEC_EJEC.map(fr) * g.saldo).fillna(g.riesgo)
         par["hist_anios"] = "2023–2025"
-    fc = corte.isoformat()
+    par["tolerancia_variacion"] = TOL_VAR
+    par["meses_ritmo_txt"] = meses_txt(par.get("meses_ritmo", []))
     guardar_proyectos(PR, fc, os.path.join(RAIZ, eid, "ro"))
     g.insert(0, "fecha_corte", fc)
     g["UE"] = g.SEC_EJEC.map(lambda x: nombre(nombres.get(x, x)))
@@ -476,13 +730,13 @@ def main():
     cols.append("fuente")
     if len(H):
         H = H[H.fecha_corte != fc]
-    if prev_ := (sorted(H.fecha_corte.unique())[-1] if len(H) else None):
+    if prev_ := (anterior_a(H.fecha_corte.unique(), fc) if len(H) else None):
         par["habiles_entre"] = dias_habiles(dt.date.fromisoformat(prev_) + dt.timedelta(days=1), corte)
     H = pd.concat([H, g[cols]], ignore_index=True).sort_values(["fecha_corte", "riesgo"], ascending=[True, False])
     H.round(2).to_csv(fh, index=False, quoting=csv.QUOTE_NONNUMERIC)
 
     fechas = sorted(H.fecha_corte.unique())
-    prev = fechas[-2] if len(fechas) > 1 else None
+    prev = anterior_a(fechas, fc)                  # el mayor corte estrictamente anterior (nunca el propio candidato)
     P = H[H.fecha_corte == prev].set_index("SEC_EJEC") if prev else None
     sig = cfg.get("siglas_ue", {})
     ues = []
@@ -521,33 +775,22 @@ def main():
         b_ = dt.date.fromisoformat(par["fecha_base"]) + dt.timedelta(days=1)
         base_v = f"desde el {b_.day}/{b_.month:02d} ({dias_v} días hábiles)"
         real_ue = lambda s_, dev_: None
-    def sin_devengar(s_, dev_base):
-        """Días hábiles desde el último corte en que la unidad registró devengado; tipo '' exacto, 'base' sin devengado desde el cierre del mes, 'min' al menos."""
-        v = DV[s_].tolist() if s_ in DV else []
-        for i in range(len(v) - 1, 0, -1):
-            if pd.notna(v[i]) and pd.notna(v[i - 1]) and v[i] - v[i - 1] > 0.5:
-                return hab_hasta(fds[i]), ""
-        if dev_base <= 0.5:
-            return par["habiles_desde_base"], "base"
-        if len(fds) < 2:                    # un solo corte: todavía no se puede saber desde cuándo no devenga
-            return None, ""
-        return hab_hasta(fds[0]), "min"
     for u in ues:
         r_ = real_ue(u["sec"], u["dev"])
         if r_ is None:
             r_ = u["dev_base"] / dias_v * 5 if dias_v else 0.0
-        d_, t_ = sin_devengar(u["sec"], u["dev_base"])
-        u.update({"nec_sem": round(u["saldo"] / hab_rest * 5, 2) if hab_rest else 0.0, "real_sem": round(r_, 2),
-                  "ult": round(u["dev"] - u["dev_ant"], 2) if u.get("dev_ant") is not None else None, "dias_sin": d_, "dias_sin_tipo": t_})
+        u.update({"nec_sem": round(u["saldo"] / hab_rest * 5, 2) if hab_rest else 0.0, "real_sem": round(r_, 2)})
+    comparacion = aplicar_actividad(ues, H, fc)
     tot_ = serie.loc[fc]
     dserie = serie.DEVENGADO.tolist()
     semana = {"dias_cal": (dt.date(cfg["anio"], 12, 31) - corte).days, "dias_habiles": hab_rest,
               "nec_sem": round(float(tot_.saldo) / hab_rest * 5, 2) if hab_rest else 0.0,
               "real_sem": round(sum(u["real_sem"] for u in ues), 2), "base": base_v, "base_dias": dias_v,
-              "ult": round(dserie[-1] - dserie[-2], 2) if len(dserie) > 1 else None, "ult_dias": par.get("habiles_entre"),
-              "cortes": [[fechas[i], round(dserie[i] - dserie[i - 1], 2), dias_habiles(fds[i - 1] + dt.timedelta(days=1), fds[i])] for i in range(1, len(fechas))]}
+              "var": round(dserie[-1] - dserie[-2], 2) if len(dserie) > 1 else None, "var_dias": par.get("habiles_entre"),
+              "cortes": [[fechas[i], round(dserie[i] - dserie[i - 1], 2), dias_habiles(fds[i - 1] + dt.timedelta(days=1), fds[i]), fechas[i - 1]]
+                         for i in range(1, len(fechas))]}
     J = {"id": eid, "pliego": cfg["nombre"], "sigla": cfg.get("sigla", ""), "codigo": cfg["pliego"], "nivel": cfg["nivel"], "sector": cfg["sector"],
-         "informe": os.path.isfile(os.path.join(RAIZ, eid, "index.html")), "hist_inicio": fechas[0], "anio": cfg["anio"], "corte": fc, "corte_anterior": prev, "parametros": par,
+         "informe": os.path.isfile(os.path.join(RAIZ, eid, "index.html")), "hist_inicio": fechas[0], "anio": cfg["anio"], "corte": fc, "corte_anterior": prev, "comparacion": comparacion, "parametros": par,
          "actualizado": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
          "total": {k: (None if pd.isna(v) else v) for k, v in serie.loc[fc].to_dict().items()},
          "serie": {k: [None if pd.isna(x) else x for x in serie[k].tolist()] for k in serie.columns}, "fechas": list(serie.index),
@@ -556,12 +799,28 @@ def main():
          "controles": controles(g, ues, serie.loc[fc], P),
          "fuentes": [(H[H.fecha_corte == f_].fuente.dropna().iloc[0] if "fuente" in H.columns and H[H.fecha_corte == f_].fuente.notna().any() else None) for f_ in serie.index],
          "mensual": mensual.round(2).tolist(), "semana": semana, "ues": ues}
+    n_rev = len(json.load(open(os.path.join(out, "revisiones.json"), encoding="utf-8")).get("revisiones", [])) if os.path.isfile(os.path.join(out, "revisiones.json")) else 0
     revisar(out, J)
+    nuevas = len(json.load(open(os.path.join(out, "revisiones.json"), encoding="utf-8"))["revisiones"]) - n_rev
     json.dump(J, open(os.path.join(out, "datos.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     # la página es la misma para todas las entidades: se copia de la plantilla en cada corrida (lee todo de datos.json)
     shutil.copyfile(os.path.join(AQUI, "plantilla_control_ro.html"), os.path.join(out, "index.html"))
-    print(f"corte {fc} · {len(ues)} UE · saldo RO S/ {J['total']['saldo'] / 1e6:,.1f} M · riesgo S/ {J['total']['riesgo'] / 1e6:,.1f} M")
+    if previo.get("corte") != fc:
+        res, det = "nuevo_corte", f"Nuevo corte {fdm(fc)} (antes {fdm(previo.get('corte'))})."
+    elif nuevas > 0:
+        res, det = "cifras_revisadas", f"Mismo corte {fdm(fc)}; {nuevas} cifra(s) revisada(s) respecto de lo publicado."
+    else:
+        res, det = "sin_cambios", f"Consulta sin corte nuevo: se mantiene el corte {fdm(fc)} y sus totales."
+    guardar_estado(out, resultado=res, detalle=det, corte_publicado=fc, corte_candidato=fc, fuente=fuente)
+    print(f"corte {fc} · {len(ues)} UE · saldo RO S/ {J['total']['saldo'] / 1e6:,.1f} M · riesgo S/ {J['total']['riesgo'] / 1e6:,.1f} M · {det}")
 
 
 if __name__ == "__main__":
-    main()
+    if "--recalcular-actividad" in sys.argv:
+        recalcular_actividad(sys.argv[1])
+        sys.exit(0)
+    try:
+        main()
+    except DatosInvalidos as e:                  # el insumo no es confiable: no se escribe nada y queda el último corte válido
+        print(f"::error::Datos del MEF rechazados: {e}")
+        sys.exit(2)

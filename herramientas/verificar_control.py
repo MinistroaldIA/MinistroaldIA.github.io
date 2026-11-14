@@ -1,100 +1,172 @@
 #!/usr/bin/env python3
-"""Verificaciones del control diario de RO antes de publicar (punto 6 de la revisión del 13/11/2026).
+"""Verificaciones del control diario de RO antes de publicar.
 
 Uso: python herramientas/verificar_control.py <id>
-Lee <id>/ro/datos.json (valores originales, sin redondeo de pantalla) y termina con código 1 si algo no cuadra.
-En la tarea automática corre antes de publicar: si falla, no se publica nada y queda el último corte válido.
+Lee <id>/ro/datos.json (valores originales, sin redondeo de pantalla) y <id>/ro/proyectos.json, y termina con código 1
+si algo no cuadra. En la tarea automática corre antes de publicar: si falla, no se publica nada y queda el último corte válido.
+
+Tres grupos (auditoría del 13/11/2026, hallazgo M08):
+  A. Contrato de datos: campos presentes, números finitos, claves únicas, cronología y cobertura de unidades.
+  B. Cálculo: conciliaciones presupuestales y del ritmo semanal.
+  C. Actividad entre cortes: el estado y la racha de cada unidad se RECALCULAN aquí con una implementación propia
+     (no se copia la del generador) y se comparan con lo publicado. Así un ajuste negativo mostrado como «sin variación»
+     o una racha inventada hacen fallar la verificación.
+Ninguna regla se registra como conforme de forma incondicional. pruebas_control.py demuestra que cada una falla ante un
+error sembrado.
 """
 import json
+import math
 import os
 import sys
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TOL = 1.0          # soles: tolerancia por el redondeo a céntimos del archivo
+ESTADOS = {"aumento", "sin_variacion", "ajuste_negativo", "sin_comparacion"}
+NUM_UE = ("pim", "cert", "dev", "saldo", "no_cert", "riesgo", "dev_base", "saldo_ini", "avance", "esperado", "nec_sem", "real_sem")
 
 
-def clase(av, esp):
-    """Misma regla que la página: razón ≥ 90 % alcanza; ≥ 60 % por debajo; < 60 % muy por debajo; sin referencia si es 0 o falta."""
-    if esp is None or not esp > 0 or av is None:
-        return "sin referencia"
-    r, e = av / esp, 1e-9           # tolerancia: 0.09 / 0.1 = 0.8999… en coma flotante y debe contar como 90 %
-    return "alcanza el umbral" if r >= 0.9 - e else ("por debajo" if r >= 0.6 - e else "muy por debajo")
+def finito(x):
+    return isinstance(x, (int, float)) and not isinstance(x, bool) and math.isfinite(x)
 
 
-def main():
-    eid = sys.argv[1] if len(sys.argv) > 1 else "minsa"
-    D = json.load(open(os.path.join(RAIZ, eid, "ro", "datos.json"), encoding="utf-8"))
-    U, T = D["ues"], D["total"]
+def estado_esperado(var, tol):
+    """Implementación independiente de la regla publicada en la página («Cómo se calcula»)."""
+    if var is None:
+        return "sin_comparacion"
+    return "aumento" if var > tol else ("ajuste_negativo" if var < -tol else "sin_variacion")
+
+
+def racha_esperada(serie, fechas, tol):
+    """Cortes consecutivos sin aumento neto, recorriendo la serie de atrás hacia adelante (implementación independiente)."""
+    pares = list(zip(fechas, serie))
+    if len(pares) < 2 or pares[-1][1] is None:
+        return None
+    n = 0
+    k = len(pares) - 1
+    while k > 0:
+        (_, a), (fk, b) = pares[k - 1], pares[k]
+        if a is None:
+            return None if n == 0 else (n, fk, True)
+        if b - a > tol:
+            return (n, fk, False)
+        n += 1
+        k -= 1
+    return (n, pares[0][0], True)
+
+
+def verificar(D, PJ=None):
+    """Devuelve [(conforme, regla, detalle)]. No imprime ni termina el proceso."""
     res = []
     ok = lambda regla, cond, det="": res.append((bool(cond), regla, det))
+    U, T, par = D.get("ues") or [], D.get("total") or {}, D.get("parametros") or {}
+    tol = par.get("tolerancia_variacion", TOL)
 
-    # 1. Conciliación presupuestal
+    # ---------- A. Contrato de datos ----------
+    falt = [k for k in ("corte", "fechas", "serie", "ues", "total", "parametros", "semana", "comparacion") if k not in D]
+    ok("Contrato: datos.json trae todos sus bloques", not falt, ", ".join(falt))
+    malos = sorted({f"{u.get('sec')}:{k}" for u in U for k in NUM_UE if not finito(u.get(k))})
+    ok("Contrato: importes y razones de cada unidad son números finitos", not malos, ", ".join(malos[:8]))
+    malos = [k for k in ("PIM", "DEVENGADO", "saldo", "riesgo", "no_certificado") if not finito(T.get(k))]
+    ok("Contrato: totales del pliego son números finitos", not malos, ", ".join(malos))
+    secs = [u.get("sec") for u in U]
+    ok("Contrato: cada unidad aparece una sola vez", len(secs) == len(set(secs)) and all(secs), f"{len(secs)} filas, {len(set(secs))} unidades")
+    F = D.get("fechas") or []
+    ok("Cronología: los cortes del historial van en orden estrictamente creciente", all(a < b for a, b in zip(F, F[1:])), " → ".join(F[-4:]))
+    ok("Cronología: el corte publicado es el más reciente del historial", bool(F) and D.get("corte") == F[-1], f"{D.get('corte')} frente a {F[-1] if F else '—'}")
+    ant = max([f for f in F if f < D.get("corte", "")], default=None)
+    ok("Cronología: el corte anterior es el mayor estrictamente menor al publicado", D.get("corte_anterior") == ant, f"{D.get('corte_anterior')} frente a {ant}")
+    C = D.get("comparacion") or {}
+    ok("Cronología: la comparación declara las fechas de los dos cortes", C.get("desde") == ant and C.get("hasta") == D.get("corte"), f"{C.get('desde')} → {C.get('hasta')}")
+    S = D.get("serie") or {}
+    malos = [k for k, v in S.items() if len(v) != len(F)]
+    ok("Contrato: cada serie tiene un valor por corte", not malos, ", ".join(malos))
+    if PJ is not None:
+        sin_ue = sorted(set(PJ.get("ues", {})) - set(secs))
+        ok("Cobertura: todo proyecto pertenece a una unidad publicada", not sin_ue, ", ".join(sin_ue))
+        ok("Cobertura: proyectos y unidades están al mismo corte", PJ.get("corte") == D.get("corte"), f"{PJ.get('corte')} frente a {D.get('corte')}")
+        malos = []
+        for u in U:
+            L = PJ.get("ues", {}).get(u["sec"])
+            if L:
+                dp, dd = sum(x["pim"] for x in L) - u["pim"], sum(x["dev"] for x in L) - u["dev"]
+                if abs(dp) > TOL or abs(dd) > TOL:
+                    malos.append(f"{u['sec']} (PIM {dp:+,.2f}; devengado {dd:+,.2f})")
+        ok("Concordancia: los proyectos suman el PIM y el devengado de su unidad", not malos, "; ".join(malos[:5]))
+
+    # ---------- B. Cálculo ----------
     malas = [u["sec"] for u in U if abs(u["saldo"] - (u["pim"] - u["dev"])) > TOL]
     ok("Saldo = PIM − devengado en cada unidad", not malas, ", ".join(malas))
     malas = [u["sec"] for u in U if abs(u["no_cert"] - (u["pim"] - u["cert"])) > TOL]
     ok("Sin certificar = PIM − certificado en cada unidad", not malas, ", ".join(malas))
     for k_u, k_t in (("pim", "PIM"), ("dev", "DEVENGADO"), ("saldo", "saldo"), ("riesgo", "riesgo"), ("no_cert", "no_certificado")):
         s = sum(u[k_u] for u in U)
-        ok(f"Suma de las unidades = total del pliego ({k_t})", abs(s - T[k_t]) <= TOL * len(U), f"{s:,.2f} frente a {T[k_t]:,.2f}")
-
-    # 2. Comparación entre cortes
+        ok(f"Suma de las unidades = total del pliego ({k_t})", abs(s - T[k_t]) <= TOL * max(1, len(U)), f"{s:,.2f} frente a {T[k_t]:,.2f}")
     comp = [u for u in U if u.get("dev_ant") is not None]
     malas = [u["sec"] for u in comp if abs((u["saldo"] - u["saldo_ant"]) - ((u["pim"] - u["pim_ant"]) - (u["dev"] - u["dev_ant"]))) > TOL]
     ok("Variación del saldo = variación del PIM − variación del devengado (por unidad)", not malas, ", ".join(malas))
-    if len(D["fechas"]) > 1:
-        i = len(D["fechas"]) - 1
-        S = D["serie"]
+    if len(F) > 1:
+        i = len(F) - 1
         ds, dp, dd = S["saldo"][i] - S["saldo"][i - 1], S["PIM"][i] - S["PIM"][i - 1], S["DEVENGADO"][i] - S["DEVENGADO"][i - 1]
         ok("Variación del saldo = variación del PIM − variación del devengado (pliego)", abs(ds - (dp - dd)) <= TOL * len(U), f"{ds:,.2f} frente a {dp - dd:,.2f}")
-    neg = [u["sec"] for u in comp if u["dev"] - u["dev_ant"] < -0.5]
-    ok("Los ajustes negativos se conservan con su signo (no se vuelven cero)", all(u["dev"] - u["dev_ant"] < 0 for u in comp if u["sec"] in neg), ", ".join(neg) or "sin ajustes negativos")
     malas = [u["sec"] for u in comp if abs((u["riesgo"] - u["riesgo_ant"]) - ((u["pim"] - u["pim_ant"]) - (u["dev"] - u["dev_ant"]) - ((u["saldo"] - u["riesgo"]) - (u["saldo_ant"] - u["riesgo_ant"])))) > TOL]
     ok("La explicación de la variación del riesgo concilia (PIM, devengado, tiempo y supuestos)", not malas, ", ".join(malas))
-
-    # 3. Base del avance: saldo al cierre del último mes con el PIM actual = PIM actual − devengado acumulado a esa fecha
     malas = [u["sec"] for u in U if abs(u["saldo_ini"] - (u["pim"] - (u["dev"] - u["dev_base"]))) > TOL]
-    ok("Base del avance = PIM actual − devengado al cierre del último mes (se recalcula si cambia el PIM)", not malas, ", ".join(malas))
+    ok("Base del avance = PIM actual − devengado al cierre del último mes", not malas, ", ".join(malas))
     malas = [u["sec"] for u in U if u["saldo_ini"] > 0 and abs(u["avance"] - u["dev_base"] / u["saldo_ini"]) > 1e-4]
     ok("Avance = devengado desde la base ÷ base", not malas, ", ".join(malas))
-
-    # 4. Estimaciones: límites y agregación
-    malas = [u["sec"] for u in U if not (-TOL <= u["riesgo"] <= u["saldo"] + TOL)]
-    ok("Riesgo estimado entre 0 y el saldo en cada unidad", not malas, ", ".join(malas))
+    malas = [u["sec"] for u in U if not (-TOL <= u["riesgo"] <= max(u["saldo"], 0) + TOL)]
+    ok("Saldo proyectado al 31/12 entre 0 y el saldo en cada unidad", not malas, ", ".join(malas))
+    malas = [u["sec"] for u in U if not (0 <= u["esperado"] <= 1 + 1e-9)]
+    ok("Avance esperado entre 0 % y 100 % en cada unidad", not malas, ", ".join(malas))
     con_h = [u for u in U if u.get("riesgo_hist") is not None]
     malas = [u["sec"] for u in con_h if not (min(u["rh_bajo"], u["rh_alto"]) - TOL <= u["riesgo_hist"] <= max(u["rh_bajo"], u["rh_alto"]) + TOL)]
     ok("Escenario según patrones dentro de su rango en cada unidad", not malas, ", ".join(malas))
-    malas = [u["sec"] for u in con_h if not (-TOL <= u["rh_bajo"] and u["rh_alto"] <= u["saldo"] + TOL)]
-    ok("Rango del escenario según patrones entre 0 y el saldo", not malas, ", ".join(malas))
     if T.get("riesgo_hist") is not None:
         ok("Suma del escenario según patrones = total del pliego", abs(sum(u["riesgo_hist"] for u in con_h) - T["riesgo_hist"]) <= TOL * len(U))
-
-    # 5. Clasificación frente a la referencia: casos límite y coherencia de los datos
-    casos = [((0.06, 0.1), "por debajo"), ((0.09, 0.1), "alcanza el umbral"), ((0.0599999, 0.1), "muy por debajo"), ((0.0899999, 0.1), "por debajo"),
-             ((0.05, 0.0), "sin referencia"), ((0.05, None), "sin referencia"), ((-0.01, 0.1), "muy por debajo"), ((0.0, 0.1), "muy por debajo")]
-    malos = [f"{a}->{clase(*a)}" for a, e in casos if clase(*a) != e]
-    ok("Casos límite de clasificación: 60 %, 90 %, referencia cero, referencia ausente y avance negativo", not malos, "; ".join(malos))
-    sinref = [u["sec"] for u in U if u["saldo_ini"] > 0 and not (u.get("esperado") or 0) > 0]
-    ok("Unidades sin referencia identificadas (no cuentan como cumplimiento)", True, ", ".join(sinref) or "ninguna")
-
-    # 6. Procedencia
-    par = D["parametros"]
     ok("La procedencia de cada componente está publicada", bool(par.get("procedencia")) and bool(par.get("metodo")), par.get("fuente", ""))
-
-    # 7. Ritmo semanal (cabecera y cuadro de la página)
-    S = D.get("semana")
-    ok("El ritmo semanal está publicado", bool(S))
-    if S:
-        h = S["dias_habiles"]
+    SM = D.get("semana") or {}
+    ok("El ritmo semanal está publicado", bool(SM))
+    if SM:
+        h = SM["dias_habiles"]
         malas = [u["sec"] for u in U if h and abs(u["nec_sem"] - u["saldo"] / h * 5) > TOL]
-        ok("Necesario por semana = saldo por devengar ÷ días hábiles × 5, en cada unidad", not malas, ", ".join(malas))
-        ok("Necesario por semana del pliego = suma de las unidades", abs(sum(u["nec_sem"] for u in U) - S["nec_sem"]) <= TOL * len(U))
-        ok("Devengado por semana del pliego = suma de las unidades", abs(sum(u["real_sem"] for u in U) - S["real_sem"]) <= TOL * len(U), S.get("base", ""))
-        if S.get("ult") is not None:
-            ok("Devengado del último corte del pliego = suma de las unidades", abs(sum(u["ult"] or 0 for u in U) - S["ult"]) <= TOL * len(U))
-        malas = [u["sec"] for u in U if (u.get("ult") or 0) > 0.5 and u["dias_sin"] != 0]
-        ok("Una unidad con devengado en el último corte tiene 0 días sin devengar", not malas, ", ".join(malas))
-        ok("Días calendario y hábiles al 31/12 coherentes", 0 <= h <= S["dias_cal"], f"{S['dias_cal']} calendario · {h} hábiles")
+        ok("Necesario por semana = saldo ÷ días hábiles × 5, en cada unidad", not malas, ", ".join(malas))
+        ok("Necesario por semana del pliego = suma de las unidades", abs(sum(u["nec_sem"] for u in U) - SM["nec_sem"]) <= TOL * len(U))
+        ok("Devengado por semana del pliego = suma de las unidades", abs(sum(u["real_sem"] for u in U) - SM["real_sem"]) <= TOL * len(U), SM.get("base", ""))
+        ok("Días calendario y hábiles al 31/12 coherentes", 0 <= h <= SM["dias_cal"], f"{SM['dias_cal']} calendario · {h} hábiles")
+        if SM.get("var") is not None:
+            ok("Variación entre cortes del pliego = suma de las unidades", abs(sum(u.get("var") or 0 for u in U) - SM["var"]) <= TOL * len(U))
 
+    # ---------- C. Actividad entre cortes ----------
+    malas = [u["sec"] for u in U if u.get("estado") not in ESTADOS]
+    ok("Cada unidad tiene un estado de variación válido", not malas, ", ".join(malas))
+    malas = [u["sec"] for u in U if (u.get("var") is None) != (u.get("dev_ant") is None)
+             or (u.get("var") is not None and abs(u["var"] - (u["dev"] - u["dev_ant"])) > 0.01)]
+    ok("Variación entre cortes = devengado actual − devengado del corte anterior", not malas, ", ".join(malas))
+    malas = [f"{u['sec']} ({u.get('var')}: {u.get('estado')})" for u in U if u.get("estado") != estado_esperado(u.get("var"), tol)]
+    ok(f"Estado coherente con la variación (aumento > S/ {tol:g}; sin variación ±S/ {tol:g}; ajuste < −S/ {tol:g}; sin comparación)", not malas, "; ".join(malas[:6]))
+    neg = [u["sec"] for u in U if u.get("var") is not None and u["var"] < -tol]
+    ok("Ningún ajuste neto negativo figura como «sin variación» ni como aumento", all(u.get("estado") == "ajuste_negativo" for u in U if u["sec"] in neg),
+       ("ajustes: " + ", ".join(neg)) if neg else "sin ajustes netos negativos")
+    SU = D.get("serie_ue") or {}
+    malas = []
+    for u in U:
+        esp = racha_esperada((SU.get(u["sec"]) or {}).get("DEVENGADO", []), F, tol)
+        pub = u.get("sin_aumento")
+        if (esp is None) != (pub is None) or (esp and (pub["n"], pub["desde"], pub["minimo"]) != esp):
+            malas.append(f"{u['sec']} (publicado {None if pub is None else (pub['n'], pub['desde'], pub['minimo'])}, esperado {esp})")
+    ok("Racha de cortes sin aumento neto reproducida desde el historial de cada unidad", not malas, "; ".join(malas[:4]))
+    malas = [u["sec"] for u in U if u.get("sin_aumento") and ((u["estado"] == "aumento") != (u["sin_aumento"]["n"] == 0))]
+    ok("Una unidad con aumento en el último corte tiene 0 cortes sin aumento, y viceversa", not malas, ", ".join(malas))
+    return res
+
+
+def main():
+    eid = sys.argv[1] if len(sys.argv) > 1 else "minsa"
+    base = os.path.join(RAIZ, eid, "ro")
+    D = json.load(open(os.path.join(base, "datos.json"), encoding="utf-8"))
+    fp = os.path.join(base, "proyectos.json")
+    PJ = json.load(open(fp, encoding="utf-8")) if os.path.isfile(fp) else None
+    res = verificar(D, PJ)
     falla = [r for r in res if not r[0]]
     for b, regla, det in res:
         print(("OK    " if b else "FALLA ") + regla + (f" · {det}" if det else ""))

@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Control diario de Recursos Ordinarios</title>
-<meta name="description" content="PIM, saldo por devengar, saldo proyectado al 31/12 y devengado diario de Recursos Ordinarios por unidad ejecutora.">
+<meta name="description" content="Proyecto independiente. PIM, saldo por devengar, saldo proyectado al 31/12 y variación del devengado entre cortes de Recursos Ordinarios por unidad ejecutora.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ccircle cx=%228%22 cy=%228%22 r=%227%22 fill=%22%2313294b%22/%3E%3C/svg%3E">
 <style>
 :root{--bg:#faf8f3;--ink:#1d2433;--muted:#5f6878;--line:#e3dccd;--soft:#f5f1e8;--navy:#13294b;--turq:#19c39c;--turq-d:#0f8f72;--turq-s:#e3f4ef;
---rojo:#c0392b;--rojo-t:#fde3e0;--ambar:#a86a12;--ambar-t:#fbeccc;--verde:#1f8f6a;--verde-t:#d8f5ec;
+--rojo:#c0392b;--rojo-t:#fde3e0;--ambar:#a86a12;--ambar-t:#fbeccc;--verde:#1f8f6a;--verde-t:#d8f5ec;--gris-t:#eceef2;
 --f-t:"IBM Plex Sans","Segoe UI",Arial,sans-serif;--f-m:"IBM Plex Mono",Consolas,monospace;color-scheme:light}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:70px}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-t);-webkit-text-size-adjust:100%}
@@ -20,8 +20,12 @@ header{padding:24px 0 6px}
 .hcab{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
 h1{font:700 clamp(26px,3.6vw,36px)/1.15 var(--f-t);color:var(--navy);margin:4px 0 4px}
 .meta{font-size:13px;color:var(--muted);margin:0}.meta a{color:var(--turq-d)}
-.corte{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
-.corte b{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;font:600 15px var(--f-t);color:var(--navy)}
+.indep{display:inline-block;margin-top:6px;font-size:12.5px;font-weight:600;color:#5c3a08;background:var(--ambar-t);border-radius:999px;padding:2px 10px}
+.corte{display:flex;flex-direction:column;align-items:flex-end;gap:6px;max-width:420px}
+.corte>b{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;font:600 15px var(--f-t);color:var(--navy)}
+.op{border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 12px;font-size:13px;line-height:1.4;color:var(--muted)}
+.op p{margin:2px 0}.op b{color:var(--navy)}.op .mal{color:#8c231a;font-weight:600}.op .bien{color:#0b5e4a}.op a{color:var(--turq-d)}
+.op .nuevo{all:unset;cursor:pointer;color:#fff;background:var(--turq-d);border-radius:999px;padding:3px 10px;font-weight:600;margin-top:4px;display:inline-block}
 nav.top{position:sticky;top:0;z-index:5;background:rgba(250,248,243,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);margin-top:12px}
 nav.top .wrap{display:flex;gap:6px;overflow-x:auto;padding:10px 20px;scrollbar-width:none}
 nav.top a{flex:none;text-decoration:none;color:var(--navy);font:600 13.5px var(--f-t);padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;min-height:40px;display:flex;align-items:center}
@@ -49,8 +53,9 @@ h2{font:700 clamp(20px,2.4vw,24px)/1.2 var(--f-t);color:var(--navy);margin:0 0 1
 .c4 .num{font:700 clamp(21px,2.4vw,27px)/1.2 var(--f-t);color:var(--navy);margin:4px 0 0;white-space:nowrap;font-variant-numeric:tabular-nums}
 .c4 .ds{font-size:12.5px;color:var(--muted)}
 .alerta{display:flex;gap:10px;align-items:flex-start;border-radius:12px;padding:12px 16px;margin-top:12px;background:var(--rojo-t);color:#6d1d15;font-size:15px}
-.alerta.ok{background:var(--verde-t);color:#0b5e4a}
+.alerta.ok{background:var(--verde-t);color:#0b5e4a}.alerta.am{background:var(--ambar-t);color:#5c3a08}.alerta.inf{background:var(--soft);color:var(--ink)}
 .alerta button{all:unset;cursor:pointer;text-decoration:underline;font-weight:600}
+.alerta button:focus-visible{outline:3px solid #0f8f72;outline-offset:2px}
 .panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:12px}
 .panel h3{margin:0 0 2px;font:700 17px var(--f-t);color:var(--navy)}
 /* cuadro */
@@ -58,52 +63,81 @@ h2{font:700 clamp(20px,2.4vw,24px)/1.2 var(--f-t);color:var(--navy);margin:0 0 1
 .ctrl button{font:600 13.5px var(--f-t);padding:8px 13px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--navy);cursor:pointer;min-height:40px}
 .ctrl button[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
 .ctrl button:disabled{opacity:.45;cursor:default}
-.ctrl input{font:15px var(--f-t);padding:9px 12px;border:1px solid var(--line);border-radius:10px;min-height:42px;min-width:240px;flex:1 1 240px;max-width:360px}
-.btn{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:9px 15px;border-radius:10px;font:600 14px var(--f-t);border:1px solid var(--navy);color:var(--navy);background:#fff;cursor:pointer}
+.ctrl input{font:16px var(--f-t);padding:9px 12px;border:1px solid var(--line);border-radius:10px;min-height:44px;min-width:0;flex:1 1 220px;max-width:360px}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:9px 15px;border-radius:10px;font:600 14px var(--f-t);border:1px solid var(--navy);color:var(--navy);background:#fff;cursor:pointer}
 .tabla{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff;max-height:78vh}
 table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
 th,td{padding:9px 11px;text-align:right;white-space:nowrap;border-bottom:1px solid #eee8dc}
-th{position:sticky;top:0;background:#f3f5f9;color:var(--navy);font:600 12.5px/1.25 var(--f-t);z-index:2;cursor:pointer;white-space:normal;vertical-align:bottom;min-width:92px}
+th{position:sticky;top:0;background:#f3f5f9;color:var(--navy);font:600 12.5px/1.25 var(--f-t);z-index:2;white-space:normal;vertical-align:bottom;min-width:92px}
+th .ord{all:unset;cursor:pointer;display:block;width:100%;text-align:inherit;font:inherit;color:inherit;padding:2px 0}
+th .ord:focus-visible{outline:3px solid #0f8f72;outline-offset:2px}
+th small{display:block;font-weight:400;color:var(--muted)}
 th.t,td.t{text-align:left}
 td.t{position:sticky;left:0;background:#fff;z-index:1;max-width:260px;overflow:hidden;text-overflow:ellipsis}
 th.t{left:0;z-index:3;min-width:180px}
-tbody tr{cursor:pointer}tbody tr:hover td{background:#f7fbfa}
+tbody tr[data-s]{cursor:pointer}tbody tr[data-s]:hover td{background:#f7fbfa}
 tr.alerta-f td{background:#fff6f4}tr.alerta-f td.t{box-shadow:inset 4px 0 var(--rojo)}
+tr.ajuste-f td.t{box-shadow:inset 4px 0 var(--ambar)}
 tfoot td{font-weight:700;background:#f3f5f9;position:sticky;bottom:0}tfoot td.t{z-index:2}
+.es{display:inline-block;border-radius:999px;padding:1px 9px;font-size:12.5px;font-weight:700;white-space:nowrap}
+.es.aum{background:var(--verde-t);color:#0b5e4a}.es.sv{background:var(--rojo-t);color:#8c231a}.es.aj{background:var(--ambar-t);color:#6b4209}.es.sc{background:var(--gris-t);color:var(--muted)}
 .dias{display:inline-block;min-width:34px;text-align:center;border-radius:999px;padding:1px 8px;font-weight:700}
 .dias.r{background:var(--rojo-t);color:#8c231a}.dias.a{background:var(--ambar-t);color:#7a4c0b}.dias.v{color:var(--verde)}
 .mini{display:inline-block;vertical-align:middle;width:46px;height:6px;border-radius:3px;background:#e6e9f0;margin-left:6px;position:relative;overflow:hidden}
 .mini i{position:absolute;left:0;top:0;bottom:0}
-.cero{color:var(--rojo);font-weight:700}
+.neg{color:var(--ambar);font-weight:700}
+/* tarjetas (celular) */
+.tarjetas{display:none;list-style:none;margin:0;padding:0}
+.tj{margin:0 0 8px}
+.tj button{all:unset;box-sizing:border-box;display:block;width:100%;cursor:pointer;background:#fff;border:1px solid var(--line);border-radius:12px;padding:11px 13px}
+.tj button:focus-visible{outline:3px solid #0f8f72;outline-offset:2px}
+.tj.alerta-f button{border-left:5px solid var(--rojo)}.tj.ajuste-f button{border-left:5px solid var(--ambar)}
+.tj .tn{display:block;font-weight:700;color:var(--navy);font-size:15.5px;line-height:1.3}
+.tj .tg{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;margin-top:6px;font-size:14px;font-variant-numeric:tabular-nums}
+.tj .tl{color:var(--muted);font-size:12.5px;display:block}.tj .tg b{color:var(--ink)}.tj .tr{display:block;font-size:12.5px;color:#6b4209;margin-top:3px}
+.vista{display:none}
 /* ficha */
 .ficha h3{font:700 20px var(--f-t);color:var(--navy);margin:0}
 .f6{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
 .f6 div{background:var(--soft);border-radius:10px;padding:10px 12px}.f6 span{display:block;font-size:12.5px;color:var(--muted)}.f6 b{font:700 18px var(--f-t);color:var(--navy);white-space:nowrap}
 .ficha h4{margin:16px 0 6px;color:var(--navy)}
 .ficha td.t{position:static;max-width:none;white-space:normal;min-width:240px}
-/* gráfico diario */
-.dia svg{width:100%;height:auto;max-height:220px;display:block}
-/* radar */
-.radar{display:flex;align-items:center;gap:10px;padding:6px 12px 6px 8px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12.5px;color:var(--muted);line-height:1.25}
-.radar svg{flex:none}.radar .rd-b{font:700 15px var(--f-t);color:var(--navy);font-variant-numeric:tabular-nums}.radar .rd-t{display:block;color:var(--navy);font-weight:600}
-.radar .barrido{transform-origin:20px 20px;animation:giro 4s linear infinite}.radar .eco{transform-origin:20px 20px;animation:eco 4s ease-out infinite}
-.radar.activo .barrido{animation-duration:1.2s}.radar .nuevo{all:unset;cursor:pointer;color:#fff;background:var(--turq-d);border-radius:999px;padding:3px 10px;font-weight:600;margin-left:4px}
-@keyframes giro{to{transform:rotate(360deg)}}@keyframes eco{0%{transform:scale(.3);opacity:.7}100%{transform:scale(1);opacity:0}}
-@media (prefers-reduced-motion:reduce){.radar .barrido,.radar .eco{animation:none}}
+/* variación entre cortes del pliego */
+.dia svg{width:100%;height:auto;max-height:240px;display:block}
+.dlist{display:none;list-style:none;margin:8px 0 0;padding:0}
+.dlist li{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;padding:9px 0;border-bottom:1px solid #eee8dc;font-size:15px;font-variant-numeric:tabular-nums}
+.dlist .df{font-weight:700;color:var(--navy)}.dlist .dv{text-align:right;font-weight:700}.dlist .dd{grid-column:1/3;font-size:13px;color:var(--muted)}
+.dlist .db{grid-column:1/3;height:8px;border-radius:4px;background:#e6e9f0;position:relative;overflow:hidden}.dlist .db i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}
 details.met{margin-top:10px}details.met summary{cursor:pointer;font:700 17px var(--f-t);color:var(--navy);min-height:40px;display:flex;align-items:center}
 details.met li{margin:4px 0;font-size:14.5px}
-.mtab{font-size:13.5px;margin-top:8px}.mtab td,.mtab th{white-space:normal;text-align:left;position:static;cursor:default}
+.mtab{font-size:13.5px;margin-top:8px}.mtab td,.mtab th{white-space:normal;text-align:left;position:static}
+footer{margin:28px 0 30px;font-size:13px;color:var(--muted)}
+.sr{position:absolute;left:0;top:0;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 :focus-visible{outline:3px solid #0f8f72;outline-offset:2px}
-@media (max-width:820px){.r4,.c4{grid-template-columns:1fr 1fr;gap:12px}.r4>div{border-left:0;padding:2px}.corte{align-items:flex-start}}
+@media (max-width:820px){.r4,.c4{grid-template-columns:1fr 1fr;gap:12px}.r4>div{border-left:0;padding:2px}.corte{align-items:flex-start;max-width:none}}
+@media (max-width:760px){
+ .wrap{padding:0 14px}nav.top .wrap{padding:10px 14px}
+ #cuadro .tabla{display:none}#cuadro .tarjetas{display:block}#cuadro .vista{display:inline-flex}
+ #cuadro.completo .tabla{display:block}#cuadro.completo .tarjetas{display:none}
+
+ .ficha .mob-oculta{display:none}.ficha td.t{min-width:0}
+ .ficha .ftab thead{display:none}.ficha .ftab tr{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;padding:9px 10px;border-bottom:1px solid #eee8dc}
+ .ficha .ftab td{border:0;padding:0;text-align:left;white-space:normal;font-size:14.5px}.ficha .ftab td.t{grid-column:1/3;font-weight:600}
+ .ficha .ftab td[data-l]::before{content:attr(data-l);display:block;font-size:12.5px;font-weight:400;color:var(--muted)}
+ .ctrl input{max-width:none;flex-basis:100%}
+}
+@media (max-width:900px){.dia .svgw{display:none}.dia .dlist{display:block}}
+@media (max-width:380px){.r4,.c4{grid-template-columns:1fr}.tj .tg{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<a href="#cuadro" style="position:absolute;left:-999px" onfocus="this.style.left='8px'" onblur="this.style.left='-999px'">Saltar al cuadro por unidad</a>
+<a href="#cuadro" class="sr" onfocus="this.classList.remove('sr')" onblur="this.classList.add('sr')">Saltar al cuadro por unidad</a>
 <header><div class="wrap"><div class="hcab">
 <div><div class="eyebrow" id="ent">Recursos Ordinarios</div>
 <h1>Control diario de Recursos Ordinarios</h1>
-<p class="meta" id="meta">Cargando…</p></div>
-<div class="corte"><b id="cortetx">Cargando…</b><div class="radar" id="radar" role="timer" aria-live="off" hidden></div></div>
+<p class="meta" id="meta">Cargando…</p>
+<span class="indep" id="indep">Proyecto independiente. No es un portal oficial.</span></div>
+<div class="corte"><b id="cortetx">Cargando…</b><div class="op" id="op" aria-live="polite"></div></div>
 </div></div></header>
 <nav class="top" aria-label="Secciones"><div class="wrap" id="nav"><a href="../../">Portada</a><a class="act" href="#inicio" aria-current="page">Control diario</a><span class="sep" aria-hidden="true"></span><a class="sub" href="#cuadro">Unidades</a><a class="sub" href="#buscador">Proyectos</a><a class="sub" href="#metodo">Cómo se calcula</a></div></nav>
 <main><div class="wrap">
@@ -113,68 +147,80 @@ details.met li{margin:4px 0;font-size:14.5px}
 <div class="c4" id="pliego"></div>
 <p class="nota" id="nproy"></p>
 <div id="alerta"></div>
-<div class="panel dia"><h3>Devengado de cada día frente a lo necesario por día</h3><div id="dia"></div></div>
+<div class="panel dia"><h3>Variación del devengado entre cortes frente a lo necesario</h3><div id="dia"></div></div>
 </section>
 
 <section id="cuadro"><h2>Unidades ejecutoras</h2>
 <div class="ctrl" id="chips" role="group" aria-label="Filtros"></div>
-<div class="ctrl"><input id="q" type="search" placeholder="Buscar unidad ejecutora o código…" aria-label="Buscar unidad ejecutora"><button class="btn" id="bcsv" type="button">Descargar el cuadro (CSV)</button></div>
-<div class="tabla"><table><thead><tr id="cab"></tr></thead><tbody id="cuerpo"></tbody><tfoot id="pie"></tfoot></table></div>
-<p class="nota" id="ncuadro"></p>
+<div class="ctrl"><input id="q" type="search" placeholder="Buscar unidad ejecutora o código…" aria-label="Buscar unidad ejecutora"><button class="btn" id="bcsv" type="button">Descargar el cuadro (CSV)</button><button class="btn vista" id="bvista" type="button" aria-pressed="false">Ver cuadro completo</button></div>
+<ul class="tarjetas" id="tarjetas" aria-label="Unidades ejecutoras"></ul>
+<div class="tabla"><table><caption class="sr">Unidades ejecutoras: saldo, saldo proyectado y variación del devengado entre cortes</caption><thead><tr id="cab"></tr></thead><tbody id="cuerpo"></tbody><tfoot id="pie"></tfoot></table></div>
+<p class="nota" id="ncuadro" aria-live="polite"></p>
 </section>
 
 <section id="detalle" hidden><div class="panel ficha" id="det" tabindex="-1"></div></section>
 
 <section id="buscador"><h2>Buscar un proyecto de inversión</h2>
-<div class="ctrl"><input id="bq" type="search" placeholder="CUI o nombre del proyecto…" aria-label="Buscar proyecto por CUI o nombre"></div>
-<div id="bres"></div>
+<div class="ctrl"><input id="bq" type="search" placeholder="CUI o nombre del proyecto…" aria-label="Buscar proyecto por CUI o nombre" aria-describedby="bres-n"></div>
+<div id="bres"></div><p class="sr" id="bres-n" aria-live="polite"></p>
 </section>
 
 <section id="metodo"><details class="met"><summary>Cómo se calcula</summary>
 <ul>
 <li><b>Saldo por devengar</b> = PIM − devengado. Es presupuesto, no dinero en caja.</li>
-<li><b>Saldo proyectado al 31/12</b>: lo que quedaría sin devengar si cada meta mantiene el devengado promedio de sus tres últimos meses completos. En 2024 y 2025 el saldo real al cierre fue menor que lo proyectado, porque diciembre se acelera.</li>
+<li><b>Saldo proyectado al 31/12</b>: lo que quedaría sin devengar si cada meta sigue con el devengado promedio de sus tres últimos meses completos (<span id="mrit">ver cabecera</span>). En 2024 y 2025 el saldo real al cierre fue menor que lo proyectado, porque diciembre se acelera.</li>
 <li><b>Necesario por semana</b> = saldo por devengar ÷ días hábiles que quedan × 5. Es lo que habría que devengar cada semana para no dejar saldo.</li>
 <li><b>Se devenga por semana</b>: promedio de los últimos días hábiles con datos (o desde el inicio del mes, mientras no haya una semana de historial), llevado a 5 días.</li>
-<li><b>Último día</b>: devengado entre el corte anterior y el actual.</li>
-<li><b>Días hábiles sin devengar</b>: días hábiles desde el último corte en que la unidad registró devengado. «2+» significa al menos 2 (el historial empieza el <span id="hini">primer corte registrado</span>).</li>
+<li><b>Variación entre cortes</b>: devengado acumulado del corte actual menos el del corte anterior (se indican ambas fechas). Puede abarcar más de un día hábil. Es una cifra neta: un aumento no muestra cada operación del periodo.</li>
+<li><b>Estado</b>: <i>aumento</i> si la variación supera <span class="tolx">S/ 1</span>; <i>sin variación</i> si queda entre −<span class="tolx">S/ 1</span> y <span class="tolx">S/ 1</span>; <i>ajuste neto negativo</i> si baja más de <span class="tolx">S/ 1</span> (anulaciones o rebajas mayores que lo nuevo: no prueba inactividad); <i>sin comparación</i> si la unidad no figura en el corte anterior.</li>
+<li><b>Cortes sin aumento neto</b>: cortes consecutivos, contados desde el último, en que el devengado acumulado no subió. «2+» significa al menos 2: el historial empieza el <span id="hini">primer corte registrado</span> o la unidad falta en un corte anterior. No se cuentan días sin evidencia diaria.</li>
 <li><b>Días hábiles</b>: lunes a viernes, sin los feriados del 8, 9 y 25 de diciembre. Después del 31/12 no se compromete ni se devenga con cargo al año (D. Leg. 1440, art. 36); en Recursos Ordinarios lo no devengado no pasa al año siguiente.</li>
+<li><b>Consultas automáticas</b>: cada hora de 7:23 a 23:23 (hora de Lima). GitHub puede iniciarlas con retraso. Arriba se informa el resultado real de la última consulta, no una suposición por la hora.</li>
 </ul>
 <div id="procedencia"></div><div id="revisiones"></div>
-<p class="nota">Las cifras se verifican antes de publicar (saldo = PIM − devengado, sumas por unidad, ritmo semanal y otras). Datos: Consulta Amigable y Datos Abiertos del MEF.</p>
+<p class="nota">Las cifras se verifican antes de publicar (contrato de datos, cronología, saldo = PIM − devengado, sumas por unidad, estados y rachas recalculados de forma independiente, ritmo semanal). Si una fuente trae un corte anterior al publicado, se conserva el publicado. Datos: Consulta Amigable y Datos Abiertos del MEF.</p>
 </details></section>
 </div></main>
+<footer><div class="wrap" id="pie-indep">Proyecto independiente de análisis con datos públicos del MEF. No es un portal oficial.</div></footer>
 <script>
 const M=v=>{if(v==null||isNaN(v))return'—';const a=Math.abs(v);if(a<0.5)return'S/ 0';if(a<5e4)return(v<0?'−':'')+'S/ '+Math.round(a).toLocaleString('en-US');return(v<0?'−':'')+'S/ '+(a/1e6).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' M'};
+const MS=v=>v==null||isNaN(v)?'—':(v>0.5?'+':'')+M(v);                   // importe con signo explícito
 const P=v=>v!=null&&isFinite(v)?(100*v).toFixed(1)+' %':'—';
-const F=s=>{const[y,m,d]=s.split('-');return`${d}/${m}/${y}`};const F5=s=>F(s).slice(0,5);
-const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const F=s=>{if(!s)return'—';const[y,m,d]=s.split('-');return`${d}/${m}/${y}`};const F5=s=>s?F(s).slice(0,5):'—';
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const nom=u=>u.sigla||u.ue.replace('Dirección de Redes Integradas de Salud','DIRIS').replace('Instituto Nacional de Salud del Niño - San Borja','INSN San Borja').replace('Instituto Nacional de Salud del Niño','INSN').replace('Hospital Nacional','Hosp.').replace('Hospital','Hosp.').replace('Instituto Nacional','Inst. Nac.').replace(/^(Regi[oó]n|Gob\.\s?Reg\.(\s?de)?|Gobierno Regional( del Departamento)?( de)?)\s?[A-Za-zÁÉÍÓÚáéíóúÑñ ]+?\s?-\s?(?=\S)/i,'').replace('Gobierno Regional','GORE').replace('Dirección Regional','Dir. Reg.').replace('Unidad de Gestión Educativa Local','UGEL').replace(new RegExp(' - '+(D.sigla||'#').replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'$'),'');
 const GEN={"1":"2.1 Personal y obligaciones sociales","2":"2.2 Pensiones","3":"2.3 Bienes y servicios","4":"2.4 Donaciones y transferencias","5":"2.5 Otros gastos","6":"2.6 Activos no financieros","7":"2.7 Activos financieros","8":"2.8 Deuda"};
 const colR=r=>r>=0.9?'#19c39c':r>=0.5?'#e0a526':'#e8604c';
-const DIAS=u=>{if(u.dias_sin==null)return'—';const d=u.dias_sin,t=u.dias_sin_tipo;const txt=t==='min'?d+'+':String(d),c=d>=3?'r':d>=1?'a':'v';
- return `<span class="dias ${c}" title="${t==='base'?'Sin devengado desde el inicio del mes':t==='min'?'Al menos '+d+' días hábiles (el historial empieza el '+F5(D.hist_inicio||D.fechas[0])+')':d+' días hábiles'}">${txt}</span>`};
-let D,PJ=null,REV=null,chip='todas',ord='riesgo',dir=-1,sel=null;
+// Estados excluyentes: vienen calculados en datos.json (la página no reclasifica)
+const ES={aumento:['aum','Aumento','Aumento del devengado'],sin_variacion:['sv','Sin variación','Sin variación del devengado'],ajuste_negativo:['aj','Ajuste neto negativo','Ajuste neto negativo'],sin_comparacion:['sc','Sin comparación','Sin comparación con un corte anterior']};
+const EST=u=>{const e=ES[u.estado]||ES.sin_comparacion;return`<span class="es ${e[0]}">${e[1]}</span>`};
+const RN=u=>u.sin_aumento?u.sin_aumento.n:null;
+const RACHA=u=>{const r=u.sin_aumento;if(!r)return'—';const c=r.n>=3?'r':r.n>=1?'a':'v',txt=r.n+(r.minimo&&r.n?'+':'');
+ const t=r.n===0?'Aumento neto en el último corte':`${r.n} corte${r.n>1?'s':''} sin aumento neto ${r.minimo?(r.cobertura==='interrumpida'?'(al menos: la unidad falta en el corte anterior al '+F5(r.desde)+')':'(al menos: el historial empieza el '+F5(r.desde)+')'):'desde el corte del '+F5(r.desde)+', el último con aumento'}${r.ajustes?' · incluye '+r.ajustes+' ajuste'+(r.ajustes>1?'s':'')+' neto'+(r.ajustes>1?'s':'')+' negativo'+(r.ajustes>1?'s':''):''}`;
+ return `<span class="dias ${c}" title="${esc(t)}">${txt}</span><span class="sr"> ${esc(t)}</span>`};
+let D,PJ=null,REV=null,EO=null,chip='todas',ord='riesgo',dir=-1,sel=null,origen=null;
+const TOL=()=>D.parametros.tolerancia_variacion??1;
 const PASO=u=>u.nec_sem>0?u.real_sem/u.nec_sem:null;
-const CHIPS=[['todas','Todas',u=>true],['ult0','Sin devengado en el último día',u=>u.ult!=null&&u.ult<=0.5&&u.saldo>0.5],
- ['d3','3 días hábiles o más sin devengar',u=>u.dias_sin>=3&&u.saldo>0.5]];
-const COLS=[['n','Unidad ejecutora','t'],['pim','PIM vigente'],['ej','Ejecución'],['saldo','Saldo por devengar'],['riesgo','Saldo proyectado al 31/12'],
- ['nec_sem','Necesita por semana'],['real_sem','Devenga por semana'],['ult','Último día'],['dias_sin','Días hábiles sin devengar']];
+const CMP=(corto)=>{const c=D.comparacion||{};if(!c.desde)return'';return corto?`${F5(c.desde)} → ${F5(c.hasta)}`:`del ${F5(c.desde)} al ${F5(c.hasta)}${c.habiles>1?` (${c.habiles} días hábiles)`:''}`};
+const CHIPS=[['todas','Todas',u=>true],['sv','Sin variación entre cortes',u=>u.estado==='sin_variacion'&&u.saldo>TOL()],
+ ['aj','Ajuste neto negativo',u=>u.estado==='ajuste_negativo'],['r3','3 cortes o más sin aumento neto',u=>RN(u)>=3&&u.saldo>TOL()]];
+const ALERTA=u=>(u.estado==='sin_variacion'&&u.saldo>TOL())||(RN(u)>=3&&u.saldo>TOL());
+const COLS=()=>[['n','Unidad ejecutora','t'],['pim','PIM vigente'],['ej','Ejecución'],['saldo','Saldo por devengar'],['riesgo','Saldo proyectado al 31/12'],
+ ['nec_sem','Necesita por semana'],['real_sem','Devenga por semana'],['var','Variación entre cortes','',CMP(true)],['estado','Estado'],['racha','Cortes sin aumento neto']];
+const VAL=(u,k)=>k==='racha'?RN(u):k==='estado'?['sin_variacion','ajuste_negativo','sin_comparacion','aumento'].indexOf(u.estado):u[k];
 
-fetch('datos.json?'+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{D=j;pintar();reloj();
+fetch('datos.json?'+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{D=j;pintar();estadoOperativo();
  fetch('revisiones.json?'+Date.now()).then(r=>r.ok?r.json():null).then(x=>{REV=x;revisiones()}).catch(()=>{});
  fetch('proyectos.json?'+Date.now()).then(r=>r.json()).then(p=>{PJ=p;buscador();if(sel)detalle(sel,false)}).catch(()=>{document.getElementById('bres').innerHTML='<p class="nota">No se pudo cargar el detalle por proyecto.</p>'})
 }).catch(()=>{document.getElementById('vigencia').innerHTML='<div class="alerta">No se pudieron cargar los datos. Recargue la página.</div>';document.getElementById('cortetx').textContent='Sin datos'});
 
 function pintar(){
  const T=D.total,S=D.semana||{},p=D.parametros;
- document.getElementById('cortetx').textContent='Datos al '+F(D.corte);
+ document.getElementById('cortetx').textContent='Último corte disponible: '+F(D.corte);
  identidad();
  const rv=(D.revisiones_corte||[]).filter(r=>r.corte===D.corte).length;
- document.getElementById('meta').innerHTML=`Fuente: ${esc(p.fuente)} del MEF${p.publicado_lima?' · publicado el '+esc(p.publicado_lima):''}${rv?` · <a href="#metodo" onclick="document.querySelector('details.met').open=true">cifras revisadas</a>`:''}`;
- // ¿el dato está atrasado más de un día hábil?
- const hoy=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Lima'}));let h=0;for(let d=new Date(D.corte+'T12:00');d<hoy;d.setDate(d.getDate()+1)){const w=d.getDay();if(w&&w<6)h++}
- if(h>2)document.getElementById('vigencia').innerHTML=`<div class="alerta" style="background:var(--ambar-t);color:#5c3a08">El MEF todavía no publica datos posteriores al ${F(D.corte)}.</div>`;
+ document.getElementById('meta').innerHTML=`Fuente: ${esc(p.fuente)} del MEF${p.publicado_lima?' · publicado el '+esc(p.publicado_lima):''}${rv?` · <a href="#metodo" id="vrev">cifras revisadas</a>`:''}`;
+ const vr=document.getElementById('vrev');if(vr)vr.onclick=()=>{document.querySelector('details.met').open=true};
  const r=S.nec_sem>0?S.real_sem/S.nec_sem:null;
  if(!D.semana)document.getElementById('ritmo').innerHTML='<p style="margin:0">Actualizando el ritmo semanal…</p>';else document.getElementById('ritmo').innerHTML=`<div class="r4">
   <div><div class="et">Días calendario que quedan</div><div class="num">${S.dias_cal}</div><div class="ds">hasta el 31/12</div></div>
@@ -182,94 +228,149 @@ function pintar(){
   <div><div class="et">Se necesita por semana</div><div class="num">${M(S.nec_sem)}</div><div class="ds">para devengar todo el saldo</div></div>
   <div><div class="et">Se devenga por semana</div><div class="num" style="color:${colR(r??1)}">${M(S.real_sem)}</div><div class="ds">${esc(S.base)}</div></div></div>
   <div class="compara"><div class="bar" role="img" aria-label="Se devenga el ${P(r)} de lo necesario"><i style="width:${Math.min(100,100*(r||0))}%;background:${colR(r??1)}"></i></div>
-  <p>Se devenga el <b>${P(r)}</b> de lo que se necesita cada semana.${S.ult!=null?` Último día (${F5(D.corte)}): <b>${M(S.ult)}</b>${S.ult_dias>1?` en ${S.ult_dias} días hábiles`:''}.`:''}</p></div>`;
+  <p>Se devenga el <b>${P(r)}</b> de lo que se necesita cada semana.${S.var!=null?` Variación entre cortes ${CMP(false)}: <b>${MS(S.var)}</b>.`:''}</p></div>`;
+ const mt=p.meses_ritmo_txt?`si continúa el promedio de ${p.meses_ritmo_txt}`:'si continúa el promedio de los tres últimos meses completos';
  document.getElementById('pliego').innerHTML=[['PIM vigente',M(T.PIM),''],['Devengado',M(T.DEVENGADO),P(T.DEVENGADO/T.PIM)+' del PIM'],
-  ['Saldo por devengar',M(T.saldo),P(T.saldo/T.PIM)+' del PIM'],['Saldo proyectado al 31/12',M(T.riesgo),'si se mantiene el ritmo de los últimos 3 meses']]
-  .map(([a,b,c])=>`<div><div class="et">${a}</div><div class="num">${b}</div><div class="ds">${c}</div></div>`).join('');
+  ['Saldo por devengar',M(T.saldo),P(T.saldo/T.PIM)+' del PIM'],['Saldo proyectado al 31/12',M(T.riesgo),mt]]
+  .map(([a,b,c])=>`<div><div class="et">${a}</div><div class="num">${b}</div><div class="ds">${esc(c)}</div></div>`).join('');
  document.getElementById('nproy').textContent='Saldo proyectado: en 2024 y 2025 el saldo real al cierre fue menor, porque diciembre se acelera.';
- const A=filas(),u0=A.filter(CHIPS[1][2]),u3=A.filter(CHIPS[2][2]);
- document.getElementById('alerta').innerHTML=u0.length||u3.length?`<div class="alerta"><span>⚠</span><span>${u0.length?`<b>${u0.length} unidad${u0.length>1?'es':''} sin devengado en el último día:</b> ${u0.slice(0,8).map(u=>esc(u.n)).join(', ')}${u0.length>8?` y ${u0.length-8} más`:''}. <button type="button" data-c="ult0">Ver en el cuadro</button>`:''}${u0.length&&u3.length?'<br>':''}${u3.length?`<b>${u3.length} con 3 días hábiles o más sin devengar.</b> <button type="button" data-c="d3">Ver en el cuadro</button>`:''}</span></div>`
-  :D.corte_anterior?'<div class="alerta ok"><span>✓</span><span>Todas las unidades con saldo registraron devengado en el último día.</span></div>'
-  :'<div class="alerta ok" style="background:var(--soft);color:var(--ink)"><span>ℹ</span><span>Es el primer corte registrado: el devengado de cada día y los días sin devengar aparecen desde el próximo corte.</span></div>';
- document.querySelectorAll('#alerta button[data-c]').forEach(b=>b.onclick=()=>{chip=b.dataset.c;chips();tabla();document.getElementById('cuadro').scrollIntoView()});
+ if(p.meses_ritmo_txt)document.getElementById('mrit').textContent=p.meses_ritmo_txt;
+ document.querySelectorAll('.tolx').forEach(e=>e.textContent='S/ '+TOL().toLocaleString('en-US'));
+ const A=filas(),usv=A.filter(CHIPS[1][2]),uaj=A.filter(CHIPS[2][2]),u3=A.filter(CHIPS[3][2]),lista=L=>L.slice(0,8).map(u=>esc(u.n)).join(', ')+(L.length>8?` y ${L.length-8} más`:'');
+ const pl=(n,s,p_)=>n+' '+(n>1?p_:s);
+ let h='';
+ if(usv.length)h+=`<div class="alerta"><span aria-hidden="true">⚠</span><span><b>${pl(usv.length,'unidad','unidades')} sin variación del devengado entre cortes (${CMP(true)}):</b> ${lista(usv)}. <button type="button" data-c="sv">Ver en el cuadro</button></span></div>`;
+ if(u3.length)h+=`<div class="alerta"><span aria-hidden="true">⚠</span><span><b>${pl(u3.length,'unidad','unidades')} con 3 cortes o más sin aumento neto.</b> <button type="button" data-c="r3">Ver en el cuadro</button></span></div>`;
+ if(uaj.length)h+=`<div class="alerta am"><span aria-hidden="true">↘</span><span><b>${pl(uaj.length,'unidad','unidades')} con ajuste neto negativo (${CMP(true)}):</b> ${uaj.slice(0,8).map(u=>esc(u.n)+' '+MS(u.var)).join(', ')}. Es una disminución neta (anulaciones o rebajas): no indica por sí sola falta de ejecución. <button type="button" data-c="aj">Ver en el cuadro</button></span></div>`;
+ if(!h)h=D.corte_anterior?`<div class="alerta ok"><span aria-hidden="true">✓</span><span>Todas las unidades con saldo registraron aumento neto del devengado entre cortes (${CMP(true)}).</span></div>`
+  :'<div class="alerta inf"><span aria-hidden="true">ℹ</span><span>Es el primer corte registrado: la variación entre cortes y los cortes sin aumento aparecen desde el próximo corte.</span></div>';
+ document.getElementById('alerta').innerHTML=h;
+ document.querySelectorAll('#alerta button[data-c]').forEach(b=>b.onclick=()=>{chip=b.dataset.c;chips();tabla();const c=document.getElementById('cuadro');c.scrollIntoView();document.querySelector(`#chips button[data-k="${chip}"]`).focus({preventScroll:true})});
  diario();chips();tabla();procedencia();
  document.getElementById('q').oninput=tabla;document.getElementById('bcsv').onclick=descargar;
+ const bv=document.getElementById('bvista');bv.onclick=()=>{const c=document.getElementById('cuadro'),on=!c.classList.contains('completo');c.classList.toggle('completo',on);bv.setAttribute('aria-pressed',on);bv.textContent=on?'Ver tarjetas':'Ver cuadro completo'};
 }
 // Entidad: nombre, código de pliego y enlaces al informe (solo si la entidad lo tiene). La página es la misma para todas.
 function identidad(){const sg=D.sigla||D.pliego;
  document.getElementById('ent').textContent=`${D.pliego} · Pliego ${D.codigo} · Recursos Ordinarios`;
  document.title=`Control diario de Recursos Ordinarios · ${sg}`;
+ document.getElementById('indep').textContent=`Proyecto independiente. No es un portal oficial del ${sg}.`;
+ document.getElementById('pie-indep').textContent=`Proyecto independiente de análisis con datos públicos del MEF. No es un portal oficial del ${D.pliego} (${sg}).`;
  if(D.hist_inicio)document.getElementById('hini').textContent=F(D.hist_inicio);
  if(D.informe)document.getElementById('nav').insertAdjacentHTML('afterbegin',[['../#resumen','Resumen'],['../#unidades','Unidades'],['../#ro','RO'],['../#ro26','RO–2.6'],['../#g26','Inversiones'],['../anexos.html','Anexos']].map(([h,t])=>`<a href="${h}">${t}</a>`).join(''));
 }
 function filas(){return D.ues.map(u=>({...u,n:nom(u),ej:u.pim?u.dev/u.pim:0}))}
 function filtradas(){const q=document.getElementById('q').value.trim().toLowerCase(),f=CHIPS.find(c=>c[0]===chip)[2];
- return filas().filter(u=>f(u)&&(!q||(u.n+' '+u.ue+' '+u.sec).toLowerCase().includes(q))).sort((a,b)=>{const x=a[ord],y=b[ord];return ord==='n'?dir*String(x).localeCompare(y):dir*((x??-1e18)-(y??-1e18))})}
+ return filas().filter(u=>f(u)&&(!q||(u.n+' '+u.ue+' '+u.sec).toLowerCase().includes(q))).sort((a,b)=>{const x=VAL(a,ord),y=VAL(b,ord);return ord==='n'?dir*String(x).localeCompare(y):dir*((x??-1e18)-(y??-1e18))})}
 function chips(){const A=filas();document.getElementById('chips').innerHTML=CHIPS.map(([k,t,f])=>{const n=A.filter(f).length;return`<button type="button" data-k="${k}" aria-pressed="${k===chip}" ${n||k==='todas'?'':'disabled'}>${t} (${n})</button>`}).join('');
- document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>{chip=b.dataset.k;chips();tabla()})}
-function tabla(){const R=filtradas();
- document.getElementById('cab').innerHTML=COLS.map(([k,t,c])=>`<th class="${c||''}" scope="col" aria-sort="${ord===k?(dir<0?'descending':'ascending'):'none'}" data-k="${k}">${t}${ord===k?(dir<0?' ↓':' ↑'):''}</th>`).join('');
- document.querySelectorAll('#cab th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;dir=ord===k?-dir:(k==='n'?1:-1);ord=k;tabla()});
- document.getElementById('cuerpo').innerHTML=R.map(u=>{const r=PASO(u),mal=(u.ult!=null&&u.ult<=0.5&&u.saldo>0.5)||u.dias_sin>=3;
-  return`<tr class="${mal?'alerta-f':''}" data-s="${u.sec}" tabindex="0"><td class="t" title="${esc(u.ue)}">${esc(u.n)}</td><td>${M(u.pim)}</td><td>${P(u.ej)}</td><td>${M(u.saldo)}</td><td><b>${M(u.riesgo)}</b></td>
+ document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>{chip=b.dataset.k;chips();tabla();document.querySelector(`#chips button[data-k="${chip}"]`).focus()})}
+function abrir(s,el){origen=el||document.activeElement;detalle(s,true)}
+function tabla(){const R=filtradas(),C=COLS();
+ document.getElementById('cab').innerHTML=C.map(([k,t,c,sub])=>`<th class="${c||''}" scope="col" aria-sort="${ord===k?(dir<0?'descending':'ascending'):'none'}"><button type="button" class="ord" data-k="${k}">${t}${ord===k?(dir<0?' ↓':' ↑'):''}${sub?`<small>${esc(sub)}</small>`:''}</button></th>`).join('');
+ document.querySelectorAll('#cab .ord').forEach(b=>b.onclick=()=>{const k=b.dataset.k;dir=ord===k?-dir:(k==='n'?1:-1);ord=k;tabla();document.querySelector(`#cab .ord[data-k="${k}"]`).focus()});
+ const cls=u=>ALERTA(u)?'alerta-f':u.estado==='ajuste_negativo'?'ajuste-f':'';
+ document.getElementById('cuerpo').innerHTML=R.map(u=>{const r=PASO(u);
+  return`<tr class="${cls(u)}" data-s="${esc(u.sec)}" tabindex="0"><td class="t" title="${esc(u.ue)}">${esc(u.n)}</td><td>${M(u.pim)}</td><td>${P(u.ej)}</td><td>${M(u.saldo)}</td><td><b>${M(u.riesgo)}</b></td>
   <td>${M(u.nec_sem)}</td><td>${M(u.real_sem)}${r!=null?`<span class="mini" title="${P(r)} de lo necesario"><i style="width:${Math.min(100,100*r)}%;background:${colR(r)}"></i></span>`:''}</td>
-  <td class="${u.ult!=null&&u.ult<=0.5&&u.saldo>0.5?'cero':''}">${u.ult==null?'—':M(u.ult)}</td><td>${DIAS(u)}</td></tr>`}).join('')||`<tr><td class="t" colspan="9">Ninguna unidad cumple el filtro.</td></tr>`;
+  <td class="${u.estado==='ajuste_negativo'?'neg':''}">${MS(u.var)}</td><td>${EST(u)}</td><td>${RACHA(u)}</td></tr>`}).join('')||`<tr><td class="t" colspan="10">Ninguna unidad cumple el filtro.</td></tr>`;
  const s=k=>R.reduce((a,u)=>a+(u[k]||0),0);
- document.getElementById('pie').innerHTML=`<tr><td class="t">Total (${R.length})</td><td>${M(s('pim'))}</td><td>${P(s('dev')/s('pim'))}</td><td>${M(s('saldo'))}</td><td>${M(s('riesgo'))}</td><td>${M(s('nec_sem'))}</td><td>${M(s('real_sem'))}</td><td>${R.some(u=>u.ult!=null)?M(s('ult')):'—'}</td><td></td></tr>`;
- document.querySelectorAll('#cuerpo tr[data-s]').forEach(tr=>{tr.onclick=()=>detalle(tr.dataset.s,true);tr.onkeydown=e=>{if(e.key==='Enter')detalle(tr.dataset.s,true)}});
- document.getElementById('ncuadro').textContent=`${R.length} de ${D.ues.length} unidades. En rojo: sin devengado en el último día o con 3 días hábiles o más sin devengar. Elija una unidad para ver su detalle.`}
+ document.getElementById('pie').innerHTML=`<tr><td class="t">Total (${R.length})</td><td>${M(s('pim'))}</td><td>${P(s('dev')/s('pim'))}</td><td>${M(s('saldo'))}</td><td>${M(s('riesgo'))}</td><td>${M(s('nec_sem'))}</td><td>${M(s('real_sem'))}</td><td>${R.some(u=>u.var!=null)?MS(s('var')):'—'}</td><td></td><td></td></tr>`;
+ document.querySelectorAll('#cuerpo tr[data-s]').forEach(tr=>{tr.onclick=()=>abrir(tr.dataset.s,tr);tr.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();abrir(tr.dataset.s,tr)}}});
+ // tarjetas para celular: nombre, saldo, variación entre cortes y estado; el resto en el detalle
+ document.getElementById('tarjetas').innerHTML=R.map(u=>`<li class="tj ${cls(u)}"><button type="button" data-s="${esc(u.sec)}" aria-label="${esc(u.ue)}. Saldo ${M(u.saldo)}. Variación entre cortes ${MS(u.var)}. ${ES[u.estado]?ES[u.estado][2]:''}. Ver detalle">
+  <span class="tn">${esc(u.n)}</span><span class="tg"><span><span class="tl">Saldo por devengar</span><b>${M(u.saldo)}</b></span><span><span class="tl">Saldo proyectado al 31/12</span><b>${M(u.riesgo)}</b></span>
+  <span><span class="tl">Variación ${CMP(true)}</span><b class="${u.estado==='ajuste_negativo'?'neg':''}">${MS(u.var)}</b></span><span><span class="tl">Estado</span>${EST(u)}${RN(u)?`<span class="tr">${RN(u)}${u.sin_aumento.minimo?' o más':''} corte${RN(u)>1?'s':''} sin aumento neto</span>`:''}</span></span></button></li>`).join('')||'<li class="nota">Ninguna unidad cumple el filtro.</li>';
+ document.querySelectorAll('#tarjetas button[data-s]').forEach(b=>b.onclick=()=>abrir(b.dataset.s,b));
+ document.getElementById('ncuadro').textContent=`${R.length} de ${D.ues.length} unidades. Borde rojo: sin variación entre cortes o 3 cortes o más sin aumento neto. Borde ámbar: ajuste neto negativo. Elija una unidad para ver su detalle.`}
 function diario(){const S=D.semana||{},C=(S.cortes||[]).slice(-20),el=document.getElementById('dia');
  if(!C.length){el.innerHTML='<p class="nota">Aparecerá cuando haya dos cortes.</p>';return}
- const nd=S.dias_habiles?D.total.saldo/S.dias_habiles:0,V=C.map(([f,v,d])=>({f,v:d?v/d:v,d})),mx=Math.max(nd,...V.map(x=>x.v),1);
- const W=1100,H=190,l=8,b=24,bw=Math.min(54,(W-l*2)/V.length*0.6),gx=(W-l*2)/V.length,y=v=>H-b-(H-b-18)*Math.max(0,v)/mx;
- el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Devengado por día hábil frente a lo necesario">
- ${V.map((x,i)=>{const cx=l+gx*i+gx/2;return`<rect x="${cx-bw/2}" y="${y(x.v)}" width="${bw}" height="${H-b-y(x.v)}" rx="3" fill="${colR(nd?x.v/nd:1)}"><title>${F(x.f)}: ${M(x.v)} por día${x.d>1?' (promedio de '+x.d+' días hábiles)':''}</title></rect><text x="${cx}" y="${y(x.v)-5}" text-anchor="middle" font-size="12" fill="#13294b" font-weight="600">${M(x.v).replace('S/ ','')}</text><text x="${cx}" y="${H-6}" text-anchor="middle" font-size="12" fill="#5f6878">${F5(x.f)}</text>`}).join('')}
- <line x1="${l}" x2="${W-l}" y1="${y(nd)}" y2="${y(nd)}" stroke="#13294b" stroke-dasharray="5 4" stroke-width="1.5"/><text x="${W-l}" y="${y(nd)-6}" text-anchor="end" font-size="12.5" fill="#13294b" font-weight="700">Necesario por día: ${M(nd)}</text></svg>
- <p class="nota">Cada barra es lo devengado en un corte (promedio por día hábil si el corte abarca más de uno).</p>`}
+ const nd=S.dias_habiles?D.total.saldo/S.dias_habiles:0,V=C.map(([f,v,d,fa])=>({f,fa,v:d?v/d:v,tot:v,d}));
+ const mx=Math.max(nd,...V.map(x=>x.v),1),mn=Math.min(0,...V.map(x=>x.v));
+ // escritorio: barras con eje firmado (un ajuste neto negativo baja del cero, no se recorta)
+ const W=1100,H=210,l=8,b=24,top=18,bw=Math.min(54,(W-l*2)/V.length*0.6),gx=(W-l*2)/V.length,y=v=>top+(H-b-top)*(mx-v)/(mx-mn),y0=y(0);
+ const svg=`<div class="svgw"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Variación del devengado por día hábil entre cortes frente a lo necesario por día">
+ <line x1="${l}" x2="${W-l}" y1="${y0}" y2="${y0}" stroke="#c9c2b2"/>
+ ${V.map((x,i)=>{const cx=l+gx*i+gx/2,yy=Math.min(y(x.v),y0),hh=Math.abs(y(x.v)-y0);return`<rect x="${cx-bw/2}" y="${yy}" width="${bw}" height="${Math.max(hh,1)}" rx="3" fill="${x.v<0?'#a86a12':colR(nd?x.v/nd:1)}"><title>${F5(x.fa)} → ${F5(x.f)}: ${MS(x.v)} por día hábil${x.d>1?' (promedio de '+x.d+' días hábiles; total '+MS(x.tot)+')':''}${x.v<0?' · ajuste neto negativo':''}</title></rect><text x="${cx}" y="${x.v<0?yy+hh+14:yy-5}" text-anchor="middle" font-size="12" fill="#13294b" font-weight="600">${MS(x.v).replace('S/ ','')}</text><text x="${cx}" y="${H-6}" text-anchor="middle" font-size="12" fill="#5f6878">${F5(x.f)}</text>`}).join('')}
+ <line x1="${l}" x2="${W-l}" y1="${y(nd)}" y2="${y(nd)}" stroke="#13294b" stroke-dasharray="5 4" stroke-width="1.5"/><text x="${W-l}" y="${y(nd)-6}" text-anchor="end" font-size="12.5" fill="#13294b" font-weight="700">Necesario por día hábil: ${M(nd)}</text></svg></div>`;
+ // celular: lista compacta legible sin zoom (cortes más recientes primero)
+ const lst=`<ul class="dlist" aria-label="Variación entre cortes, del más reciente al más antiguo">${V.slice().reverse().slice(0,8).map(x=>{const r=nd?x.v/nd:null;return`<li><span class="df">${F5(x.fa)} → ${F5(x.f)}</span><span class="dv${x.v<0?' neg':''}">${MS(x.tot)}</span>
+  <span class="dd">${x.d>1?`${x.d} días hábiles · promedio ${MS(x.v)} por día · `:'1 día hábil · '}${x.v<0?'ajuste neto negativo':r!=null?P(r)+' de lo necesario por día':''}</span>
+  <span class="db" aria-hidden="true"><i style="width:${x.v<0?0:Math.min(100,100*(r||0))}%;background:${colR(r??1)}"></i></span></li>`}).join('')}</ul><p class="nota">Necesario por día hábil: <b>${M(nd)}</b>.</p>`;
+ el.innerHTML=svg+lst+`<p class="nota">Variación neta del devengado entre dos cortes (promedio por día hábil si el periodo abarca más de uno). Un valor negativo es un ajuste neto negativo, no una barra en cero.</p>`}
 function detalle(s,ir){const u=filas().find(x=>x.sec===s);if(!u)return;sel=s;const sec=document.getElementById('detalle'),el=document.getElementById('det');sec.hidden=false;
- const r=PASO(u),G=Object.entries(u.gen||{}).sort((a,b)=>b[1][3]-a[1][3]);
+ const r=PASO(u),G=Object.entries(u.gen||{}).sort((a,b)=>b[1][3]-a[1][3]),p=D.parametros,cd=p.corte_detalle&&p.corte_detalle!==D.corte?p.corte_detalle:null;
  const L=PJ?(PJ.ues[s]||[]).slice().sort((a,b)=>b.ri-a.ri).slice(0,12):null;
- el.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><h3>${esc(u.ue)}</h3><p class="nota" style="margin:2px 0 0">Unidad ejecutora ${esc(u.sec)} · Recursos Ordinarios · datos al ${F(D.corte)}</p></div><button class="btn" type="button" id="volver">Volver al cuadro</button></div>
- <div class="f6"><div><span>PIM vigente</span><b>${M(u.pim)}</b></div><div><span>Devengado</span><b>${M(u.dev)}</b></div><div><span>Saldo por devengar</span><b>${M(u.saldo)}</b></div><div><span>Saldo proyectado al 31/12</span><b>${M(u.riesgo)}</b></div><div><span>Sin certificar</span><b>${M(u.no_cert)}</b></div><div><span>Último día</span><b>${u.ult==null?'—':M(u.ult)}</b></div></div>
- <p style="margin:0">Necesita devengar <b>${M(u.nec_sem)}</b> por semana y devenga <b>${M(u.real_sem)}</b> (${P(r)} de lo necesario). Días hábiles sin devengar: ${DIAS(u)}</p>
- ${G.length?`<h4>Por genérica de gasto</h4><div class="tabla" style="max-height:none"><table><thead><tr><th class="t">Genérica</th><th>PIM</th><th>Devengado</th><th>Saldo por devengar</th><th>Saldo proyectado al 31/12</th></tr></thead><tbody>${G.map(([g,v])=>`<tr style="cursor:default"><td class="t">${esc(GEN[g]||g)}</td><td>${M(v[0])}</td><td>${M(v[1])}</td><td>${M(v[2])}</td><td><b>${M(v[3])}</b></td></tr>`).join('')}</tbody></table></div>`:''}
- <h4>Productos y proyectos con mayor saldo proyectado</h4>${L==null?'<p class="nota">Cargando…</p>':L.length?`<div class="tabla" style="max-height:none"><table><thead><tr><th class="t">Producto, actividad o proyecto</th><th>PIM</th><th>Saldo por devengar</th><th>Saldo proyectado al 31/12</th></tr></thead><tbody>${L.map(x=>`<tr style="cursor:default"><td class="t">${esc(x.n)} <span class="nota">(${x.t==='P'?'CUI ':''}${esc(x.c)})</span></td><td>${M(x.pim)}</td><td>${M(x.s)}</td><td><b>${M(x.ri)}</b></td></tr>`).join('')}</tbody></table></div><p class="nota">Los 12 de mayor saldo proyectado de ${(PJ.ues[s]||[]).length}.</p>`:'<p class="nota">Sin detalle.</p>'}`;
- document.getElementById('volver').onclick=()=>{sec.hidden=true;sel=null;document.getElementById('cuadro').scrollIntoView()};
+ const ra=u.sin_aumento,rtxt=!ra?'sin comparación disponible':ra.n===0?'el último corte trae aumento neto':`${ra.n}${ra.minimo?' o más':''} corte${ra.n>1?'s':''} sin aumento neto${ra.minimo?'':' desde el corte del '+F5(ra.desde)+' (último con aumento)'}`;
+ el.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><h3>${esc(u.ue)}</h3><p class="nota" style="margin:2px 0 0">Unidad ejecutora ${esc(u.sec)} · Recursos Ordinarios · corte del ${F(D.corte)}</p></div><button class="btn" type="button" id="volver">Volver al cuadro</button></div>
+ <div class="f6"><div><span>PIM vigente</span><b>${M(u.pim)}</b></div><div><span>Devengado</span><b>${M(u.dev)}</b></div><div><span>Saldo por devengar</span><b>${M(u.saldo)}</b></div><div><span>Saldo proyectado al 31/12</span><b>${M(u.riesgo)}</b></div><div><span>Sin certificar</span><b>${M(u.no_cert)}</b></div><div><span>Variación entre cortes (${CMP(true)})</span><b class="${u.estado==='ajuste_negativo'?'neg':''}">${MS(u.var)}</b></div></div>
+ <p style="margin:0">Estado: ${EST(u)} · ${esc(rtxt)}.${u.estado==='ajuste_negativo'?' Un ajuste neto negativo combina anulaciones o rebajas con posibles operaciones nuevas: no indica por sí solo falta de ejecución.':''}</p>
+ <p style="margin:6px 0 0">Necesita devengar <b>${M(u.nec_sem)}</b> por semana y devenga <b>${M(u.real_sem)}</b> (${P(r)} de lo necesario).</p>
+ ${G.length?`<h4>Por genérica de gasto${cd?` <span class="nota">(Datos Abiertos al ${F(cd)}; las cifras de arriba son al ${F(D.corte)})</span>`:''}</h4><div class="tabla" style="max-height:none"><table class="ftab"><thead><tr><th class="t">Genérica</th><th class="mob-oculta">PIM</th><th class="mob-oculta">Devengado</th><th>Saldo por devengar</th><th>Saldo proyectado al 31/12</th></tr></thead><tbody>${G.map(([g,v])=>`<tr><td class="t">${esc(GEN[g]||g)}</td><td class="mob-oculta">${M(v[0])}</td><td class="mob-oculta">${M(v[1])}</td><td data-l="Saldo por devengar">${M(v[2])}</td><td data-l="Saldo proyectado al 31/12"><b>${M(v[3])}</b></td></tr>`).join('')}</tbody></table></div>`:''}
+ <h4>Productos y proyectos con mayor saldo proyectado${PJ&&PJ.corte&&PJ.corte!==D.corte?` <span class="nota">(corte del ${F(PJ.corte)})</span>`:''}</h4>${L==null?'<p class="nota">Cargando…</p>':L.length?`<div class="tabla" style="max-height:none"><table class="ftab"><thead><tr><th class="t">Producto, actividad o proyecto</th><th class="mob-oculta">PIM</th><th>Saldo por devengar</th><th>Saldo proyectado al 31/12</th></tr></thead><tbody>${L.map(x=>`<tr><td class="t">${esc(x.n)} <span class="nota">(${x.t==='P'?'CUI ':''}${esc(x.c)})</span></td><td class="mob-oculta">${M(x.pim)}</td><td data-l="Saldo por devengar">${M(x.s)}</td><td data-l="Saldo proyectado al 31/12"><b>${M(x.ri)}</b></td></tr>`).join('')}</tbody></table></div><p class="nota">Los 12 de mayor saldo proyectado de ${(PJ.ues[s]||[]).length}.</p>`:'<p class="nota">Sin detalle.</p>'}`;
+ document.getElementById('volver').onclick=()=>{sec.hidden=true;sel=null;const o=origen&&document.contains(origen)?origen:document.querySelector(`[data-s="${CSS.escape(s)}"]`);if(o){o.scrollIntoView({block:'center'});o.focus({preventScroll:true})}else document.getElementById('cuadro').scrollIntoView()};
+ el.onkeydown=e=>{if(e.key==='Escape')document.getElementById('volver').click()};
  if(ir){sec.scrollIntoView();el.focus({preventScroll:true})}}
-function buscador(){const inp=document.getElementById('bq'),el=document.getElementById('bres');const un=Object.fromEntries(filas().map(u=>[u.sec,u]));
+function buscador(){const inp=document.getElementById('bq'),el=document.getElementById('bres'),nl=document.getElementById('bres-n');const un=Object.fromEntries(filas().map(u=>[u.sec,u]));
  const L=Object.entries(PJ.ues).flatMap(([ue,l])=>l.filter(x=>x.t==='P').map(x=>({...x,ue})));
  const st=t=>String(t).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
- const go=()=>{const q=st(inp.value.trim());if(q.length<2){el.innerHTML=`<p class="nota">${L.length} proyectos con Recursos Ordinarios. Escriba al menos 2 caracteres.</p>`;return}
+ const go=()=>{const q=st(inp.value.trim());if(q.length<2){el.innerHTML=`<p class="nota">${L.length} proyectos con Recursos Ordinarios. Escriba al menos 2 caracteres.</p>`;nl.textContent='';return}
   const R=L.filter(x=>st(x.c+' '+x.n).includes(q)).sort((a,b)=>b.ri-a.ri);
-  el.innerHTML=R.length?`<div class="tabla" style="max-height:none"><table><thead><tr><th>CUI</th><th class="t">Proyecto</th><th class="t" style="position:static">Unidad</th><th>Saldo por devengar</th><th>Saldo proyectado al 31/12</th></tr></thead><tbody>${R.slice(0,8).map(x=>`<tr data-ue="${x.ue}"><td>${esc(x.c)}</td><td class="t" style="white-space:normal;min-width:240px;position:static">${esc(x.n)}</td><td class="t" style="position:static">${esc(un[x.ue]?un[x.ue].n:x.ue)}</td><td>${M(x.s)}</td><td><b>${M(x.ri)}</b></td></tr>`).join('')}</tbody></table></div><p class="nota">${R.length>8?`8 de ${R.length} coincidencias. Precise la búsqueda.`:`${R.length} coincidencia${R.length>1?'s':''}.`} Elija una fila para ver su unidad.</p>`:'<p class="nota">No se encontró ningún proyecto con ese CUI o nombre.</p>';
-  el.querySelectorAll('tr[data-ue]').forEach(tr=>tr.onclick=()=>detalle(tr.dataset.ue,true))};
+  el.innerHTML=R.length?`<div class="tabla" style="max-height:none"><table><thead><tr><th>CUI</th><th class="t">Proyecto</th><th class="t" style="position:static">Unidad</th><th>Saldo por devengar</th><th>Saldo proyectado al 31/12</th></tr></thead><tbody>${R.slice(0,8).map(x=>`<tr><td>${esc(x.c)}</td><td class="t" style="white-space:normal;min-width:200px;position:static">${esc(x.n)}</td><td class="t" style="position:static"><button type="button" class="btn" style="min-height:36px;padding:4px 10px" data-ue="${esc(x.ue)}" aria-label="Ver la unidad ${esc(un[x.ue]?un[x.ue].ue:x.ue)} del proyecto ${esc(x.c)}">${esc(un[x.ue]?un[x.ue].n:x.ue)}</button></td><td>${M(x.s)}</td><td><b>${M(x.ri)}</b></td></tr>`).join('')}</tbody></table></div><p class="nota">${R.length>8?`8 de ${R.length} coincidencias. Precise la búsqueda.`:`${R.length} coincidencia${R.length>1?'s':''}.`} Pulse el nombre de la unidad para ver su detalle.</p>`:'<p class="nota">No se encontró ningún proyecto con ese CUI o nombre.</p>';
+  nl.textContent=R.length?`${R.length} proyecto${R.length>1?'s':''} encontrado${R.length>1?'s':''}`:'Ningún proyecto encontrado';
+  el.querySelectorAll('button[data-ue]').forEach(b=>b.onclick=()=>abrir(b.dataset.ue,b))};
  inp.oninput=go;go()}
-function descargar(){const R=filtradas(),q=v=>{const s=v==null?'':String(v);return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
- const meta=[`${D.pliego} · Recursos Ordinarios`,`Datos al ${F(D.corte)} · fuente ${D.parametros.fuente} del MEF`,`Filtro: ${CHIPS.find(c=>c[0]===chip)[1]}`,`Días calendario al 31/12: ${D.semana.dias_cal} · días hábiles: ${D.semana.dias_habiles} · ritmo real: ${D.semana.base}`,'Importes en soles, sin redondear'];
- const cab=['Código','Unidad ejecutora','PIM vigente','Devengado','Ejecución','Saldo por devengar','Saldo proyectado al 31/12','Sin certificar','Necesita por semana','Devenga por semana','Último día','Días hábiles sin devengar'];
- const F_=R.map(u=>[u.sec,u.ue,u.pim,u.dev,(u.ej*100).toFixed(2)+'%',u.saldo,u.riesgo,u.no_cert,u.nec_sem,u.real_sem,u.ult,(u.dias_sin_tipo==='min'?'≥':'')+u.dias_sin]);
- const t='﻿'+[...meta.map(m=>[m]),[],cab,...F_].map(f=>f.map(q).join(';')).join('\n');const a=document.createElement('a');
+// CSV: texto que empiece por = + - @ o un carácter de control se antepone con ' para que una hoja de cálculo no lo ejecute como fórmula;
+// los importes se exportan como números (los negativos legítimos se conservan).
+function celda(v){if(v==null)return'';if(typeof v==='number')return String(v);let s=String(v);if(/^[=+\-@\t\r]/.test(s))s="'"+s;return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s}
+function descargar(){const R=filtradas(),c=D.comparacion||{};
+ const meta=[`${D.pliego} · Recursos Ordinarios · proyecto independiente, no es un portal oficial`,`Último corte disponible: ${F(D.corte)} · fuente ${D.parametros.fuente} del MEF`,`Filtro: ${CHIPS.find(x=>x[0]===chip)[1]}`,
+  `Variación entre cortes: del ${F(c.desde)} al ${F(c.hasta)}${c.habiles?` (${c.habiles} día${c.habiles>1?'s':''} hábil${c.habiles>1?'es':''})`:''} · tolerancia para «sin variación»: ±S/ ${TOL()}`,
+  `Días calendario al 31/12: ${D.semana.dias_cal} · días hábiles: ${D.semana.dias_habiles} · ritmo real: ${D.semana.base}`,'Importes en soles, sin redondear'];
+ const cab=['Código','Unidad ejecutora','PIM vigente','Devengado','Ejecución','Saldo por devengar','Saldo proyectado al 31/12','Sin certificar','Necesita por semana','Devenga por semana',`Variación entre cortes ${F5(c.desde)} a ${F5(c.hasta)}`,'Estado','Cortes sin aumento neto'];
+ const F_=R.map(u=>[u.sec,u.ue,u.pim,u.dev,(u.ej*100).toFixed(2)+'%',u.saldo,u.riesgo,u.no_cert,u.nec_sem,u.real_sem,u.var,(ES[u.estado]||ES.sin_comparacion)[2],u.sin_aumento?(u.sin_aumento.minimo&&u.sin_aumento.n?'al menos ':'')+u.sin_aumento.n:'']);
+ const t='﻿'+[...meta.map(m=>[m]),[],cab,...F_].map(f=>f.map(celda).join(';')).join('\n');const a=document.createElement('a');
  a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));a.download=`control_ro_${D.corte}.csv`;document.body.appendChild(a);a.click();a.remove()}
 function procedencia(){const L=D.parametros.procedencia||[];if(!L.length)return;
  document.getElementById('procedencia').innerHTML=`<h4 style="color:var(--navy);margin:14px 0 4px">De dónde sale cada cifra</h4><table class="mtab"><tbody>${L.map(x=>`<tr><td>${esc(x.componente)}</td><td>${esc(x.fuente)}</td></tr>`).join('')}</tbody></table>`}
 function revisiones(){const L=(REV&&REV.revisiones||D.revisiones_corte||[]).slice(-8);if(!L.length)return;
  document.getElementById('revisiones').innerHTML=`<h4 style="color:var(--navy);margin:14px 0 4px">Cifras revisadas después de publicadas</h4><table class="mtab"><thead><tr><th>Corte</th><th>Indicador</th><th>Antes</th><th>Después</th><th>Motivo</th></tr></thead><tbody>${L.map(x=>`<tr><td>${F(x.corte)}</td><td>${esc(x.indicador)}</td><td>${M(x.antes)}</td><td>${M(x.despues)}</td><td>${esc(x.motivo)}</td></tr>`).join('')}</tbody></table>`}
-// ---------- reloj de la próxima revisión del MEF (la tarea revisa a los :23, de 7:23 a 23:23, hora de Lima) ----------
-function proximaRevision(now){const L=new Date(now.getTime()-5*36e5);
+// ---------- Estado operativo real (no deducido del reloj) ----------
+// 1) estado.json: lo que hizo la última corrida que publicó (nuevo corte, cifras revisadas, sin cambios o corte conservado).
+// 2) API pública de GitHub: estado real de la última consulta automática (en curso, terminada sin errores o con error).
+// 3) Hora de la próxima consulta prevista: solo informativa; GitHub puede iniciarla con retraso.
+const REPO=location.hostname.endsWith('.github.io')?location.hostname.split('.')[0]+'/'+location.hostname:'MinistroaldIA/MinistroaldIA.github.io';
+const HL=iso=>new Date(iso).toLocaleString('es-PE',{timeZone:'America/Lima',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(',','');
+const HLi=s=>s?`${s.slice(8,10)}/${s.slice(5,7)} ${s.slice(11,16)}`:'—';     // fecha local de Lima ya escrita como AAAA-MM-DDTHH:MM
+function proximaConsulta(now){const L=new Date(now.getTime()-5*36e5);
  for(let d=0;d<2;d++)for(let h=7;h<=23;h++){const t=Date.UTC(L.getUTCFullYear(),L.getUTCMonth(),L.getUTCDate()+d,h,23)+5*36e5;if(t>now.getTime())return new Date(t)}}
-function reloj(){const el=document.getElementById('radar');if(!el||!D)return;el.hidden=false;
- const svg=`<svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1f8f6a" stop-opacity="0"/><stop offset="1" stop-color="#1f8f6a" stop-opacity=".55"/></linearGradient></defs><circle cx="20" cy="20" r="18" fill="#eef6f2" stroke="#1f8f6a" stroke-opacity=".35"/><circle cx="20" cy="20" r="11.5" fill="none" stroke="#1f8f6a" stroke-opacity=".25"/><circle cx="20" cy="20" r="5" fill="none" stroke="#1f8f6a" stroke-opacity=".2"/><circle class="eco" cx="20" cy="20" r="18" fill="none" stroke="#1f8f6a" stroke-width="1.2"/><g class="barrido"><path d="M20 20 L20 2 A18 18 0 0 1 35.6 11 Z" fill="url(#rg)"/><line x1="20" y1="20" x2="20" y2="2" stroke="#0f7a62" stroke-width="1.6"/></g><circle cx="20" cy="20" r="2" fill="#0f7a62"/></svg>`;
- el.innerHTML=svg+'<span><span class="rd-t">Próxima revisión del MEF</span><span class="rd-b" id="rd-b">--:--</span> <span id="rd-h"></span></span>';
- let meta=proximaRevision(new Date()),pasada=(()=>{let c=proximaRevision(new Date(Date.now()-18*36e5)),n;while((n=proximaRevision(new Date(c.getTime()+1000)))<=new Date())c=n;return c<=new Date()?c:null})(),base=D.actualizado,vig=0,hay=false;
- const tic=()=>{const now=new Date(),b=document.getElementById('rd-b'),h=document.getElementById('rd-h');if(!b||hay)return;
-  if(now>=meta){pasada=meta;meta=proximaRevision(new Date(meta.getTime()+1000))}
-  const tras=pasada?(now-pasada)/6e4:1e9;
-  if(tras<45&&now-vig>60000){vig=+now;fetch('datos.json?'+Date.now()).then(r=>r.json()).then(j=>{if(j.actualizado!==base){hay=true;el.classList.remove('activo');b.textContent='Datos nuevos';h.innerHTML='<button class="nuevo" type="button" onclick="location.reload()">Actualizar la página</button>'}}).catch(()=>{})}
-  if(tras<10){el.classList.add('activo');b.textContent='Revisando';h.textContent=''}
-  else{el.classList.remove('activo');const seg=Math.max(0,Math.round((meta-now)/1000)),hh=Math.floor(seg/3600),mm=Math.floor(seg%3600/60),ss=seg%60;
-   b.textContent=(hh?hh+':'+String(mm).padStart(2,'0'):mm)+':'+String(ss).padStart(2,'0');
-   const hora=meta.toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'numeric',minute:'2-digit'});h.textContent='· a las '+hora;el.setAttribute('aria-label','Próxima revisión del MEF a las '+hora)}};
- tic();setInterval(tic,1000)}
+let RUN=null,RUN_ERR=false,AVISO='';
+function estadoOperativo(){
+ fetch('estado.json?'+Date.now()).then(r=>r.ok?r.json():null).then(e=>{EO=e;pintarOp()}).catch(()=>{EO=null;pintarOp()});
+ consultarRun();setInterval(consultarRun,10*6e4);setInterval(vigilar,10*6e4);setInterval(pintarOp,6e4)}
+function consultarRun(){fetch(`https://api.github.com/repos/${REPO}/actions/workflows/control-ro.yml/runs?per_page=1&branch=main`,{headers:{Accept:'application/vnd.github+json'}})
+ .then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{RUN=(j.workflow_runs||[])[0]||null;RUN_ERR=false;pintarOp()}).catch(()=>{RUN_ERR=true;pintarOp()})}
+function pintarOp(){const el=document.getElementById('op');if(!el||!D)return;const L=[];
+ const prox=proximaConsulta(new Date()).toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'2-digit',minute:'2-digit',hour12:false});
+ if(RUN){const t=HL(RUN.run_started_at||RUN.created_at),lk=RUN.html_url?` <a href="${esc(RUN.html_url)}" target="_blank" rel="noopener">registro</a>`:'';
+  if(RUN.status!=='completed')L.push(`<b>Consultando al MEF</b> (desde ${t}).${lk}`);
+  else if(RUN.conclusion==='success')L.push(`Última consulta automática: <b>${t}</b>, <span class="bien">terminó sin errores</span>.${lk}`);
+  else L.push(`<span class="mal">La última consulta automática (${t}) no terminó bien: no se pudo verificar si hay datos más recientes.</span>${lk}`)}
+ else if(RUN_ERR)L.push('No se pudo leer el estado de la consulta automática.');
+ if(EO){const tx=(EO.textos||{})[EO.resultado]||EO.resultado;L.push(`Última actualización publicada: <b>${HLi(EO.ultimo_intento)}</b> · ${esc(tx)}.`)}
+ L.push(`Próxima consulta prevista: <b>${prox}</b> <span title="GitHub puede iniciar las tareas programadas con retraso">(aprox.)</span>`);
+ if(AVISO)L.push(AVISO);
+ el.innerHTML=L.map(x=>`<p>${x}</p>`).join('');
+ const nb=el.querySelector('.nuevo');if(nb)nb.onclick=()=>location.reload();
+ // aviso en el cuerpo de la página solo con evidencia: corte conservado o consulta fallida
+ const v=document.getElementById('vigencia');let h='';
+ if(EO&&EO.resultado==='corte_retenido')h=`<div class="alerta am">${esc(EO.detalle||'Se conservó el corte publicado porque la fuente disponible traía un corte anterior.')}</div>`;
+ else if(RUN&&RUN.status==='completed'&&RUN.conclusion!=='success')h=`<div class="alerta am">No se pudo verificar si hay datos más recientes que el corte del ${F(D.corte)} (la consulta automática de las ${HL(RUN.run_started_at||RUN.created_at)} no terminó bien).</div>`;
+ v.innerHTML=h}
+// Aviso de cambios: compara el CORTE y las revisiones, no la hora de la última consulta.
+function vigilar(){fetch('datos.json?'+Date.now()).then(r=>r.json()).then(j=>{
+ if(j.corte!==D.corte)AVISO=`<button class="nuevo" type="button">Nuevo corte: ${F(j.corte)} · actualizar</button>`;
+ else if((j.revisiones_corte||[]).length>(D.revisiones_corte||[]).length)AVISO='<button class="nuevo" type="button">Cifras revisadas · actualizar</button>';
+ else AVISO='';pintarOp()}).catch(()=>{})}
 </script>
 </body>
 </html>

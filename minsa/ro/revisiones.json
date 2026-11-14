@@ -1,6 +1,6 @@
 {
  "descripcion": "Revisiones de cifras y de método del control diario de RO. Cada fila dice qué cambió, cuándo, por qué y cuánto. Los valores publicados por primera vez se conservan en «primera_publicacion».",
- "metodo_vigente": "2026-11-13.2",
+ "metodo_vigente": "2026-11-14.1",
  "metodos": [
   {
    "version": "2026-11-12.1",
@@ -16,6 +16,11 @@
    "version": "2026-11-13.2",
    "desde": "2026-11-13",
    "cambio": "Se agrega el escenario según patrones de 2023–2025 (valor central y rango). Los cortes del 10/11 y 11/11 no tienen ese escenario: la serie empieza el 12/11."
+  },
+  {
+   "version": "2026-11-14.1",
+   "desde": "2026-11-14",
+   "cambio": "Actividad entre cortes con estados excluyentes (aumento, sin variación, ajuste neto negativo y sin comparación) y tolerancia de S/ 1; «días sin devengar» se sustituye por «cortes sin aumento neto», sin inferir inactividad de los ajustes ni de los huecos del historial. Lector del MEF con validación de encabezado e importes y barrera contra el retroceso del corte. Las cifras presupuestales no cambian."
   }
  ],
  "primera_publicacion": {

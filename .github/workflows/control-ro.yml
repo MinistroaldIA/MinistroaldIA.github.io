@@ -22,8 +22,9 @@ on:
         type: string
         default: ""
 
+# Mínimo privilegio: lectura por defecto; solo el trabajo que publica puede escribir en el repositorio.
 permissions:
-  contents: write
+  contents: read
 
 concurrency:
   group: control-ro
@@ -47,13 +48,18 @@ jobs:
       - run: pip install -q requests
       - name: Revisar si el MEF publicó algo nuevo
         id: mef
-        run: python herramientas/vigilar_mef.py ${{ inputs.pliego }}
+        env:
+          PEDIDO: ${{ inputs.pliego }}
+        # la entidad pedida se pasa como dato (variable entrecomillada) y vigilar_mef.py la valida contra pliegos.json
+        run: |
+          if [ -n "$PEDIDO" ]; then python herramientas/vigilar_mef.py "$PEDIDO"; else python herramientas/vigilar_mef.py; fi
       - name: Entidades por actualizar
         id: lista
         env:
           PEDIDO: ${{ inputs.pliego }}
           FORZAR: ${{ github.event_name == 'workflow_dispatch' && inputs.forzar }}
           PEND: ${{ steps.mef.outputs.pliegos }}
+          MOTIVO: ${{ steps.mef.outputs.motivo }}
         run: |
           if [ "$FORZAR" = "true" ]; then
             # a pedido: la entidad indicada o todas las activas
@@ -65,13 +71,15 @@ jobs:
           nov=$([ "$pl" = "[]" ] && echo false || echo true)
           echo "pliegos=$pl" >> "$GITHUB_OUTPUT"
           echo "novedad=$nov" >> "$GITHUB_OUTPUT"
-          if [ "$nov" = "true" ]; then echo "::notice::Se actualiza: $pl · ${{ steps.mef.outputs.motivo }}"; else echo "::notice::Sin novedades del MEF; no se descarga nada."; fi
+          if [ "$nov" = "true" ]; then echo "::notice::Se actualiza: $pl · $MOTIVO"; else echo "::notice::Sin novedades del MEF; no se descarga nada."; fi
 
   actualizar:
     needs: vigilar
     if: needs.vigilar.outputs.novedad == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 170
+    permissions:
+      contents: write
     strategy:
       fail-fast: false
       max-parallel: 2
@@ -127,24 +135,32 @@ jobs:
         with:
           path: ${{ steps.nucleo.outputs.gasto }}
           key: gasto-${{ matrix.pliego }}-${{ steps.ent.outputs.anio }}-${{ env.DA_CLAVE }}
+      - name: Pruebas de regresión del control (si fallan, no se calcula ni se publica)
+        run: python herramientas/pruebas_control.py
       - name: Calcular el control diario de RO
         run: |
           # con núcleo: lee el archivo de gasto ya descargado; sin él, el control descarga y filtra Datos Abiertos por su cuenta
+          # Código 3 = la fuente disponible trae un corte ANTERIOR al publicado: no se escriben cifras, se conserva el corte
+          # publicado y estado.json registra el motivo (se publica solo ese estado). Cualquier otro error detiene la corrida.
+          rc=0
           if [ "${{ steps.nucleo.outputs.si }}" = "true" ]; then
-            python herramientas/tablero_ro.py "$P" --json "${{ steps.nucleo.outputs.gasto }}"
+            python herramientas/tablero_ro.py "$P" --json "${{ steps.nucleo.outputs.gasto }}" || rc=$?
           else
-            python herramientas/tablero_ro.py "$P"
+            python herramientas/tablero_ro.py "$P" || rc=$?
           fi
+          if [ "$rc" = 3 ]; then touch /tmp/control_retenido; echo "::warning::Se conserva el corte publicado de $P (la fuente disponible es anterior)."; elif [ "$rc" != 0 ]; then exit "$rc"; fi
       - name: Verificar el control antes de publicar (si falla, se conserva el último corte válido)
         run: python herramientas/verificar_control.py "$P"
       - name: Actualizar el informe de saldos si el MEF publicó un archivo nuevo
         if: steps.nucleo.outputs.si == 'true'
+        env:
+          REHACER: ${{ inputs.rehacer_informe }}
         run: |
           GASTO="${{ steps.nucleo.outputs.gasto }}"
           nuevo=$(python -c "import re;s=open('$GASTO').read(600);print(re.search(r'\"publicado\":\s*\"([^\"]+)\"',s).group(1))")
           previo=$(python -c "import json;print(json.load(open('$P/estado_informe.json')).get('publicado') or '')" 2>/dev/null || echo "")
           echo "archivo del MEF: $nuevo · informe publicado con: $previo"
-          if [ "$nuevo" = "$previo" ] && [ "${{ inputs.rehacer_informe }}" != "true" ]; then echo "El informe ya está al día."; exit 0; fi
+          if [ "$nuevo" = "$previo" ] && [ "$REHACER" != "true" ]; then echo "El informe ya está al día."; exit 0; fi
           # LibreOffice recalcula las fórmulas del Excel para que guarde sus resultados (comprobación 10)
           (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends libreoffice-calc >/dev/null) || echo "::warning::No se pudo instalar LibreOffice; la comprobación del Excel fallará y se conservará el informe anterior."
           python kronos/pliegos/datos/descargar_pliego.py "$P" --solo-inversiones
@@ -165,7 +181,10 @@ jobs:
           da="${{ needs.vigilar.outputs.da_publicado }}"
           # Tampoco si la entidad tiene informe publicado pero esta corrida no pudo rehacerlo (sin acceso al núcleo).
           if [ -f /tmp/informe_fallo ] || { [ "${{ steps.nucleo.outputs.si }}" != "true" ] && [ -f "$P/estado_informe.json" ]; }; then da=""; fi
-          python herramientas/vigilar_mef.py --guardar "${{ needs.vigilar.outputs.ca_fecha }}" "$da" "$P"
+          # Si se conservó el corte (fuente anterior), no se da por vista ninguna señal: la próxima revisión reintenta.
+          ca="${{ needs.vigilar.outputs.ca_fecha }}"
+          if [ -f /tmp/control_retenido ]; then ca=""; da=""; fi
+          python herramientas/vigilar_mef.py --guardar "$ca" "$da" "$P"
       - name: Publicar
         run: |
           git config user.name "MinistroaldIA"
