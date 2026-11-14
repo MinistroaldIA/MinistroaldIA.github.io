@@ -491,6 +491,44 @@ def main():
     serie = H.groupby("fecha_corte")[["PIM", "DEVENGADO", "saldo", "riesgo", "no_certificado", "dev_desde_base", "esp_monto", "riesgo_hist", "rh_bajo", "rh_alto"]].sum(min_count=1).round(2)
     serie["avance"] = (serie.dev_desde_base / (serie.saldo + serie.dev_desde_base)).round(4)
     serie["esperado"] = (serie.esp_monto / (serie.saldo + serie.dev_desde_base)).round(4)
+    # ---------- ritmo semanal: lo necesario para devengar todo el saldo al 31/12 frente a lo que realmente se devenga ----------
+    fds = [dt.date.fromisoformat(f) for f in fechas]
+    hab_hasta = lambda f: dias_habiles(f + dt.timedelta(days=1), corte)       # días hábiles desde un corte anterior hasta el actual
+    hab_rest = par["dias_habiles"]
+    DV = H.pivot_table(index="fecha_corte", columns="SEC_EJEC", values="DEVENGADO", aggfunc="sum").reindex(fechas)
+    # ventana del ritmo real: el corte más reciente que esté a 5 días hábiles o más; si aún no hay, lo devengado desde el cierre del último mes
+    k_ = next((i for i in range(len(fds) - 2, -1, -1) if hab_hasta(fds[i]) >= 5), None)
+    if k_ is not None:
+        dias_v, base_v = hab_hasta(fds[k_]), f"últimos {hab_hasta(fds[k_])} días hábiles"
+        real_ue = lambda s_, dev_: (dev_ - DV.at[fechas[k_], s_]) / dias_v * 5 if s_ in DV and pd.notna(DV.at[fechas[k_], s_]) else None
+    else:
+        dias_v = par["habiles_desde_base"]
+        b_ = dt.date.fromisoformat(par["fecha_base"]) + dt.timedelta(days=1)
+        base_v = f"desde el {b_.day}/{b_.month:02d} ({dias_v} días hábiles)"
+        real_ue = lambda s_, dev_: None
+    def sin_devengar(s_, dev_base):
+        """Días hábiles desde el último corte en que la unidad registró devengado; tipo '' exacto, 'base' sin devengado desde el cierre del mes, 'min' al menos."""
+        v = DV[s_].tolist() if s_ in DV else []
+        for i in range(len(v) - 1, 0, -1):
+            if pd.notna(v[i]) and pd.notna(v[i - 1]) and v[i] - v[i - 1] > 0.5:
+                return hab_hasta(fds[i]), ""
+        if dev_base <= 0.5:
+            return par["habiles_desde_base"], "base"
+        return hab_hasta(fds[0]), "min"
+    for u in ues:
+        r_ = real_ue(u["sec"], u["dev"])
+        if r_ is None:
+            r_ = u["dev_base"] / dias_v * 5 if dias_v else 0.0
+        d_, t_ = sin_devengar(u["sec"], u["dev_base"])
+        u.update({"nec_sem": round(u["saldo"] / hab_rest * 5, 2) if hab_rest else 0.0, "real_sem": round(r_, 2),
+                  "ult": round(u["dev"] - u["dev_ant"], 2) if u.get("dev_ant") is not None else None, "dias_sin": d_, "dias_sin_tipo": t_})
+    tot_ = serie.loc[fc]
+    dserie = serie.DEVENGADO.tolist()
+    semana = {"dias_cal": (dt.date(cfg["anio"], 12, 31) - corte).days, "dias_habiles": hab_rest,
+              "nec_sem": round(float(tot_.saldo) / hab_rest * 5, 2) if hab_rest else 0.0,
+              "real_sem": round(sum(u["real_sem"] for u in ues), 2), "base": base_v, "base_dias": dias_v,
+              "ult": round(dserie[-1] - dserie[-2], 2) if len(dserie) > 1 else None, "ult_dias": par.get("habiles_entre"),
+              "cortes": [[fechas[i], round(dserie[i] - dserie[i - 1], 2), dias_habiles(fds[i - 1] + dt.timedelta(days=1), fds[i])] for i in range(1, len(fechas))]}
     J = {"pliego": cfg["nombre"], "anio": cfg["anio"], "corte": fc, "corte_anterior": prev, "parametros": par,
          "actualizado": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
          "total": {k: (None if pd.isna(v) else v) for k, v in serie.loc[fc].to_dict().items()},
@@ -499,7 +537,7 @@ def main():
                           .reindex(serie.index).round(2).to_dict("list").items()} for s in g.SEC_EJEC},
          "controles": controles(g, ues, serie.loc[fc], P),
          "fuentes": [(H[H.fecha_corte == f_].fuente.dropna().iloc[0] if "fuente" in H.columns and H[H.fecha_corte == f_].fuente.notna().any() else None) for f_ in serie.index],
-         "mensual": mensual.round(2).tolist(), "ues": ues}
+         "mensual": mensual.round(2).tolist(), "semana": semana, "ues": ues}
     revisar(out, J)
     json.dump(J, open(os.path.join(out, "datos.json"), "w", encoding="utf-8"), ensure_ascii=False, separators=(",", ":"))
     print(f"corte {fc} · {len(ues)} UE · saldo RO S/ {J['total']['saldo'] / 1e6:,.1f} M · riesgo S/ {J['total']['riesgo'] / 1e6:,.1f} M")

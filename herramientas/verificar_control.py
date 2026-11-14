@@ -80,6 +80,21 @@ def main():
     par = D["parametros"]
     ok("La procedencia de cada componente está publicada", bool(par.get("procedencia")) and bool(par.get("metodo")), par.get("fuente", ""))
 
+    # 7. Ritmo semanal (cabecera y cuadro de la página)
+    S = D.get("semana")
+    ok("El ritmo semanal está publicado", bool(S))
+    if S:
+        h = S["dias_habiles"]
+        malas = [u["sec"] for u in U if h and abs(u["nec_sem"] - u["saldo"] / h * 5) > TOL]
+        ok("Necesario por semana = saldo por devengar ÷ días hábiles × 5, en cada unidad", not malas, ", ".join(malas))
+        ok("Necesario por semana del pliego = suma de las unidades", abs(sum(u["nec_sem"] for u in U) - S["nec_sem"]) <= TOL * len(U))
+        ok("Devengado por semana del pliego = suma de las unidades", abs(sum(u["real_sem"] for u in U) - S["real_sem"]) <= TOL * len(U), S.get("base", ""))
+        if S.get("ult") is not None:
+            ok("Devengado del último corte del pliego = suma de las unidades", abs(sum(u["ult"] or 0 for u in U) - S["ult"]) <= TOL * len(U))
+        malas = [u["sec"] for u in U if (u.get("ult") or 0) > 0.5 and u["dias_sin"] != 0]
+        ok("Una unidad con devengado en el último corte tiene 0 días sin devengar", not malas, ", ".join(malas))
+        ok("Días calendario y hábiles al 31/12 coherentes", 0 <= h <= S["dias_cal"], f"{S['dias_cal']} calendario · {h} hábiles")
+
     falla = [r for r in res if not r[0]]
     for b, regla, det in res:
         print(("OK    " if b else "FALLA ") + regla + (f" · {det}" if det else ""))

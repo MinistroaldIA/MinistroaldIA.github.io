@@ -3,509 +3,264 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Control diario de RO</title>
-<meta name="description" content="Cuadro de control diario de los saldos de Recursos Ordinarios por unidad ejecutora y riesgo estimado de reversión al 31 de diciembre.">
+<title>Control diario de Recursos Ordinarios · MINSA</title>
+<meta name="description" content="PIM, saldo por devengar, saldo proyectado al 31/12 y devengado diario de Recursos Ordinarios por unidad ejecutora del Ministerio de Salud.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;600;700&display=swap">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ccircle cx=%228%22 cy=%228%22 r=%227%22 fill=%22%2313294b%22/%3E%3C/svg%3E">
 <style>
-:root{--bg:#faf8f3;--card:#fff;--ink:#1d2433;--muted:#5f6878;--line:#e3dccd;--soft:#f5f1e8;--navy:#13294b;--turq:#19c39c;--turq-d:#0f8f72;--turq-s:#e3f4ef;
---alto:#c0392b;--alto-t:#fde3e0;--medio:#d99a06;--medio-t:#fbeccc;--bajo:#1f8f6a;--bajo-t:#d8f5ec;
+:root{--bg:#faf8f3;--ink:#1d2433;--muted:#5f6878;--line:#e3dccd;--soft:#f5f1e8;--navy:#13294b;--turq:#19c39c;--turq-d:#0f8f72;--turq-s:#e3f4ef;
+--rojo:#c0392b;--rojo-t:#fde3e0;--ambar:#a86a12;--ambar-t:#fbeccc;--verde:#1f8f6a;--verde-t:#d8f5ec;
 --f-t:"IBM Plex Sans","Segoe UI",Arial,sans-serif;--f-m:"IBM Plex Mono",Consolas,monospace;color-scheme:light}
 *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:70px}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--f-t);-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 var(--f-t);-webkit-text-size-adjust:100%}
 .wrap{max-width:1180px;margin:0 auto;padding:0 20px}
-header{padding:26px 0 8px}
+header{padding:24px 0 6px}
 .eyebrow{font:700 12.5px/1.4 var(--f-t);letter-spacing:.04em;text-transform:uppercase;color:var(--navy)}
 .hcab{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
-h1{font:700 clamp(28px,4vw,40px)/1.12 var(--f-t);color:var(--navy);margin:4px 0 2px;letter-spacing:-.01em}
-.sub0{color:var(--muted);margin:0;font-size:16px}
-.corte{display:flex;flex-direction:column;align-items:flex-end;gap:8px}
-.corte b{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;font:600 15px var(--f-t);color:var(--navy)}
-.corte .hab{font:600 13px var(--f-t);background:var(--turq-s);color:#0b5e4a;border-radius:10px;padding:6px 12px}
-.meta{font:500 12.5px var(--f-m);color:var(--muted);margin-top:10px;display:flex;flex-wrap:wrap;gap:4px 16px}
-nav.top{position:sticky;top:0;z-index:5;background:rgba(250,248,243,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);margin-top:14px}
+h1{font:700 clamp(26px,3.6vw,36px)/1.15 var(--f-t);color:var(--navy);margin:4px 0 4px}
+.meta{font-size:13px;color:var(--muted);margin:0}.meta a{color:var(--turq-d)}
+.corte{display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.corte b{border:1px solid var(--line);background:#fff;border-radius:10px;padding:8px 14px;font:600 15px var(--f-t);color:var(--navy)}
+nav.top{position:sticky;top:0;z-index:5;background:rgba(250,248,243,.96);backdrop-filter:blur(6px);border-bottom:1px solid var(--line);margin-top:12px}
 nav.top .wrap{display:flex;gap:6px;overflow-x:auto;padding:10px 20px;scrollbar-width:none}
 nav.top a{flex:none;text-decoration:none;color:var(--navy);font:600 13.5px var(--f-t);padding:8px 12px;border-radius:999px;border:1px solid var(--line);background:#fff;min-height:40px;display:flex;align-items:center}
 nav.top a.act{background:var(--turq-s);border-color:var(--turq);color:#0b5e4a}
-nav.top .sep{flex:none;width:1px;background:var(--line);margin:4px 4px}
+nav.top .sep{flex:none;width:1px;background:var(--line);margin:4px}
 nav.top a.sub{border-style:dashed}
-section{padding:26px 0 4px}
-h2{font:700 clamp(21px,2.6vw,25px)/1.2 var(--f-t);color:var(--navy);margin:0 0 4px}
-.sub{color:var(--muted);margin:0 0 14px;font-size:14.5px}
-.hero4{background:linear-gradient(135deg,#0f2240,#13294b 60%,#183560);color:#fff;border-radius:16px;padding:22px 24px;display:grid;grid-template-columns:repeat(4,1fr);margin-top:16px}
-.hero4>div{padding:4px 20px;border-left:1px solid rgba(255,255,255,.18);min-width:0}.hero4>div:first-child{border-left:0;padding-left:4px}
-.hero4 .et{font:700 13px/1.3 var(--f-t);color:#dbe3ef}
-.hero4 .num{font:700 clamp(24px,3vw,34px)/1.15 var(--f-t);margin:8px 0 4px;white-space:nowrap;font-variant-numeric:tabular-nums}
-.hero4 .ds{font-size:13px;color:#cfd8e6;line-height:1.4}
-.chip{display:inline-flex;align-items:center;gap:5px;font:600 12.5px var(--f-t);padding:3px 10px;border-radius:999px;background:var(--bajo-t);color:#0b5e4a;margin-top:6px}
-.chip.mal{background:var(--alto-t);color:#8c231a}
-.aviso{display:flex;align-items:center;gap:12px;border-radius:12px;padding:12px 16px;margin:14px 0 0;font:600 15px var(--f-t);color:var(--navy);background:var(--turq-s)}
-.aviso svg{flex:none;color:var(--turq-d)}.aviso small{font-weight:400;font-size:13.5px;color:var(--ink)}
-.aviso.ambar{background:var(--medio-t)}.aviso.ambar svg{color:#a86a12}
-.aviso.rojo{background:var(--alto-t)}.aviso.rojo svg{color:var(--alto)}
-.rejilla{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(460px,100%),1fr));gap:16px;margin-top:16px}
-.panel2{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:0 8px 24px -22px rgba(19,41,75,.45);min-width:0}
-.panel2 h3{margin:0;font:700 18.5px/1.25 var(--f-t);color:var(--navy)}
-.panel2 .ps{color:var(--muted);font-size:13.5px;margin:3px 0 14px}
-.hb{display:grid;grid-template-columns:minmax(80px,max-content) 1fr;column-gap:12px;row-gap:6px;align-items:center;font-size:13.5px;padding-right:62px}
-.hb .lb{text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;cursor:pointer}
-.hb .lb:hover{color:var(--turq-d);text-decoration:underline}
-.hb .tr{position:relative;height:22px;background-image:linear-gradient(90deg,#e6e9f0 1px,transparent 1px);background-repeat:repeat-x;cursor:pointer}
-.hb .tr i{position:absolute;left:0;height:14px;top:4px;border-radius:0 3px 3px 0}
-.hb .tr b{position:absolute;top:2px;font:600 12.5px var(--f-t);white-space:nowrap;color:var(--navy);padding-left:6px}
-.hb .ej{grid-column:2;position:relative;height:18px;border-top:1px solid #c9cfda;font:12px var(--f-t);color:var(--muted)}
-.hb .ej span{position:absolute;top:3px;transform:translateX(-50%);white-space:nowrap}.hb .ej span:first-child{transform:none}
-.hb .et2{grid-column:2;text-align:center;font-size:12.5px;color:var(--muted)}
-.ley{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:13px;color:var(--ink);margin-top:10px}
-.ley span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px;background:var(--c)}
-svg text{font-family:var(--f-t)}
-.niv{display:flex;height:30px;border-radius:8px;overflow:hidden;font:700 13px/30px var(--f-t);color:#fff;text-align:center}
-.ttab{width:100%;border-collapse:collapse;font-size:13.5px}
-.ttab th{background:#eef1f6;color:var(--navy);font:600 12.5px/1.3 var(--f-t);padding:9px 10px;text-align:right;white-space:nowrap}
-.ttab th:first-child,.ttab td:first-child{text-align:left}
-.ttab td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-.avz{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);gap:22px;align-items:center}
-.escala{position:relative;height:16px;background:#e6e9f0;border-radius:999px;margin:44px 0 8px}
-.escala i{position:absolute;left:0;top:0;bottom:0;border-radius:999px}
-.escala .mk{position:absolute;top:-6px;bottom:-6px;width:3px;background:var(--navy);border-radius:2px}
-.escala .et.abajo{bottom:auto;top:22px}
-.escala .et{position:absolute;bottom:22px;transform:translateX(-50%);font:600 12.5px/1.25 var(--f-t);padding:3px 8px;border-radius:8px;white-space:nowrap;text-align:center}
-.ejeP{display:flex;justify-content:space-between;font-size:12px;color:var(--muted)}
-.btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
-.btn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:10px 16px;border-radius:10px;font:600 14.5px var(--f-t);text-decoration:none;border:1px solid var(--navy);color:var(--navy);background:#fff;cursor:pointer}
-.btn.lleno{background:var(--turq-d);border-color:var(--turq-d);color:#fff}
-.av{display:flex;align-items:center;gap:8px;justify-content:flex-end}.av .bar{width:70px;height:8px;background:#e6e9f0;border-radius:4px;position:relative}.av .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:4px}.av .bar b{position:absolute;top:-3px;bottom:-3px;width:2px;background:var(--navy)}
-.buscar,.ctrl{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:4px 0 10px}
-.buscar input,.ctrl input{flex:1;min-width:200px;font:15px var(--f-t);padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:#fff}
-.buscar select,.ctrl select{font:15px var(--f-t);padding:9px 12px;border:1px solid var(--line);border-radius:10px;background:#fff;min-height:44px;max-width:280px}
-.buscar span,.ctrl span.c{font:500 13px var(--f-m);color:var(--muted)}
-.tabla{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:auto;max-height:640px}
-table{border-collapse:collapse;width:100%;font-size:14px}
-.tabla th{background:#eef1f6;color:var(--navy);font:600 12.5px/1.3 var(--f-t);text-align:right;padding:10px 12px;position:sticky;top:0;white-space:nowrap;cursor:pointer;z-index:1}
-.tabla th.t,.tabla td.t{text-align:left}.tabla th::after{content:" ↕";opacity:.45}.tabla th.asc::after{content:" ↑";opacity:1}.tabla th.desc::after{content:" ↓";opacity:1}
-.tabla td{padding:9px 12px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-td.t{white-space:normal;min-width:220px}
-main,section,.panel2{min-width:0}
-.tabla tbody tr{cursor:pointer}.tabla tbody tr:nth-child(even) td{background:#fbfbfd}.tabla tbody tr:hover td{background:var(--turq-s)}
-tr.sel td{background:#d4f1e8 !important}
-.tipo{display:inline-block;font:600 11px var(--f-m);padding:2px 7px;border-radius:999px;background:#eef1f6;color:var(--navy);margin-right:6px;white-space:nowrap}
-.tipo.P{background:#d8f5ec;color:#0b5e4a}
-.mas{margin-top:10px;font:600 14px var(--f-t);padding:9px 14px;border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--navy);cursor:pointer;min-height:42px}
-.chk{display:flex;align-items:center;gap:6px;font:14px var(--f-t);color:var(--ink)}
-tfoot td{font-weight:700;background:var(--soft);position:sticky;bottom:0}
-.nivel{display:inline-block;font:600 12px var(--f-t);padding:3px 10px;border-radius:999px}
-.nivel.Alto{background:var(--alto-t);color:#8c231a}.nivel.Medio{background:var(--medio-t);color:#7a5200}.nivel.Bajo{background:var(--bajo-t);color:#0b5e4a}
-#detalle{scroll-margin-top:70px}
-.det-cab{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 20px;align-items:baseline}
-.det-cab h3{font-size:20px;margin:0}
-.mini{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(150px,100%),1fr));gap:10px;margin:14px 0}
-.mini div{background:var(--soft);border-radius:10px;padding:10px 12px}.mini b{display:block;font:700 19px var(--f-t);color:var(--navy)}.mini small{color:var(--muted);font-size:12.5px}
-.dos{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:18px}
+section{padding:22px 0 4px}
+h2{font:700 clamp(20px,2.4vw,24px)/1.2 var(--f-t);color:var(--navy);margin:0 0 10px}
 .nota{font-size:13px;color:var(--muted);margin:8px 0 0}
-.exp{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;align-items:start;margin-top:12px}
-.ficha{position:sticky;top:76px}
-.ficha h3{font-size:20px !important}
-.ficha .fm{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:8px;margin:12px 0}
-.ficha .fm b{font-size:17px}
-.ficha .fm div{border:1px solid var(--line);border-radius:10px;padding:9px 10px}.ficha .fm small{display:block;color:var(--muted);font-size:12px}.ficha .fm b{font:700 18px var(--f-t);color:var(--navy);white-space:nowrap}
-.bar2{height:10px;background:#e6e9f0;border-radius:999px;overflow:hidden;margin:6px 0 12px}.bar2 i{display:block;height:100%;border-radius:999px}
-.estado{display:flex;gap:8px;align-items:center;border-radius:10px;padding:9px 12px;font:600 14px var(--f-t);margin-top:10px}
-.enl{display:flex;justify-content:space-around;gap:10px;margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
-.enl a{color:var(--turq-d);font-weight:600;text-decoration:none;cursor:pointer}
-.metodo{background:var(--card);border:1px solid var(--line);border-left:5px solid var(--turq);border-radius:12px;padding:18px 22px;font-size:14.5px}
-.metodo p{margin:0 0 10px;text-align:justify}.metodo p:last-child{margin:0}
-footer{margin-top:36px;border-top:1px solid var(--line);padding:20px 0 36px;color:var(--muted);font-size:13px}
-#vacio{display:none}
-.fechas{display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:12px}
-.fechas span{font:500 12.5px var(--f-t);background:#fff;border:1px solid var(--line);border-radius:999px;padding:4px 11px;color:var(--ink)}
-.fechas b{font-weight:600;color:var(--navy)}
-.glos{margin-top:10px;font-size:13.5px}.glos summary{cursor:pointer;color:var(--turq-d);font-weight:600;min-height:32px;display:inline-flex;align-items:center}
-.glos dl{display:grid;grid-template-columns:max-content 1fr;gap:4px 12px;margin:8px 0 0;background:#fff;border:1px solid var(--line);border-radius:10px;padding:10px 14px}
-.glos dt{font-weight:700;color:var(--navy)}.glos dd{margin:0}
-.hero5{grid-template-columns:repeat(5,minmax(0,1fr))}
-.hero5>div{padding:4px 14px}.hero5 .num{font-size:clamp(20px,2.05vw,29px)}.hero4 .num.sm{font-size:clamp(17px,1.6vw,21px);white-space:normal}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
-.chips button{font:600 13px var(--f-t);border:1px solid var(--line);background:#fff;color:var(--navy);border-radius:999px;padding:7px 12px;min-height:38px;cursor:pointer}
-.chips button[aria-pressed=true]{background:var(--navy);border-color:var(--navy);color:#fff}
-.chips button:disabled{opacity:.45;cursor:not-allowed}
-.vista{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.vista button{font:600 13.5px var(--f-t);border:0;background:#fff;color:var(--navy);padding:9px 14px;min-height:42px;cursor:pointer}
-.vista button[aria-pressed=true]{background:var(--turq-s);color:#0b5e4a}
-.criterio{font-size:13px;color:var(--muted);margin:0 0 8px}
-.tabla.alta{max-height:70vh}
-.tabla th:first-child,.tabla td:first-child{position:sticky;left:0;z-index:2;background:#fff}
-.tabla thead th:first-child{z-index:3;background:#eef1f6}
-.tabla tbody tr:nth-child(even) td:first-child{background:#fbfbfd}
-.tabla th button{all:unset;cursor:pointer;display:inline-flex;gap:4px;align-items:center}
-.tabla th button:focus-visible{outline:2px solid var(--turq-d);outline-offset:2px;border-radius:3px}
-.tabla th::after{content:none}.tabla th .fl::after{content:"↕";opacity:.45}.tabla th[aria-sort=ascending] .fl::after{content:"↑";opacity:1}.tabla th[aria-sort=descending] .fl::after{content:"↓";opacity:1}
-.d{display:block;font-size:12px;font-weight:600}.d.up{color:#8c231a}.d.dn{color:#0b5e4a}.d.eq{color:var(--muted);font-weight:400}
-.neg{color:#8c231a;font-weight:700}
-.tarjetas{display:none}
-.tj{background:#fff;border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px;cursor:pointer}
-.tj h4{margin:0 0 6px;font:700 15px var(--f-t);color:var(--navy);display:flex;justify-content:space-between;gap:8px}
-.tj dl{display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;margin:0;font-size:13px}.tj dt{color:var(--muted)}.tj dd{margin:0;font-weight:600;text-align:right}
-:focus-visible{outline:3px solid #0f8f72;outline-offset:2px}
-.tabla tbody tr:focus-visible td{background:var(--turq-s)}
-.hb .lb{all:unset;text-align:right;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:180px;cursor:pointer;font-size:13.5px}
-.hb .lb:focus-visible{outline:2px solid #0f8f72}
-.rango{font-size:12px;color:var(--muted);display:block}
-.ctx{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:10px}
-.ctx>div{border:1px solid var(--line);border-radius:12px;padding:12px 14px}.ctx b{display:block;font:700 22px var(--f-t);color:var(--navy);margin:4px 0}.ctx small{color:var(--muted);font-size:12.5px;line-height:1.4;display:block}
-.ctx .tg{font:700 12.5px var(--f-t);color:var(--navy)}
-.volver{margin:0 0 10px}
-details.valores{margin-top:8px;font-size:13px}details.valores summary{cursor:pointer;color:var(--turq-d);font-weight:600}
-#hero a{color:#9be7cf;font-weight:600}#evolucion .panel2{max-width:860px}.fechas a,.aviso a{color:#0f7a62;font-weight:600}
-.radar{display:flex;align-items:center;gap:10px;margin-top:8px;padding:7px 12px 7px 8px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12.5px;color:var(--muted);line-height:1.25}
+/* tiempo y ritmo */
+.ritmo{background:linear-gradient(135deg,#0f2240,#13294b 60%,#183560);color:#fff;border-radius:16px;padding:20px 22px;margin-top:14px}
+.r4{display:grid;grid-template-columns:repeat(4,1fr)}
+.r4>div{padding:2px 18px;border-left:1px solid rgba(255,255,255,.18);min-width:0}.r4>div:first-child{border-left:0;padding-left:2px}
+.r4 .et{font:600 13px/1.3 var(--f-t);color:#cfd8e6}
+.r4 .num{font:700 clamp(24px,3vw,34px)/1.15 var(--f-t);margin:6px 0 2px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.r4 .ds{font-size:12.5px;color:#cfd8e6}
+.compara{margin-top:16px;border-top:1px solid rgba(255,255,255,.18);padding-top:14px}
+.compara .bar{position:relative;height:14px;border-radius:7px;background:rgba(255,255,255,.14);overflow:hidden}
+.compara .bar i{position:absolute;left:0;top:0;bottom:0;border-radius:7px}
+.compara p{margin:8px 0 0;font-size:15px}.compara p b{white-space:nowrap}
+/* pliego */
+.c4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px}
+.c4>div{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;min-width:0}
+.c4 .et{font:600 13px var(--f-t);color:var(--muted)}
+.c4 .num{font:700 clamp(21px,2.4vw,27px)/1.2 var(--f-t);color:var(--navy);margin:4px 0 0;white-space:nowrap;font-variant-numeric:tabular-nums}
+.c4 .ds{font-size:12.5px;color:var(--muted)}
+.alerta{display:flex;gap:10px;align-items:flex-start;border-radius:12px;padding:12px 16px;margin-top:12px;background:var(--rojo-t);color:#6d1d15;font-size:15px}
+.alerta.ok{background:var(--verde-t);color:#0b5e4a}
+.alerta button{all:unset;cursor:pointer;text-decoration:underline;font-weight:600}
+.panel{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-top:12px}
+.panel h3{margin:0 0 2px;font:700 17px var(--f-t);color:var(--navy)}
+/* cuadro */
+.ctrl{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}
+.ctrl button{font:600 13.5px var(--f-t);padding:8px 13px;border-radius:999px;border:1px solid var(--line);background:#fff;color:var(--navy);cursor:pointer;min-height:40px}
+.ctrl button[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.ctrl button:disabled{opacity:.45;cursor:default}
+.ctrl input{font:15px var(--f-t);padding:9px 12px;border:1px solid var(--line);border-radius:10px;min-height:42px;min-width:240px;flex:1 1 240px;max-width:360px}
+.btn{display:inline-flex;align-items:center;gap:8px;min-height:42px;padding:9px 15px;border-radius:10px;font:600 14px var(--f-t);border:1px solid var(--navy);color:var(--navy);background:#fff;cursor:pointer}
+.tabla{overflow:auto;border:1px solid var(--line);border-radius:12px;background:#fff;max-height:78vh}
+table{border-collapse:collapse;width:100%;font-size:14px;font-variant-numeric:tabular-nums}
+th,td{padding:9px 11px;text-align:right;white-space:nowrap;border-bottom:1px solid #eee8dc}
+th{position:sticky;top:0;background:#f3f5f9;color:var(--navy);font:600 12.5px/1.25 var(--f-t);z-index:2;cursor:pointer;white-space:normal;vertical-align:bottom;min-width:92px}
+th.t,td.t{text-align:left}
+td.t{position:sticky;left:0;background:#fff;z-index:1;max-width:260px;overflow:hidden;text-overflow:ellipsis}
+th.t{left:0;z-index:3;min-width:180px}
+tbody tr{cursor:pointer}tbody tr:hover td{background:#f7fbfa}
+tr.alerta-f td{background:#fff6f4}tr.alerta-f td.t{box-shadow:inset 4px 0 var(--rojo)}
+tfoot td{font-weight:700;background:#f3f5f9;position:sticky;bottom:0}tfoot td.t{z-index:2}
+.dias{display:inline-block;min-width:34px;text-align:center;border-radius:999px;padding:1px 8px;font-weight:700}
+.dias.r{background:var(--rojo-t);color:#8c231a}.dias.a{background:var(--ambar-t);color:#7a4c0b}.dias.v{color:var(--verde)}
+.mini{display:inline-block;vertical-align:middle;width:46px;height:6px;border-radius:3px;background:#e6e9f0;margin-left:6px;position:relative;overflow:hidden}
+.mini i{position:absolute;left:0;top:0;bottom:0}
+.cero{color:var(--rojo);font-weight:700}
+/* ficha */
+.ficha h3{font:700 20px var(--f-t);color:var(--navy);margin:0}
+.f6{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.f6 div{background:var(--soft);border-radius:10px;padding:10px 12px}.f6 span{display:block;font-size:12.5px;color:var(--muted)}.f6 b{font:700 18px var(--f-t);color:var(--navy);white-space:nowrap}
+.ficha h4{margin:16px 0 6px;color:var(--navy)}
+.ficha td.t{position:static;max-width:none;white-space:normal;min-width:240px}
+/* gráfico diario */
+.dia svg{width:100%;height:auto;max-height:220px;display:block}
+/* radar */
+.radar{display:flex;align-items:center;gap:10px;padding:6px 12px 6px 8px;border:1px solid var(--line);border-radius:999px;background:#fff;font-size:12.5px;color:var(--muted);line-height:1.25}
 .radar svg{flex:none}.radar .rd-b{font:700 15px var(--f-t);color:var(--navy);font-variant-numeric:tabular-nums}.radar .rd-t{display:block;color:var(--navy);font-weight:600}
 .radar .barrido{transform-origin:20px 20px;animation:giro 4s linear infinite}.radar .eco{transform-origin:20px 20px;animation:eco 4s ease-out infinite}
-.radar.activo .barrido{animation-duration:1.2s}.radar .nuevo{all:unset;cursor:pointer;color:#fff;background:var(--turq-d,#0f7a62);border-radius:999px;padding:3px 10px;font-weight:600;margin-left:4px}
-@keyframes giro{to{transform:rotate(360deg)}}@keyframes eco{0%{opacity:.55;transform:scale(.25)}80%,100%{opacity:0;transform:scale(1)}}
+.radar.activo .barrido{animation-duration:1.2s}.radar .nuevo{all:unset;cursor:pointer;color:#fff;background:var(--turq-d);border-radius:999px;padding:3px 10px;font-weight:600;margin-left:4px}
+@keyframes giro{to{transform:rotate(360deg)}}@keyframes eco{0%{transform:scale(.3);opacity:.7}100%{transform:scale(1);opacity:0}}
 @media (prefers-reduced-motion:reduce){.radar .barrido,.radar .eco{animation:none}}
-.descomp{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}.descomp td{padding:5px 8px;border-bottom:1px solid var(--line);text-align:right}.descomp td:first-child{text-align:left}.descomp tr:last-child td{font-weight:700;border-bottom:0}
-.rev{width:100%;border-collapse:collapse;font-size:13px}.rev th,.rev td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}.rev td.n{text-align:right;white-space:nowrap}
-@media (max-width:1100px){.hero5{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media (max-width:700px){.ttab{display:block;overflow-x:auto;max-width:100%}.ttab td,.ttab th{padding:7px 8px}.tabla.cuadro{display:none}.tarjetas{display:block}.hero5{grid-template-columns:1fr 1fr}}
-@media (max-width:900px){.dos,.exp,.avz{grid-template-columns:1fr}.hero4{grid-template-columns:1fr 1fr}.hero4>div{border-left:0;padding:10px 8px}.ficha{position:static}.corte{align-items:flex-start}}
-@media (max-width:640px){.metodo p{text-align:left}.hb .lb{max-width:120px}}
-@media (max-width:460px){.hero4{grid-template-columns:1fr}}
+details.met{margin-top:10px}details.met summary{cursor:pointer;font:700 17px var(--f-t);color:var(--navy);min-height:40px;display:flex;align-items:center}
+details.met li{margin:4px 0;font-size:14.5px}
+.mtab{font-size:13.5px;margin-top:8px}.mtab td,.mtab th{white-space:normal;text-align:left;position:static;cursor:default}
+:focus-visible{outline:3px solid #0f8f72;outline-offset:2px}
+@media (max-width:820px){.r4,.c4{grid-template-columns:1fr 1fr;gap:12px}.r4>div{border-left:0;padding:2px}.corte{align-items:flex-start}}
 </style>
 </head>
 <body>
-<a href="#cuadro" style="position:absolute;left:-999px" onfocus="this.style.left='8px'" onblur="this.style.left='-999px'">Saltar al cuadro de seguimiento</a>
-<header><div class="wrap">
-<div class="hcab"><div><div class="eyebrow" id="ent">Ministerio de Salud · Pliego 011</div>
-<h1>Control diario de RO</h1><p class="sub0">Qué cambió entre cortes y qué revisar hoy · solo Recursos Ordinarios</p></div>
-<div class="corte"><b id="cortebox"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg><span id="cortetx">Cargando…</span></b><span class="hab" id="habiles"></span><div class="radar" id="radar" role="timer" aria-live="off" hidden></div></div></div>
-<div class="fechas" id="fechas"></div>
-<details class="glos"><summary>¿Qué significan las siglas y los términos?</summary><dl>
-<dt>RO</dt><dd>Recursos Ordinarios: fuente de financiamiento que proviene principalmente de los impuestos, asignada por el Tesoro Público.</dd>
-<dt>PIM</dt><dd>Presupuesto Institucional Modificado: presupuesto vigente con las modificaciones del año.</dd>
-<dt>Devengado</dt><dd>Reconocimiento de una obligación de pago por un bien o servicio recibido. No es el pago.</dd>
-<dt>Saldo por devengar</dt><dd>PIM − devengado. Es presupuesto, no dinero en caja.</dd>
-<dt>Sin certificar</dt><dd>PIM − certificado: crédito que todavía no está reservado para un gasto.</dd>
-<dt>CUI</dt><dd>Código Único de Inversión, que identifica a cada proyecto de inversión.</dd>
-<dt>F12B</dt><dd>Formato 12-B: seguimiento de inversiones donde cada unidad declara su programación y avance.</dd>
-<dt>Corte</dt><dd>Fecha hasta la que el MEF registra la ejecución.</dd>
-</dl></details>
-</div></header>
-<nav class="top" aria-label="Secciones"><div class="wrap"><a href="../#resumen">Resumen</a><a href="../#unidades">Unidades</a><a href="../#ro">RO</a><a href="../#ro26">RO–2.6</a><a href="../#g26">Inversiones</a><a href="../anexos.html">Anexos</a><a class="act" href="#indicadores" aria-current="page">Control diario</a><span class="sep" aria-hidden="true"></span><a class="sub" href="#cuadro">Cuadro</a><a class="sub" href="#buscador">Proyectos</a><a class="sub" href="#evolucion">Evolución</a><a class="sub" href="#metodo">Método</a></div></nav>
+<a href="#cuadro" style="position:absolute;left:-999px" onfocus="this.style.left='8px'" onblur="this.style.left='-999px'">Saltar al cuadro por unidad</a>
+<header><div class="wrap"><div class="hcab">
+<div><div class="eyebrow">Ministerio de Salud · Pliego 011 · Recursos Ordinarios</div>
+<h1>Control diario de Recursos Ordinarios</h1>
+<p class="meta" id="meta">Cargando…</p></div>
+<div class="corte"><b id="cortetx">Cargando…</b><div class="radar" id="radar" role="timer" aria-live="off" hidden></div></div>
+</div></div></header>
+<nav class="top" aria-label="Secciones"><div class="wrap"><a href="../#resumen">Resumen</a><a href="../#unidades">Unidades</a><a href="../#ro">RO</a><a href="../#ro26">RO–2.6</a><a href="../#g26">Inversiones</a><a href="../anexos.html">Anexos</a><a class="act" href="#inicio" aria-current="page">Control diario</a><span class="sep" aria-hidden="true"></span><a class="sub" href="#cuadro">Unidades</a><a class="sub" href="#buscador">Proyectos</a><a class="sub" href="#metodo">Cómo se calcula</a></div></nav>
 <main><div class="wrap">
-<div id="vigencia" role="status"></div>
-
-<section id="indicadores" style="padding-top:6px" aria-label="Indicadores del corte">
-<div id="hero" class="hero4 hero5"></div>
+<div id="vigencia"></div>
+<section id="inicio" style="padding-top:4px" aria-label="Tiempo y ritmo">
+<div class="ritmo" id="ritmo"></div>
+<div class="c4" id="pliego"></div>
+<p class="nota" id="nproy"></p>
 <div id="alerta"></div>
-<div class="panel2" style="margin-top:12px"><h3>Cuánto pesa la estimación</h3><p class="ps">Los dos escenarios del mismo corte y lo que pasó en años anteriores con el escenario según ejecución reciente</p><div id="ctx"></div></div>
+<div class="panel dia"><h3>Devengado de cada día frente a lo necesario por día</h3><div id="dia"></div></div>
 </section>
 
-<section id="cuadro"><h2>Cuadro de seguimiento por unidad ejecutora</h2>
-<p class="sub">Primero, lo que cambió entre cortes. El detalle presupuestal está en la otra vista. Elija una unidad para ver su ficha.</p>
-<div id="aviso-prog"></div>
-<div class="chips" id="chips" role="group" aria-label="Filtros rápidos"></div>
-<div class="buscar"><input id="q" type="search" placeholder="Buscar unidad ejecutora o código…" aria-label="Buscar unidad"><select id="fn" aria-label="Clasificar por nivel de riesgo"><option value="">Nivel de riesgo: todos</option><option value="Alto">Nivel de riesgo: alto</option><option value="Medio">Nivel de riesgo: medio</option><option value="Bajo">Nivel de riesgo: bajo</option></select>
-<span class="vista" role="group" aria-label="Vista del cuadro"><button type="button" id="v-seg" aria-pressed="true">Seguimiento</button><button type="button" id="v-pre" aria-pressed="false">Detalle presupuestal</button></span>
-<button class="btn" id="exp" type="button">Exportar resultados filtrados</button><a class="btn" href="historial.csv" download>Descargar base completa</a></div>
-<p class="criterio" id="criterio" aria-live="polite"></p>
-<div class="tabla alta cuadro"><table><caption class="sr" style="position:absolute;left:-9999px">Cuadro de seguimiento por unidad ejecutora</caption><thead><tr id="cab"></tr></thead><tbody id="cuerpo"></tbody><tfoot id="pie"></tfoot></table></div>
-<div class="tarjetas" id="tarjetas"></div>
-<p class="nota" id="nota-cuadro"></p>
+<section id="cuadro"><h2>Unidades ejecutoras</h2>
+<div class="ctrl" id="chips" role="group" aria-label="Filtros"></div>
+<div class="ctrl"><input id="q" type="search" placeholder="Buscar unidad ejecutora o código…" aria-label="Buscar unidad ejecutora"><button class="btn" id="bcsv" type="button">Descargar el cuadro (CSV)</button></div>
+<div class="tabla"><table><thead><tr id="cab"></tr></thead><tbody id="cuerpo"></tbody><tfoot id="pie"></tfoot></table></div>
+<p class="nota" id="ncuadro"></p>
 </section>
 
-<section id="buscador" aria-label="Buscador de proyectos"><div class="panel2"><h3>Buscar un proyecto de inversión</h3>
-<p class="ps">Escriba el CUI o parte del nombre. Se muestran hasta 8 proyectos con Recursos Ordinarios; «Ver la unidad» abre la ficha de su unidad ejecutora.</p>
-<div class="buscar"><input id="bq" type="search" placeholder="CUI o nombre del proyecto…" aria-label="Buscar proyecto por CUI o nombre" autocomplete="off"></div>
-<div id="bres" aria-live="polite"><p class="nota">Cargando proyectos…</p></div></div></section>
+<section id="detalle" hidden><div class="panel ficha" id="det" tabindex="-1"></div></section>
 
-<section id="detalle" hidden><div class="panel2" id="det" tabindex="-1"></div></section>
-
-<section id="evolucion"><h2>Evolución entre cortes</h2>
-<p class="sub">Cada punto es una fecha de corte del MEF. Los intervalos de varios días sin corte se marcan con línea discontinua.</p>
-<div class="panel2"><h3>Saldo RO y riesgo estimado</h3><p class="ps">Millones de soles, por fecha de corte</p><div id="graf"></div></div></section>
-
-<section id="metodo"><h2>Método, fórmulas y criterios</h2>
-<div class="metodo">
-<div id="procedencia"></div>
-<p><b>Fórmulas.</b> Saldo por devengar = PIM − devengado. Sin certificar = PIM − certificado. Devengado entre cortes = devengado actual − devengado del corte anterior (un valor negativo es un ajuste o anulación y se marca para revisión, no se convierte en cero). Variación del saldo = variación del PIM − devengado entre cortes: una baja del saldo puede venir de una rebaja del PIM y no de más ejecución. Las comprobaciones se hacen con los valores originales, antes de redondear; las diferencias de presentación son de redondeo.</p>
-<p><b>Riesgo estimado al cierre (escenario según ejecución reciente).</b> Para cada meta, producto o proyecto y genérica: promedio mensual de devengado de los tres últimos meses completos × meses que faltan al 31/12, con tope en su saldo y piso en cero. Lo que no alcanza a devengarse con ese ritmo es el riesgo. En las pruebas con 2024 y 2025 este escenario sobrestimó el saldo final porque no ve la aceleración de diciembre: sirve para ordenar prioridades, no para fijar un monto.</p>
-<p><b>Escenario según patrones de 2023–2025.</b> Para cada unidad y genérica, la parte del saldo pendiente a la misma fecha que se devengó hasta el 31/12 en cada año cerrado; se aplica al saldo actual. Se publica el valor central (promedio de los tres años) y el rango (año más y menos favorable). Las combinaciones sin historia comparable conservan el escenario según ejecución reciente.</p>
-<p><b>Nivel de riesgo.</b> Riesgo estimado ÷ PIM RO de la unidad: alto, más de 15 %; medio, de 5 % a 15 %; bajo, menos de 5 %. El cuadro se ordena por monto absoluto.</p>
-<p><b>Avance del saldo y referencia estadística.</b> Avance = devengado desde el 31/10 ÷ saldo que había al 31/10 (con el PIM actual). Se compara con una <i>referencia estadística</i>, no con una meta de la unidad: la planilla y las pensiones (2.1 y 2.2) y los proyectos de inversión, que se devengan una vez al mes, cuentan por meses cerrados; el resto, por la parte de los días hábiles de noviembre y diciembre que ya pasó. Al ritmo de la referencia: 90 % o más de ella; por debajo: 60 % a 90 %; muy por debajo: menos de 60 %. Para los proyectos, mientras no cierre el primer mes no hay referencia.</p>
-<p><b>Programación documentada.</b> Todavía no se registra la programación de las unidades. Cuando exista, el cuadro mostrará «Programado para el intervalo» y «Brecha frente a programación», y la referencia estadística quedará como dato secundario.</p>
-<p><b>Por producto y proyecto.</b> El mismo cálculo se hace para cada producto, actividad y proyecto de cada unidad; el riesgo de la unidad es la suma del de sus productos y proyectos. «Proyecto» identifica inversiones con CUI.</p>
-<p><b>Clasificación frente a la referencia.</b> Razón = avance ÷ referencia, calculada con los valores originales, antes de redondear. Alcanza el umbral: razón ≥ 90 %. Por debajo: razón ≥ 60 % y menor que 90 %. Muy por debajo: razón menor que 60 % (incluye avances negativos). Si la referencia es 0 o no existe, la unidad figura «sin referencia» y no se clasifica. La misma regla rige en tarjetas, fichas, gráficos y exportaciones.</p>
-<p><b>Variación del riesgo estimado.</b> Variación del riesgo = variación del PIM − devengado entre cortes − variación de lo que el ritmo reciente prevé devengar hasta el 31/12. El último término recoge el menor tiempo restante y los supuestos del cálculo (ritmo, tope en el saldo y, si ocurre, un cambio de fuente). Por eso el riesgo puede subir aunque la unidad haya devengado algo: sube cuando devengó menos de lo que su ritmo preveía para esos días. La causa concreta se verifica con la unidad.</p>
-<p><b>Importes pequeños.</b> Desde S/ 50,000 se muestran en millones; por debajo, en soles con su signo.</p>
-<p><b>Días hábiles.</b> <span id="cal"></span></p>
-<p><b>Estado de actualización.</b> Aviso si el dato tiene más de un día hábil de antigüedad o si la última consulta exitosa tiene más de 12 horas.</p>
-</div>
-<h3 id="revisiones" style="margin-top:18px">Revisiones de cifras y de método</h3>
-<div id="revtab"><p class="nota">Cargando…</p></div>
+<section id="buscador"><h2>Buscar un proyecto de inversión</h2>
+<div class="ctrl"><input id="bq" type="search" placeholder="CUI o nombre del proyecto…" aria-label="Buscar proyecto por CUI o nombre"></div>
+<div id="bres"></div>
 </section>
+
+<section id="metodo"><details class="met"><summary>Cómo se calcula</summary>
+<ul>
+<li><b>Saldo por devengar</b> = PIM − devengado. Es presupuesto, no dinero en caja.</li>
+<li><b>Saldo proyectado al 31/12</b>: lo que quedaría sin devengar si cada meta mantiene el devengado promedio de sus tres últimos meses completos. En 2024 y 2025 el saldo real al cierre fue menor que lo proyectado, porque diciembre se acelera.</li>
+<li><b>Necesario por semana</b> = saldo por devengar ÷ días hábiles que quedan × 5. Es lo que habría que devengar cada semana para no dejar saldo.</li>
+<li><b>Se devenga por semana</b>: promedio de los últimos días hábiles con datos (o desde el inicio del mes, mientras no haya una semana de historial), llevado a 5 días.</li>
+<li><b>Último día</b>: devengado entre el corte anterior y el actual.</li>
+<li><b>Días hábiles sin devengar</b>: días hábiles desde el último corte en que la unidad registró devengado. «2+» significa al menos 2 (el historial empieza el 10/11).</li>
+<li><b>Días hábiles</b>: lunes a viernes, sin los feriados del 8, 9 y 25 de diciembre. Después del 31/12 no se compromete ni se devenga con cargo al año (D. Leg. 1440, art. 36); en Recursos Ordinarios lo no devengado no pasa al año siguiente.</li>
+</ul>
+<div id="procedencia"></div><div id="revisiones"></div>
+<p class="nota">Las cifras se verifican antes de publicar (saldo = PIM − devengado, sumas por unidad, ritmo semanal y otras). Datos: Consulta Amigable y Datos Abiertos del MEF.</p>
+</details></section>
 </div></main>
-<footer><div class="wrap">Ministro al Día · Datos del Ministerio de Economía y Finanzas (Consulta Amigable y Datos Abiertos). Importes en soles. El saldo es presupuesto: no equivale a dinero en caja ni a pago.</div></footer>
 <script>
-const GEN={"1":"2.1 Personal y obligaciones sociales","2":"2.2 Pensiones y prestaciones sociales","3":"2.3 Bienes y servicios","4":"2.4 Donaciones y transferencias","5":"2.5 Otros gastos","6":"2.6 Adquisición de activos no financieros","7":"2.7 Adquisición de activos financieros","8":"2.8 Servicio de la deuda"};
-const MESES=["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Set","Oct","Nov","Dic"];
-// Importes: en millones desde S/ 50,000; por debajo, en soles con su signo, para que dos movimientos pequeños no se confundan ni parezcan cero.
 const M=v=>{if(v==null||isNaN(v))return'—';const a=Math.abs(v);if(a<0.5)return'S/ 0';if(a<5e4)return(v<0?'−':'')+'S/ '+Math.round(a).toLocaleString('en-US');return(v<0?'−':'')+'S/ '+(a/1e6).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' M'};
-const M2=M;
-const MS=v=>v==null||isNaN(v)?'—':(v>=0.5?'+':'')+M(v);   // con signo, para variaciones
 const P=v=>v!=null&&isFinite(v)?(100*v).toFixed(1)+' %':'—';
-const F=s=>{const[y,m,d]=s.split('-');return`${d}/${m}/${y}`};
-const F5=s=>F(s).slice(0,5);
+const F=s=>{const[y,m,d]=s.split('-');return`${d}/${m}/${y}`};const F5=s=>F(s).slice(0,5);
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const nivel=u=>{const r=u.pim>0?u.riesgo/u.pim:0;return r>0.15?'Alto':r>=0.05?'Medio':'Bajo'};
-const COLN={Alto:'#c0392b',Medio:'#d99a06',Bajo:'#1f8f6a'};
-const nom=u=>u.sigla||u.ue.replace('Dirección de Redes Integradas de Salud','DIRIS').replace('Instituto Nacional de Salud del Niño - San Borja','INSN San Borja').replace('Instituto Nacional de Salud del Niño','INSN').replace('Hospital Nacional','H.').replace('Hospital','H.').replace('Instituto Nacional','Inst. Nac.').replace(' - MINSA','');
-// Avance frente a la referencia estadística (no es una meta de la unidad)
-// Clasificación con valores originales (antes de redondear). Razón = avance ÷ referencia, con tolerancia de 1e-9 para que
-// 9 % frente a 10 % cuente como 90 % exacto (en coma flotante 0.09/0.1 = 0.8999…).
-// Alcanza el umbral: razón ≥ 90 %. Por debajo: ≥ 60 % y < 90 %. Muy por debajo: < 60 %. Referencia ausente o cero: sin referencia (nunca cuenta como cumplimiento).
-const SEM=(av,esp)=>{if(!(esp>0)||av==null||isNaN(av))return['#5f6878','sin referencia','Sin'];const r=av/esp,e=1e-9;return r>=0.9-e?['#1f8f6a','alcanza el umbral','Al']:r>=0.6-e?['#a86a12','por debajo de la referencia','Debajo']:['#c0392b','muy por debajo de la referencia','Muy']};
-const CORTO={Al:'alcanza el umbral',Debajo:'por debajo',Muy:'muy por debajo',Sin:'sin referencia'};
-const CLASE=(av,esp)=>SEM(av,esp)[2];
-// Motivo por el que una unidad no tiene referencia estadística
-const sinRef=u=>!(u.saldo_ini>0)?'No tenía saldo por devengar al cierre del último mes, así que no hay avance que medir.':!(u.esperado>0)?((u.w_pl==null||u.w_pl>=0.999)?'Todo su saldo está en partidas que se devengan una vez al mes (planilla, pensiones o proyectos de inversión). Para ellas la referencia avanza por mes cerrado y todavía no cierra el mes en curso: hasta entonces la referencia es 0.':'La referencia calculada es 0 para esta unidad.'):null;
-const AV=(av,esp)=>{const [c,,k]=SEM(av,esp),t=CORTO[k];return `<span class="av"><span class="bar" aria-hidden="true"><i style="width:${Math.max(0,Math.min(100,100*av))}%;background:${c}"></i>${esp>0?`<b style="left:${Math.min(100,100*esp)}%"></b>`:''}</span><span style="color:${c};font-weight:600">${P(av)}</span></span><span class="rango">${esp>0?`ref. ${P(esp)} · ${t}`:t}</span>`};
-const ICO=p=>`<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${p}</svg>`;
-const I_INFO='<circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/>',I_ALE='<path d="M12 3 2 21h20L12 3z"/><path d="M12 10v5M12 18v.5"/>',I_OK='<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>';
-const aviso=(t,cl='',ic=I_INFO)=>`<div class="aviso ${cl}">${ICO(ic)}<span>${t}</span></div>`;
-const dlt=(v,inv=true)=>v==null||isNaN(v)?'<span class="d eq">sin corte anterior</span>':Math.abs(v)<0.5?'<span class="d eq">sin variación</span>':`<span class="d ${(inv?v>0:v<0)?'up':'dn'}">${v>0?'▲ +':'▼ '}${M(v).replace('−','−')}</span>`;
-function escala(mx){if(!(mx>0))return[1,0.2];const mag=10**Math.floor(Math.log10(mx/7));for(const k of[1,2,2.5,5,10,20]){const p=k*mag;if(Math.ceil(mx/p-1e-9)<=7)return[Math.ceil(mx/p-1e-9)*p,p]}return[mx,mx/5]}
-function hb(filas,tit){const[top,paso]=escala(Math.max(0,...filas.map(f=>f.v))),n=Math.round(top/paso),d=paso>=1e6?0:(paso>=1e5?1:2);
- let h=filas.map(f=>`<button type="button" class="lb" ${f.s?`data-s="${f.s}"`:'tabindex="-1"'} aria-label="${esc(f.t||f.l)}" title="${esc(f.t||f.l)}">${esc(f.l)}</button><span class="tr" ${f.s?`data-s="${f.s}"`:''} style="background-size:${100/n}% 100%" aria-hidden="true"><i style="width:${100*Math.max(f.v,0)/top}%;background:${f.c}"></i><b style="left:${100*Math.max(f.v,0)/top}%">${M(f.v)}</b></span>`).join('');
- h+=`<span></span><div class="ej" aria-hidden="true">${Array.from({length:n+1},(_,i)=>`<span style="left:${100*i/n}%">${(i*paso/1e6).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d})}</span>`).join('')}</div><div class="et2">${esc(tit)}</div>`;
- return `<div class="hb">${h}</div>`}
-function csv(nombre,meta,cab,filas){const q=v=>{const s=v==null?'':String(v);return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
- const t='﻿'+[...meta.map(m=>[m]),[],cab,...filas].map(f=>f.map(q).join(';')).join('\n');const a=document.createElement('a');
- a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));a.download=nombre;document.body.appendChild(a);a.click();a.remove()}
-const metaCSV=(extra)=>[`Ámbito: ${D.pliego}, fuente Recursos Ordinarios`,`Corte: ${F(D.corte)}${D.corte_anterior?` · corte anterior: ${F(D.corte_anterior)}`:''}`,...(D.parametros.procedencia||[{componente:'Fuente de datos',fuente:D.parametros.fuente+' del MEF'}]).map(x=>`${x.componente}: ${x.fuente}`),`Consulta: ${(D.parametros.consulta_ok||D.actualizado||'').replace('T',' ')} · método ${D.parametros.metodo||'—'}`,...extra,'Importes en soles, sin redondear'];
-let D,PJ=null,REF=null,REV=null,sel=null;
-const hoyLima=()=>new Date(new Date().toLocaleString('en-US',{timeZone:'America/Lima'}));
-fetch('datos.json?'+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{D=j;pintar();
- fetch('revisiones.json?'+Date.now()).then(r=>r.ok?r.json():null).then(x=>{REV=x;revisiones()}).catch(()=>revisiones());
- fetch('referencias.json?'+Date.now()).then(r=>r.ok?r.json():null).then(x=>{REF=x;contexto()}).catch(()=>contexto());
- fetch('proyectos.json?'+Date.now()).then(r=>r.json()).then(p=>{PJ=p;buscador();if(sel)detalle(sel,false)}).catch(()=>{const ps=document.getElementById('psub');if(ps)ps.textContent='No se pudo cargar el detalle por proyecto. Intente recargar la página.'})
-}).catch(()=>{document.getElementById('vigencia').innerHTML=aviso('No se pudieron cargar los datos. Revise su conexión e intente recargar la página.','rojo',I_ALE);document.getElementById('cortetx').textContent='Sin datos'});
+const nom=u=>u.sigla||u.ue.replace('Dirección de Redes Integradas de Salud','DIRIS').replace('Instituto Nacional de Salud del Niño - San Borja','INSN San Borja').replace('Instituto Nacional de Salud del Niño','INSN').replace('Hospital Nacional','Hosp.').replace('Hospital','Hosp.').replace('Instituto Nacional','Inst. Nac.').replace(' - MINSA','');
+const GEN={"1":"2.1 Personal y obligaciones sociales","2":"2.2 Pensiones","3":"2.3 Bienes y servicios","4":"2.4 Donaciones y transferencias","5":"2.5 Otros gastos","6":"2.6 Activos no financieros","7":"2.7 Activos financieros","8":"2.8 Deuda"};
+const colR=r=>r>=0.9?'#19c39c':r>=0.5?'#e0a526':'#e8604c';
+const DIAS=u=>{if(u.dias_sin==null)return'—';const d=u.dias_sin,t=u.dias_sin_tipo;const txt=t==='min'?d+'+':String(d),c=d>=3?'r':d>=1?'a':'v';
+ return `<span class="dias ${c}" title="${t==='base'?'Sin devengado desde el inicio del mes':t==='min'?'Al menos '+d+' días hábiles (el historial empieza el '+F5(D.fechas[0])+')':d+' días hábiles'}">${txt}</span>`};
+let D,PJ=null,REV=null,chip='todas',ord='riesgo',dir=-1,sel=null;
+const PASO=u=>u.nec_sem>0?u.real_sem/u.nec_sem:null;
+const CHIPS=[['todas','Todas',u=>true],['ult0','Sin devengado en el último día',u=>u.ult!=null&&u.ult<=0.5&&u.saldo>0.5],
+ ['d3','3 días hábiles o más sin devengar',u=>u.dias_sin>=3&&u.saldo>0.5]];
+const COLS=[['n','Unidad ejecutora','t'],['pim','PIM vigente'],['ej','Ejecución'],['saldo','Saldo por devengar'],['riesgo','Saldo proyectado al 31/12'],
+ ['nec_sem','Necesita por semana'],['real_sem','Devenga por semana'],['ult','Último día'],['dias_sin','Días hábiles sin devengar']];
+
+fetch('datos.json?'+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{D=j;pintar();reloj();
+ fetch('revisiones.json?'+Date.now()).then(r=>r.ok?r.json():null).then(x=>{REV=x;revisiones()}).catch(()=>{});
+ fetch('proyectos.json?'+Date.now()).then(r=>r.json()).then(p=>{PJ=p;buscador();if(sel)detalle(sel,false)}).catch(()=>{document.getElementById('bres').innerHTML='<p class="nota">No se pudo cargar el detalle por proyecto.</p>'})
+}).catch(()=>{document.getElementById('vigencia').innerHTML='<div class="alerta">No se pudieron cargar los datos. Recargue la página.</div>';document.getElementById('cortetx').textContent='Sin datos'});
 
 function pintar(){
- const T=D.total,par=D.parametros,U=D.ues,ant=D.corte_anterior,i=D.fechas.length-1,fu=D.fuentes||[];
- document.title=`Control diario de RO · ${D.pliego}`;
- document.getElementById('ent').textContent=`${D.pliego} · Pliego 011`;
- document.getElementById('cortetx').textContent=`Corte: ${F(D.corte)}`;
- document.getElementById('habiles').textContent=`${par.dias_habiles} días hábiles hasta el 31/12`;
- const cons=par.consulta_ok?new Date(par.consulta_ok+':00-05:00'):null;
- document.getElementById('fechas').innerHTML=`<span>Corte actual: <b>${F(D.corte)}</b></span><span>Corte anterior: <b>${ant?F(ant):'—'}</b></span><span>Cifras del día: <b>${esc(par.fuente)}</b>${ant&&fu[i-1]&&fu[i-1]!==fu[i]?` (corte anterior: ${esc(fu[i-1])})`:''}</span><span>Ritmo y detalle: <b>Datos Abiertos al ${F5(par.corte_detalle||D.corte)}</b></span><span><a href="#procedencia">Procedencia y revisiones</a></span><span>Última consulta exitosa: <b>${cons?cons.toLocaleString('es-PE',{timeZone:'America/Lima',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}):'—'}</b></span><span>Ámbito: <b>Recursos Ordinarios</b></span>`;
- // estado de actualización
- const hoy=hoyLima(),ult=new Date(D.corte+'T12:00:00');let hab=0;for(let d=new Date(ult);d<hoy;d.setDate(d.getDate()+1)){if(d>ult&&d.getDay()%6!==0)hab++}
- const horas=cons?(Date.now()-cons.getTime())/36e5:99;const av=[];
- if(hab>1)av.push(`Los datos son del ${F(D.corte)}: el MEF aún no publica la ejecución posterior. <small>Se revisa cada hora, de 7:23 a 23:23, si el MEF publicó algo nuevo.</small>`);
- if(horas>12)av.push(`La última consulta exitosa fue hace ${Math.round(horas)} horas. <small>Se muestra el último dato válido; puede estar desactualizado.</small>`);
- document.getElementById('vigencia').innerHTML=av.length?aviso(av.join(' '),'ambar',I_ALE):'';
- const comp=U.filter(u=>u.dev_ant!=null),dd=u=>u.dev_ant!=null?u.dev-u.dev_ant:null;
- const conAv=comp.filter(u=>dd(u)>0.5).length,negs=comp.filter(u=>dd(u)<-0.5);
- const dsal=ant?D.serie.saldo[i]-D.serie.saldo[i-1]:null,dri=ant?D.serie.riesgo[i]-D.serie.riesgo[i-1]:null,ddev=ant?D.serie.DEVENGADO[i]-D.serie.DEVENGADO[i-1]:null,dpim=ant&&D.serie.PIM?D.serie.PIM[i]-D.serie.PIM[i-1]:null;
- const habE=par.habiles_entre,intv=ant?`del ${F5(ant)} al ${F5(D.corte)}${habE>1?` · ${habE} días hábiles`:''}`:'';
- const ref=U.filter(u=>u.saldo_ini>0&&(u.esperado??0)>0),muy=ref.filter(u=>CLASE(u.avance,u.esperado)==='Muy').length,sinr=U.filter(u=>sinRef(u));
- const vr=(v,inv=true)=>v==null?'':`<span class="chip ${(inv?v>0:v<0)?'mal':''}">${v>0?'▲ +':'▼ '}${M(v)}</span>`;
- document.getElementById('hero').innerHTML=`
- <div><div class="et">Devengado entre cortes</div><div class="num">${ddev==null?'—':M(ddev)}</div><div class="ds">${ant?intv:'Desde el segundo corte'}</div></div>
- <div><div class="et">Saldo por devengar</div><div class="num">${M(T.saldo)}</div>${vr(dsal)}<div class="ds">${dpim&&Math.abs(dpim)>=0.5?`Incluye una variación del PIM de ${M(dpim)}`:'Sin cambios en el PIM entre cortes'}</div></div>
- <div><div class="et">Unidades con avance entre cortes</div><div class="num">${ant?`${conAv} de ${comp.length}`:'—'}</div><div class="ds">${ant?`${comp.length} con dato comparable${negs.length?` · ${negs.length} con ajuste negativo`:''}`:'Sin corte anterior'}</div></div>
- <div><div class="et">Riesgo estimado al cierre</div>${T.riesgo_hist!=null?`<div class="num sm">entre ${M(T.riesgo_hist)} y ${M(T.riesgo)}</div><div class="ds">${M(T.riesgo_hist)}: patrones 2023–2025<br>${M(T.riesgo)}: ejecución reciente ${vr(dri)}</div><div class="ds">Estimaciones, no límites (<a href="#ctx">ver por qué</a>).</div>`:`<div class="num">${M(T.riesgo)}</div>${vr(dri)}<div class="ds">Escenario según ejecución reciente.</div>`}</div>
- <div><div class="et">Programación de las unidades: no registrada</div><div class="num sm">${muy} de ${ref.length}</div><div class="ds">Avance del saldo del pliego: ${P(T.avance)} · Referencia: ${P(T.esperado??par.avance_esperado)} (${CORTO[CLASE(T.avance,T.esperado??par.avance_esperado)]}).</div><div class="ds">Unidades muy por debajo de la referencia estadística · ${ref.length} con referencia · ${sinr.length} sin referencia${sinr.length?` (${sinr.map(u=>esc(nom(u))).join(', ')}; <a href="#" id="ver-sinref">ver motivo</a>)`:''}</div></div>`;
- const vs=document.getElementById('ver-sinref');if(vs)vs.onclick=e=>{e.preventDefault();chip='sinref';chips();tabla();document.getElementById('cuadro').scrollIntoView({behavior:'smooth'})};
- const top5=U.slice(0,5),c5=top5.reduce((s,u)=>s+u.riesgo,0);
- let al=aviso(`Cinco unidades concentran el ${P(c5/T.riesgo)} del riesgo estimado: ${top5.map(u=>`${esc(nom(u))} (${M(u.riesgo)})`).join(', ')}. <small>Verificar qué parte de su saldo tiene entregas, conformidades o valorizaciones previstas antes del cierre.</small>`,'ambar',I_ALE);
- if(negs.length)al+=aviso(`Ajuste negativo del devengado entre el ${F5(ant)} y el ${F5(D.corte)} en ${negs.map(u=>`${esc(nom(u))} (${M2(dd(u))})`).join(', ')}. <small>Puede ser una anulación o rebaja de un devengado; se muestra tal cual para su revisión.</small>`,'',I_INFO);
- document.getElementById('alerta').innerHTML=al;
- document.getElementById('aviso-prog').innerHTML=aviso('Programación de las unidades: no registrada. <small>Por eso el cuadro no muestra «Programado para el intervalo» ni «Brecha». Umbral: al menos el 90 % de la referencia estadística. No equivale a cumplir una meta.</small>','',I_INFO);
- document.getElementById('cal').textContent=par.calendario||'';
- evolucion();chips();tabla();reloj();if(REV!==null)revisiones();
+ const T=D.total,S=D.semana||{},p=D.parametros;
+ document.getElementById('cortetx').textContent='Datos al '+F(D.corte);
+ const rv=(D.revisiones_corte||[]).filter(r=>r.corte===D.corte).length;
+ document.getElementById('meta').innerHTML=`Fuente: ${esc(p.fuente)} del MEF${p.publicado_lima?' · publicado el '+esc(p.publicado_lima):''}${rv?` · <a href="#metodo" onclick="document.querySelector('details.met').open=true">cifras revisadas</a>`:''}`;
+ // ¿el dato está atrasado más de un día hábil?
+ const hoy=new Date(new Date().toLocaleString('en-US',{timeZone:'America/Lima'}));let h=0;for(let d=new Date(D.corte+'T12:00');d<hoy;d.setDate(d.getDate()+1)){const w=d.getDay();if(w&&w<6)h++}
+ if(h>2)document.getElementById('vigencia').innerHTML=`<div class="alerta" style="background:var(--ambar-t);color:#5c3a08">El MEF todavía no publica datos posteriores al ${F(D.corte)}.</div>`;
+ const r=S.nec_sem>0?S.real_sem/S.nec_sem:null;
+ if(!D.semana)document.getElementById('ritmo').innerHTML='<p style="margin:0">Actualizando el ritmo semanal…</p>';else document.getElementById('ritmo').innerHTML=`<div class="r4">
+  <div><div class="et">Días calendario que quedan</div><div class="num">${S.dias_cal}</div><div class="ds">hasta el 31/12</div></div>
+  <div><div class="et">Días hábiles que quedan</div><div class="num">${S.dias_habiles}</div><div class="ds">${(S.dias_habiles/5).toFixed(1)} semanas de trabajo</div></div>
+  <div><div class="et">Se necesita por semana</div><div class="num">${M(S.nec_sem)}</div><div class="ds">para devengar todo el saldo</div></div>
+  <div><div class="et">Se devenga por semana</div><div class="num" style="color:${colR(r??1)}">${M(S.real_sem)}</div><div class="ds">${esc(S.base)}</div></div></div>
+  <div class="compara"><div class="bar" role="img" aria-label="Se devenga el ${P(r)} de lo necesario"><i style="width:${Math.min(100,100*(r||0))}%;background:${colR(r??1)}"></i></div>
+  <p>Se devenga el <b>${P(r)}</b> de lo que se necesita cada semana.${S.ult!=null?` Último día (${F5(D.corte)}): <b>${M(S.ult)}</b>${S.ult_dias>1?` en ${S.ult_dias} días hábiles`:''}.`:''}</p></div>`;
+ document.getElementById('pliego').innerHTML=[['PIM vigente',M(T.PIM),''],['Devengado',M(T.DEVENGADO),P(T.DEVENGADO/T.PIM)+' del PIM'],
+  ['Saldo por devengar',M(T.saldo),P(T.saldo/T.PIM)+' del PIM'],['Saldo proyectado al 31/12',M(T.riesgo),'si se mantiene el ritmo de los últimos 3 meses']]
+  .map(([a,b,c])=>`<div><div class="et">${a}</div><div class="num">${b}</div><div class="ds">${c}</div></div>`).join('');
+ document.getElementById('nproy').textContent='Saldo proyectado: en 2024 y 2025 el saldo real al cierre fue menor, porque diciembre se acelera.';
+ const A=filas(),u0=A.filter(CHIPS[1][2]),u3=A.filter(CHIPS[2][2]);
+ document.getElementById('alerta').innerHTML=u0.length||u3.length?`<div class="alerta"><span>⚠</span><span>${u0.length?`<b>${u0.length} unidad${u0.length>1?'es':''} sin devengado en el último día:</b> ${u0.map(u=>esc(u.n)).join(', ')}. <button type="button" data-c="ult0">Ver en el cuadro</button>`:''}${u0.length&&u3.length?'<br>':''}${u3.length?`<b>${u3.length} con 3 días hábiles o más sin devengar.</b> <button type="button" data-c="d3">Ver en el cuadro</button>`:''}</span></div>`
+  :'<div class="alerta ok"><span>✓</span><span>Todas las unidades con saldo registraron devengado en el último día.</span></div>';
+ document.querySelectorAll('#alerta button[data-c]').forEach(b=>b.onclick=()=>{chip=b.dataset.c;chips();tabla();document.getElementById('cuadro').scrollIntoView()});
+ diario();chips();tabla();procedencia();
+ document.getElementById('q').oninput=tabla;document.getElementById('bcsv').onclick=descargar;
 }
-// ---------- cuadro de seguimiento ----------
-const CHIPS=[['todas','Todas',u=>true],['sinav','Sin cambio en el devengado',u=>u.dd!=null&&Math.abs(u.dd)<0.5],['sube','Aumento del riesgo estimado',u=>u.dri!=null&&u.dri>0.5],['debajo','Muy por debajo de la referencia',u=>u.saldo_ini>0&&CLASE(u.avance,u.esperado)==='Muy'],['sinref','Sin referencia estadística',u=>!!sinRef(u)],['neg','Ajuste negativo del devengado',u=>u.dd!=null&&u.dd<-0.5],['sinprog','Sin programación registrada',u=>true],['pend','Datos pendientes de actualización',u=>u.dev_ant==null]];
-const DESC={todas:'todas las unidades',sinav:'sin cambio en el devengado entre cortes (un intervalo sin cambio no es por sí solo un incumplimiento)',sube:'con aumento del riesgo estimado entre cortes (la ficha explica de dónde viene el aumento)',debajo:'con avance menor al 60 % de la referencia estadística',sinref:'sin referencia estadística (la ficha indica el motivo)',neg:'con ajuste negativo del devengado entre cortes',sinprog:'sin programación registrada (todas, por ahora)',pend:'sin dato comparable del corte anterior'};
-let chip='todas',vista='seg',ord='riesgo',dir=-1;
-const COLS_SEG=[['Unidad ejecutora','n','t'],['Devengado entre cortes','dd','m'],['Saldo por devengar','saldo','m'],['Riesgo estimado al cierre','riesgo','m'],['Patrones 2023–2025','riesgo_hist','m'],['Avance del saldo vs. referencia','avr','a'],['Nivel de riesgo','nivr','t']];
-const COLS_PRE=[['Unidad ejecutora','n','t'],['PIM RO','pim','m'],['Variación del PIM','dpim','m'],['Certificado','cert','m'],['Sin certificar','no_cert','m'],['Saldo al 31/10','saldo_ini','m'],['Ejecución del PIM','ej','p'],['% del riesgo','pr','p']];
-function filas(){const T=D.total;return D.ues.map((u,k)=>({...u,i:k+1,n:nom(u),nivel:nivel(u),nivr:{Alto:3,Medio:2,Bajo:1}[nivel(u)],dd:u.dev_ant!=null?u.dev-u.dev_ant:null,dri:u.riesgo_ant!=null?u.riesgo-u.riesgo_ant:null,dsal:u.saldo_ant!=null?u.saldo-u.saldo_ant:null,dpim:u.pim_ant!=null?u.pim-u.pim_ant:null,ej:u.pim?u.dev/u.pim:0,pr:T.riesgo?u.riesgo/T.riesgo:0,avr:u.esperado>0?u.avance/u.esperado:null,...descomp(u)}))}
-// Variación del riesgo = variación del PIM − devengado entre cortes − variación de lo que el ritmo prevé devengar hasta el 31/12.
-// El tercer término recoge el menor tiempo restante y los supuestos del cálculo (ritmo, tope en el saldo, fuente). Los tres suman la variación total.
-function descomp(u){if(u.riesgo_ant==null||u.saldo_ant==null||u.dev_ant==null||u.pim_ant==null)return{ep:null,ed:null,et:null};
- const ep=u.pim-u.pim_ant,ed=-(u.dev-u.dev_ant),adi=u.saldo-u.riesgo,adiA=u.saldo_ant-u.riesgo_ant;return{ep,ed,et:-(adi-adiA)}}
-function filtradas(){const q=document.getElementById('q').value.trim().toLowerCase(),fn=document.getElementById('fn').value,f=CHIPS.find(c=>c[0]===chip)[2];
- let R=filas().filter(u=>f(u)&&(!fn||u.nivel===fn)&&(!q||(u.ue+' '+u.sec+' '+u.sigla).toLowerCase().includes(q)));
- R.sort((a,b)=>{const x=a[ord],y=b[ord];if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return(typeof x==='string'?x.localeCompare(y,'es'):x-y)*dir});return R}
-function chips(){const A=filas();document.getElementById('chips').innerHTML=CHIPS.map(([k,t,f])=>{const n=A.filter(f).length;return `<button type="button" data-k="${k}" aria-pressed="${k===chip}" ${n||k==='todas'?'':'disabled'}>${t} (${n})</button>`}).join('');
+function filas(){return D.ues.map(u=>({...u,n:nom(u),ej:u.pim?u.dev/u.pim:0}))}
+function filtradas(){const q=document.getElementById('q').value.trim().toLowerCase(),f=CHIPS.find(c=>c[0]===chip)[2];
+ return filas().filter(u=>f(u)&&(!q||(u.n+' '+u.ue+' '+u.sec).toLowerCase().includes(q))).sort((a,b)=>{const x=a[ord],y=b[ord];return ord==='n'?dir*String(x).localeCompare(y):dir*((x??-1e18)-(y??-1e18))})}
+function chips(){const A=filas();document.getElementById('chips').innerHTML=CHIPS.map(([k,t,f])=>{const n=A.filter(f).length;return`<button type="button" data-k="${k}" aria-pressed="${k===chip}" ${n||k==='todas'?'':'disabled'}>${t} (${n})</button>`}).join('');
  document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>{chip=b.dataset.k;chips();tabla()})}
-function tabla(){
- const cols=vista==='seg'?COLS_SEG:COLS_PRE,cab=document.getElementById('cab');
- if(!cols.some(c=>c[1]===ord)){ord='riesgo';dir=-1}
- cab.innerHTML=cols.map(([t,k,ty])=>`<th scope="col" class="${ty==='t'?'t':''}" aria-sort="${k===ord?(dir>0?'ascending':'descending'):'none'}"><button type="button" data-k="${k}">${t.replace('31/10',F5(D.parametros.fecha_base))} <span class="fl" aria-hidden="true"></span></button></th>`).join('');
- cab.querySelectorAll('button').forEach(b=>b.onclick=()=>{const k=b.dataset.k;dir=ord===k?-dir:(k==='n'?1:-1);ord=k;tabla();cab.querySelector(`[data-k="${k}"]`).focus()});
- const R=filtradas(),rk=u=>`<td class="t"><b>${esc(u.n)}</b> <span style="color:#5f6878;font-size:12px">(${u.sec})</span></td>`;
- const fila=u=>vista==='seg'?`${rk(u)}<td class="${u.dd<-0.5?'neg':''}">${u.dd==null?'Sin dato':M2(u.dd)}${u.dd<-0.5?'<span class="d up">ajuste negativo</span>':''}</td><td>${M(u.saldo)}${dlt(u.dsal)}</td><td><b>${M(u.riesgo)}</b>${dlt(u.dri)}</td><td>${u.riesgo_hist==null?'—':M(u.riesgo_hist)}<span class="rango">${u.rh_bajo!=null?`${M(u.rh_bajo)} a ${M(u.rh_alto)}`:''}</span></td><td>${u.saldo_ini>0?AV(u.avance,u.esperado):'No aplica'}</td><td class="t"><span class="nivel ${u.nivel}">${u.nivel}</span></td>`
-  :`${rk(u)}<td>${M(u.pim)}</td><td>${u.dpim==null?'Sin dato':Math.abs(u.dpim)<0.5?'Sin variación':M(u.dpim)}</td><td>${M(u.cert)}</td><td>${M(u.no_cert)}</td><td>${M(u.saldo_ini)}</td><td>${P(u.ej)}</td><td>${P(u.pr)}</td>`;
- document.getElementById('cuerpo').innerHTML=R.length?R.map(u=>`<tr tabindex="0" data-s="${u.sec}" aria-label="${esc(u.ue)}: abrir ficha" class="${u.sec===sel?'sel':''}">${fila(u)}</tr>`).join(''):`<tr><td class="t" colspan="${cols.length}">No hay unidades con este filtro.</td></tr>`;
- const s=k=>R.reduce((a,u)=>a+(u[k]||0),0),sdd=R.every(u=>u.dd==null)?null:s('dd');
- document.getElementById('pie').innerHTML=vista==='seg'?`<tr><td class="t">Total (${R.length})</td><td>${sdd==null?'—':M(sdd)}</td><td>${M(s('saldo'))}</td><td>${M(s('riesgo'))}</td><td>${M(s('riesgo_hist'))}</td><td>${s('saldo_ini')>0?P(s('dev_base')/s('saldo_ini')):'—'}</td><td></td></tr>`
-  :`<tr><td class="t">Total (${R.length})</td><td>${M(s('pim'))}</td><td>${M(s('dpim'))}</td><td>${M(s('cert'))}</td><td>${M(s('no_cert'))}</td><td>${M(s('saldo_ini'))}</td><td>${P(s('dev')/s('pim'))}</td><td>${P(s('riesgo')/D.total.riesgo)}</td></tr>`;
- // tarjetas para celular
- document.getElementById('tarjetas').innerHTML=R.map(u=>`<div class="tj" tabindex="0" role="button" data-s="${u.sec}" aria-label="${esc(u.ue)}: abrir ficha"><h4><span>${esc(u.n)}</span><span class="nivel ${u.nivel}">${u.nivel}</span></h4><dl><dt>Devengado entre cortes</dt><dd class="${u.dd<-0.5?'neg':''}">${u.dd==null?'Sin dato':M(u.dd)}</dd><dt>Saldo por devengar</dt><dd>${M(u.saldo)}</dd><dt>Riesgo estimado</dt><dd>${M(u.riesgo)}</dd><dt>Avance del saldo</dt><dd>${u.saldo_ini>0?(u.esperado>0?`Avance: ${P(u.avance)} · Referencia: ${P(u.esperado)} · ${CORTO[CLASE(u.avance,u.esperado)]}`:`${P(u.avance)} · Sin referencia`):'No aplica'}</dd></dl></div>`).join('')||'<p class="nota">No hay unidades con este filtro.</p>';
- const colN=cols.find(c=>c[1]===ord)?.[0]||ord;
- document.getElementById('criterio').textContent=`Mostrando ${R.length} de ${D.ues.length} unidades · filtro: ${DESC[chip]}${document.getElementById('fn').value?` · nivel de riesgo ${document.getElementById('fn').value.toLowerCase()}`:''}${document.getElementById('q').value?` · búsqueda «${document.getElementById('q').value}»`:''} · orden: ${colN.replace('31/10',F5(D.parametros.fecha_base))}, ${dir>0?'de menor a mayor':'de mayor a menor'}.`;
- document.getElementById('nota-cuadro').innerHTML=`Nivel de riesgo = riesgo estimado ÷ PIM RO: alto, más de 15 %; medio, 5 % a 15 %; bajo, menos de 5 %. «Patrones 2023–2025»: valor central y rango. Avance frente a la referencia: alcanza el umbral si llega al 90 % de la referencia; por debajo, del 60 % al 90 %; muy por debajo, menos del 60 %. No equivale a cumplir una meta. «Sin dato»: la unidad no tiene corte anterior comparable; «S/ 0»: no hubo variación; los importes menores a S/ 50,000 se muestran en soles. El seguimiento de acciones (responsable, fecha, evidencia) se habilitará cuando exista un registro con usuarios autorizados.`;
- document.querySelectorAll('#cuerpo tr[data-s],#tarjetas [data-s]').forEach(el=>{el.onclick=()=>detalle(el.dataset.s,true);el.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();detalle(el.dataset.s,true)}}});
-}
-document.getElementById('q').oninput=tabla;document.getElementById('fn').onchange=tabla;
-document.getElementById('v-seg').onclick=()=>{vista='seg';document.getElementById('v-seg').setAttribute('aria-pressed','true');document.getElementById('v-pre').setAttribute('aria-pressed','false');tabla()};
-document.getElementById('v-pre').onclick=()=>{vista='pre';document.getElementById('v-pre').setAttribute('aria-pressed','true');document.getElementById('v-seg').setAttribute('aria-pressed','false');tabla()};
-document.getElementById('exp').onclick=()=>{const R=filtradas();csv(`control_RO_unidades_${D.corte}.csv`,metaCSV([`Filtros: ${document.getElementById('criterio').textContent}`]),
- ['Codigo','Unidad ejecutora','Nivel de riesgo','PIM','Variacion del PIM','Certificado','Sin certificar','Devengado','Devengado entre cortes','Saldo por devengar','Variacion del saldo','Riesgo estimado (ejecucion reciente)','Variacion del riesgo','Efecto de la variacion del PIM','Efecto del devengado entre cortes','Efecto del tiempo restante y supuestos','Riesgo segun patrones 2023-2025','Rango bajo','Rango alto',`Saldo al ${F(D.parametros.fecha_base)}`,'Avance del saldo','Referencia estadistica','Clasificacion frente a la referencia','Motivo sin referencia'],
- R.map(u=>[u.sec,u.ue,u.nivel,u.pim,u.dpim,u.cert,u.no_cert,u.dev,u.dd,u.saldo,u.dsal,u.riesgo,u.dri,u.ep,u.ed,u.et,u.riesgo_hist,u.rh_bajo,u.rh_alto,u.saldo_ini,u.avance,u.esperado,u.saldo_ini>0?CORTO[CLASE(u.avance,u.esperado)]:'no aplica',sinRef(u)||'']))};
-// ---------- riesgo ----------
-function contexto(){const T=D.total,el=document.getElementById('ctx');
- let h=`<div class="ctx"><div><span class="tg">Escenario según ejecución reciente</span><b>${M(T.riesgo)}</b><small>Si cada unidad mantiene el ritmo de ${D.parametros.meses_ritmo.map(m=>MESES[m-1]).join(', ')}. Es el que ordena el ranking.</small></div>`;
- if(T.riesgo_hist!=null)h+=`<div><span class="tg">Escenario según patrones de 2023–2025</span><b>${M(T.riesgo_hist)}</b><small>Rango: ${M(T.rh_bajo)} a ${M(T.rh_alto)}. Aplica al saldo actual lo que se devengó en esos años entre esta fecha y el 31/12.</small></div>`;
- if(REF&&REF.pruebas)REF.pruebas.forEach(p=>{h+=`<div><span class="tg">Prueba con ${p.anio}, misma fecha</span><b>${M(p.estimado)} → ${M(p.real)}</b><small>El escenario según ejecución reciente estimó ${M(p.estimado)} de RO sin devengar; el saldo RO real al 31/12 fue ${M(p.real)}.</small></div>`});
- h+='</div><p class="nota">Ninguno de los dos escenarios es un límite: en 2024 y 2025 el saldo final fue menor. La cifra de cierre debe construirse con la programación documentada de cada unidad.</p>';
- el.innerHTML=h}
-// ---------- procedencia y revisiones ----------
-function revisiones(){
- const par=D.parametros,pr=par.procedencia||[{componente:'Cifras del día por unidad',fuente:par.fuente+' al '+F(D.corte)},{componente:'Ritmo, detalle por meta y genérica, devengado mensual',fuente:'Datos Abiertos al '+F(par.corte_detalle||D.corte)}];
- document.getElementById('procedencia').innerHTML=`<p id="procedencia-t"><b>Procedencia de cada componente del corte ${F(D.corte)}.</b> Se genera con cada actualización; la cabecera y las fichas usan esta misma información.</p>
- <table class="rev"><thead><tr><th scope="col">Componente</th><th scope="col">Fuente usada</th></tr></thead><tbody>${pr.map(x=>`<tr><td>${esc(x.componente)}</td><td>${esc(x.fuente)}</td></tr>`).join('')}</tbody></table>
- <p class="nota">La Consulta Amigable se usa para las cifras del día solo cuando trae un corte más reciente que Datos Abiertos. Método vigente: ${esc(par.metodo||(REV&&REV.metodo_vigente)||'—')}.</p>`;
- const el=document.getElementById('revtab');if(!REV){el.innerHTML='<p class="nota">No se pudo cargar el registro de revisiones.</p>';return}
- const hora=t=>{const[d,h]=(t||'').split('T');return d?`${F(d)}${h?' '+h:''}`:'—'};
- const filas=[...REV.revisiones].reverse();
- const primera=REV.primera_publicacion||{};
- el.innerHTML=`<p class="ps">Cuando un corte ya publicado vuelve a publicarse con otras cifras, aquí queda la fecha, el motivo y el efecto. Los valores con que cada corte se publicó por primera vez se conservan.</p>
- <div class="tabla" style="max-height:none"><table class="rev"><thead><tr><th scope="col">Registrado</th><th scope="col">Corte</th><th scope="col">Indicador</th><th scope="col" class="n">Antes</th><th scope="col" class="n">Después</th><th scope="col" class="n">Efecto</th><th scope="col">Motivo</th></tr></thead><tbody>
- ${filas.length?filas.map(x=>`<tr><td>${hora(x.registrado)}</td><td>${F(x.corte)}</td><td>${esc(x.indicador)}</td><td class="n">${x.antes==null?'Sin dato':M(x.antes)}</td><td class="n">${x.despues==null?'Sin dato':M(x.despues)}</td><td class="n">${x.antes==null||x.despues==null?'—':(x.despues>=x.antes?'+':'')+M(x.despues-x.antes).replace('−','−')}</td><td>${esc(x.motivo)}</td></tr>`).join(''):'<tr><td colspan="7">Sin revisiones.</td></tr>'}</tbody></table></div>
- <details class="valores"><summary>Ver los valores publicados por primera vez en cada corte</summary><table class="ttab"><thead><tr><th scope="col">Corte</th><th scope="col">Publicado</th><th scope="col">Fuente</th><th scope="col">Devengado</th><th scope="col">Saldo</th><th scope="col">Riesgo (ejecución reciente)</th><th scope="col">Patrones 2023–2025</th></tr></thead><tbody>${Object.entries(primera).sort().map(([c,v])=>`<tr><td>${F(c)}</td><td>${hora(v.publicado)}</td><td>${esc(v.fuente||'—')}</td><td>${M(v.DEVENGADO)}</td><td>${M(v.saldo)}</td><td>${M(v.riesgo)}</td><td>${v.riesgo_hist==null?'Sin dato':M(v.riesgo_hist)}</td></tr>`).join('')}</tbody></table></details>
- ${(REV.metodos||[]).length?`<details class="valores"><summary>Ver las versiones del método</summary><ul>${REV.metodos.map(m=>`<li><b>${esc(m.version)}</b> (desde el ${F(m.desde)}): ${esc(m.cambio)}</li>`).join('')}</ul></details>`:''}`;
- // aviso arriba si el corte vigente fue revisado
- const rc=REV.revisiones.filter(x=>x.corte===D.corte&&x.antes!=null&&x.despues!=null&&/^Riesgo estimado/.test(x.indicador));
- if(rc.length){const x=rc[rc.length-1],v=document.getElementById('vigencia');
-  v.insertAdjacentHTML('beforeend',aviso(`<b>Cifras del corte ${F(D.corte)} revisadas el ${hora(x.registrado)}:</b> el riesgo estimado (ejecución reciente) pasó de ${M(x.antes)} a ${M(x.despues)}. <small>${esc(x.motivo)} <a href="#revisiones">Ver todas las revisiones</a></small>`,'',I_INFO))}
-}
-// ---------- reloj de la próxima revisión del MEF ----------
-// La tarea automática revisa a los :23 de cada hora, de 7:23 a 23:23 (hora de Lima). GitHub puede demorar el inicio unos minutos.
-function proximaRevision(now){const L=new Date(now.getTime()-5*36e5);   // Lima no tiene horario de verano: UTC−5 todo el año
+function tabla(){const R=filtradas();
+ document.getElementById('cab').innerHTML=COLS.map(([k,t,c])=>`<th class="${c||''}" scope="col" aria-sort="${ord===k?(dir<0?'descending':'ascending'):'none'}" data-k="${k}">${t}${ord===k?(dir<0?' ↓':' ↑'):''}</th>`).join('');
+ document.querySelectorAll('#cab th').forEach(th=>th.onclick=()=>{const k=th.dataset.k;dir=ord===k?-dir:(k==='n'?1:-1);ord=k;tabla()});
+ document.getElementById('cuerpo').innerHTML=R.map(u=>{const r=PASO(u),mal=(u.ult!=null&&u.ult<=0.5&&u.saldo>0.5)||u.dias_sin>=3;
+  return`<tr class="${mal?'alerta-f':''}" data-s="${u.sec}" tabindex="0"><td class="t" title="${esc(u.ue)}">${esc(u.n)}</td><td>${M(u.pim)}</td><td>${P(u.ej)}</td><td>${M(u.saldo)}</td><td><b>${M(u.riesgo)}</b></td>
+  <td>${M(u.nec_sem)}</td><td>${M(u.real_sem)}${r!=null?`<span class="mini" title="${P(r)} de lo necesario"><i style="width:${Math.min(100,100*r)}%;background:${colR(r)}"></i></span>`:''}</td>
+  <td class="${u.ult!=null&&u.ult<=0.5&&u.saldo>0.5?'cero':''}">${u.ult==null?'—':M(u.ult)}</td><td>${DIAS(u)}</td></tr>`}).join('')||`<tr><td class="t" colspan="9">Ninguna unidad cumple el filtro.</td></tr>`;
+ const s=k=>R.reduce((a,u)=>a+(u[k]||0),0);
+ document.getElementById('pie').innerHTML=`<tr><td class="t">Total (${R.length})</td><td>${M(s('pim'))}</td><td>${P(s('dev')/s('pim'))}</td><td>${M(s('saldo'))}</td><td>${M(s('riesgo'))}</td><td>${M(s('nec_sem'))}</td><td>${M(s('real_sem'))}</td><td>${M(s('ult'))}</td><td></td></tr>`;
+ document.querySelectorAll('#cuerpo tr[data-s]').forEach(tr=>{tr.onclick=()=>detalle(tr.dataset.s,true);tr.onkeydown=e=>{if(e.key==='Enter')detalle(tr.dataset.s,true)}});
+ document.getElementById('ncuadro').textContent=`${R.length} de ${D.ues.length} unidades. En rojo: sin devengado en el último día o con 3 días hábiles o más sin devengar. Elija una unidad para ver su detalle.`}
+function diario(){const S=D.semana||{},C=(S.cortes||[]).slice(-20),el=document.getElementById('dia');
+ if(!C.length){el.innerHTML='<p class="nota">Aparecerá cuando haya dos cortes.</p>';return}
+ const nd=S.dias_habiles?D.total.saldo/S.dias_habiles:0,V=C.map(([f,v,d])=>({f,v:d?v/d:v,d})),mx=Math.max(nd,...V.map(x=>x.v),1);
+ const W=1100,H=190,l=8,b=24,bw=Math.min(54,(W-l*2)/V.length*0.6),gx=(W-l*2)/V.length,y=v=>H-b-(H-b-18)*Math.max(0,v)/mx;
+ el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Devengado por día hábil frente a lo necesario">
+ ${V.map((x,i)=>{const cx=l+gx*i+gx/2;return`<rect x="${cx-bw/2}" y="${y(x.v)}" width="${bw}" height="${H-b-y(x.v)}" rx="3" fill="${colR(nd?x.v/nd:1)}"><title>${F(x.f)}: ${M(x.v)} por día${x.d>1?' (promedio de '+x.d+' días hábiles)':''}</title></rect><text x="${cx}" y="${y(x.v)-5}" text-anchor="middle" font-size="12" fill="#13294b" font-weight="600">${M(x.v).replace('S/ ','')}</text><text x="${cx}" y="${H-6}" text-anchor="middle" font-size="12" fill="#5f6878">${F5(x.f)}</text>`}).join('')}
+ <line x1="${l}" x2="${W-l}" y1="${y(nd)}" y2="${y(nd)}" stroke="#13294b" stroke-dasharray="5 4" stroke-width="1.5"/><text x="${W-l}" y="${y(nd)-6}" text-anchor="end" font-size="12.5" fill="#13294b" font-weight="700">Necesario por día: ${M(nd)}</text></svg>
+ <p class="nota">Cada barra es lo devengado en un corte (promedio por día hábil si el corte abarca más de uno).</p>`}
+function detalle(s,ir){const u=filas().find(x=>x.sec===s);if(!u)return;sel=s;const sec=document.getElementById('detalle'),el=document.getElementById('det');sec.hidden=false;
+ const r=PASO(u),G=Object.entries(u.gen||{}).sort((a,b)=>b[1][3]-a[1][3]);
+ const L=PJ?(PJ.ues[s]||[]).slice().sort((a,b)=>b.ri-a.ri).slice(0,12):null;
+ el.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><h3>${esc(u.ue)}</h3><p class="nota" style="margin:2px 0 0">Unidad ejecutora ${esc(u.sec)} · Recursos Ordinarios · datos al ${F(D.corte)}</p></div><button class="btn" type="button" id="volver">Volver al cuadro</button></div>
+ <div class="f6"><div><span>PIM vigente</span><b>${M(u.pim)}</b></div><div><span>Devengado</span><b>${M(u.dev)}</b></div><div><span>Saldo por devengar</span><b>${M(u.saldo)}</b></div><div><span>Saldo proyectado al 31/12</span><b>${M(u.riesgo)}</b></div><div><span>Sin certificar</span><b>${M(u.no_cert)}</b></div><div><span>Último día</span><b>${u.ult==null?'—':M(u.ult)}</b></div></div>
+ <p style="margin:0">Necesita devengar <b>${M(u.nec_sem)}</b> por semana y devenga <b>${M(u.real_sem)}</b> (${P(r)} de lo necesario). Días hábiles sin devengar: ${DIAS(u)}</p>
+ ${G.length?`<h4>Por genérica de gasto</h4><div class="tabla" style="max-height:none"><table><thead><tr><th class="t">Genérica</th><th>PIM</th><th>Devengado</th><th>Saldo por devengar</th><th>Saldo proyectado al 31/12</th></tr></thead><tbody>${G.map(([g,v])=>`<tr style="cursor:default"><td class="t">${esc(GEN[g]||g)}</td><td>${M(v[0])}</td><td>${M(v[1])}</td><td>${M(v[2])}</td><td><b>${M(v[3])}</b></td></tr>`).join('')}</tbody></table></div>`:''}
+ <h4>Productos y proyectos con mayor saldo proyectado</h4>${L==null?'<p class="nota">Cargando…</p>':L.length?`<div class="tabla" style="max-height:none"><table><thead><tr><th class="t">Producto, actividad o proyecto</th><th>PIM</th><th>Saldo por devengar</th><th>Saldo proyectado al 31/12</th></tr></thead><tbody>${L.map(x=>`<tr style="cursor:default"><td class="t">${esc(x.n)} <span class="nota">(${x.t==='P'?'CUI ':''}${esc(x.c)})</span></td><td>${M(x.pim)}</td><td>${M(x.s)}</td><td><b>${M(x.ri)}</b></td></tr>`).join('')}</tbody></table></div><p class="nota">Los 12 de mayor saldo proyectado de ${(PJ.ues[s]||[]).length}.</p>`:'<p class="nota">Sin detalle.</p>'}`;
+ document.getElementById('volver').onclick=()=>{sec.hidden=true;sel=null;document.getElementById('cuadro').scrollIntoView()};
+ if(ir){sec.scrollIntoView();el.focus({preventScroll:true})}}
+function buscador(){const inp=document.getElementById('bq'),el=document.getElementById('bres');const un=Object.fromEntries(filas().map(u=>[u.sec,u]));
+ const L=Object.entries(PJ.ues).flatMap(([ue,l])=>l.filter(x=>x.t==='P').map(x=>({...x,ue})));
+ const st=t=>String(t).normalize('NFD').replace(/[̀-ͯ]/g,'').toLowerCase();
+ const go=()=>{const q=st(inp.value.trim());if(q.length<2){el.innerHTML=`<p class="nota">${L.length} proyectos con Recursos Ordinarios. Escriba al menos 2 caracteres.</p>`;return}
+  const R=L.filter(x=>st(x.c+' '+x.n).includes(q)).sort((a,b)=>b.ri-a.ri);
+  el.innerHTML=R.length?`<div class="tabla" style="max-height:none"><table><thead><tr><th>CUI</th><th class="t">Proyecto</th><th class="t" style="position:static">Unidad</th><th>Saldo por devengar</th><th>Saldo proyectado al 31/12</th></tr></thead><tbody>${R.slice(0,8).map(x=>`<tr data-ue="${x.ue}"><td>${esc(x.c)}</td><td class="t" style="white-space:normal;min-width:240px;position:static">${esc(x.n)}</td><td class="t" style="position:static">${esc(un[x.ue]?un[x.ue].n:x.ue)}</td><td>${M(x.s)}</td><td><b>${M(x.ri)}</b></td></tr>`).join('')}</tbody></table></div><p class="nota">${R.length>8?`8 de ${R.length} coincidencias. Precise la búsqueda.`:`${R.length} coincidencia${R.length>1?'s':''}.`} Elija una fila para ver su unidad.</p>`:'<p class="nota">No se encontró ningún proyecto con ese CUI o nombre.</p>';
+  el.querySelectorAll('tr[data-ue]').forEach(tr=>tr.onclick=()=>detalle(tr.dataset.ue,true))};
+ inp.oninput=go;go()}
+function descargar(){const R=filtradas(),q=v=>{const s=v==null?'':String(v);return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s};
+ const meta=[`${D.pliego} · Recursos Ordinarios`,`Datos al ${F(D.corte)} · fuente ${D.parametros.fuente} del MEF`,`Filtro: ${CHIPS.find(c=>c[0]===chip)[1]}`,`Días calendario al 31/12: ${D.semana.dias_cal} · días hábiles: ${D.semana.dias_habiles} · ritmo real: ${D.semana.base}`,'Importes en soles, sin redondear'];
+ const cab=['Código','Unidad ejecutora','PIM vigente','Devengado','Ejecución','Saldo por devengar','Saldo proyectado al 31/12','Sin certificar','Necesita por semana','Devenga por semana','Último día','Días hábiles sin devengar'];
+ const F_=R.map(u=>[u.sec,u.ue,u.pim,u.dev,(u.ej*100).toFixed(2)+'%',u.saldo,u.riesgo,u.no_cert,u.nec_sem,u.real_sem,u.ult,(u.dias_sin_tipo==='min'?'≥':'')+u.dias_sin]);
+ const t='﻿'+[...meta.map(m=>[m]),[],cab,...F_].map(f=>f.map(q).join(';')).join('\n');const a=document.createElement('a');
+ a.href=URL.createObjectURL(new Blob([t],{type:'text/csv;charset=utf-8'}));a.download=`control_ro_${D.corte}.csv`;document.body.appendChild(a);a.click();a.remove()}
+function procedencia(){const L=D.parametros.procedencia||[];if(!L.length)return;
+ document.getElementById('procedencia').innerHTML=`<h4 style="color:var(--navy);margin:14px 0 4px">De dónde sale cada cifra</h4><table class="mtab"><tbody>${L.map(x=>`<tr><td>${esc(x.componente)}</td><td>${esc(x.fuente)}</td></tr>`).join('')}</tbody></table>`}
+function revisiones(){const L=(REV&&REV.revisiones||D.revisiones_corte||[]).slice(-8);if(!L.length)return;
+ document.getElementById('revisiones').innerHTML=`<h4 style="color:var(--navy);margin:14px 0 4px">Cifras revisadas después de publicadas</h4><table class="mtab"><thead><tr><th>Corte</th><th>Indicador</th><th>Antes</th><th>Después</th><th>Motivo</th></tr></thead><tbody>${L.map(x=>`<tr><td>${F(x.corte)}</td><td>${esc(x.indicador)}</td><td>${M(x.antes)}</td><td>${M(x.despues)}</td><td>${esc(x.motivo)}</td></tr>`).join('')}</tbody></table>`}
+// ---------- reloj de la próxima revisión del MEF (la tarea revisa a los :23, de 7:23 a 23:23, hora de Lima) ----------
+function proximaRevision(now){const L=new Date(now.getTime()-5*36e5);
  for(let d=0;d<2;d++)for(let h=7;h<=23;h++){const t=Date.UTC(L.getUTCFullYear(),L.getUTCMonth(),L.getUTCDate()+d,h,23)+5*36e5;if(t>now.getTime())return new Date(t)}}
 function reloj(){const el=document.getElementById('radar');if(!el||!D)return;el.hidden=false;
  const svg=`<svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1f8f6a" stop-opacity="0"/><stop offset="1" stop-color="#1f8f6a" stop-opacity=".55"/></linearGradient></defs><circle cx="20" cy="20" r="18" fill="#eef6f2" stroke="#1f8f6a" stroke-opacity=".35"/><circle cx="20" cy="20" r="11.5" fill="none" stroke="#1f8f6a" stroke-opacity=".25"/><circle cx="20" cy="20" r="5" fill="none" stroke="#1f8f6a" stroke-opacity=".2"/><circle class="eco" cx="20" cy="20" r="18" fill="none" stroke="#1f8f6a" stroke-width="1.2"/><g class="barrido"><path d="M20 20 L20 2 A18 18 0 0 1 35.6 11 Z" fill="url(#rg)"/><line x1="20" y1="20" x2="20" y2="2" stroke="#0f7a62" stroke-width="1.6"/></g><circle cx="20" cy="20" r="2" fill="#0f7a62"/></svg>`;
  el.innerHTML=svg+'<span><span class="rd-t">Próxima revisión del MEF</span><span class="rd-b" id="rd-b">--:--</span> <span id="rd-h"></span></span>';
- let meta=proximaRevision(new Date()),pasada=(()=>{let c=proximaRevision(new Date(Date.now()-18*36e5)),n;while((n=proximaRevision(new Date(c.getTime()+1000)))<=new Date())c=n;return c<=new Date()?c:null})(),base=D.actualizado,vigilando=0,hay=false;
+ let meta=proximaRevision(new Date()),pasada=(()=>{let c=proximaRevision(new Date(Date.now()-18*36e5)),n;while((n=proximaRevision(new Date(c.getTime()+1000)))<=new Date())c=n;return c<=new Date()?c:null})(),base=D.actualizado,vig=0,hay=false;
  const tic=()=>{const now=new Date(),b=document.getElementById('rd-b'),h=document.getElementById('rd-h');if(!b||hay)return;
   if(now>=meta){pasada=meta;meta=proximaRevision(new Date(meta.getTime()+1000))}
-  const tras=pasada?(now-pasada)/6e4:1e9;                       // minutos desde la última revisión programada
-  // Durante 45 minutos después de cada revisión se consulta cada minuto si hay datos nuevos (la actualización completa tarda 10 a 40 min).
-  if(tras<45&&now-vigilando>60000){vigilando=+now;fetch('datos.json?'+Date.now()).then(r=>r.json()).then(j=>{if(j.actualizado!==base){hay=true;el.classList.remove('activo');b.textContent='Datos nuevos';h.innerHTML='<button class="nuevo" type="button" onclick="location.reload()">Actualizar la página</button>'}}).catch(()=>{})}
-  if(tras<10){el.classList.add('activo');b.textContent='Revisando';h.textContent='· si el MEF publicó datos nuevos, aquí aparecerá el aviso'}
+  const tras=pasada?(now-pasada)/6e4:1e9;
+  if(tras<45&&now-vig>60000){vig=+now;fetch('datos.json?'+Date.now()).then(r=>r.json()).then(j=>{if(j.actualizado!==base){hay=true;el.classList.remove('activo');b.textContent='Datos nuevos';h.innerHTML='<button class="nuevo" type="button" onclick="location.reload()">Actualizar la página</button>'}}).catch(()=>{})}
+  if(tras<10){el.classList.add('activo');b.textContent='Revisando';h.textContent=''}
   else{el.classList.remove('activo');const seg=Math.max(0,Math.round((meta-now)/1000)),hh=Math.floor(seg/3600),mm=Math.floor(seg%3600/60),ss=seg%60;
    b.textContent=(hh?hh+':'+String(mm).padStart(2,'0'):mm)+':'+String(ss).padStart(2,'0');
    const hora=meta.toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'numeric',minute:'2-digit'});h.textContent='· a las '+hora;el.setAttribute('aria-label','Próxima revisión del MEF a las '+hora)}};
  tic();setInterval(tic,1000)}
-// ---------- buscador de proyectos (por CUI o nombre, sin saber la unidad) ----------
-function buscador(){const inp=document.getElementById('bq'),el=document.getElementById('bres');if(!inp||!el||!PJ)return;
- const un=Object.fromEntries(D.ues.map(u=>[u.sec,u]));
- const L=Object.entries(PJ.ues).flatMap(([ue,l])=>l.filter(x=>x.t==='P').map(x=>({...x,ue})));
- const sinTilde=t=>String(t).normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase();
- const pintarB=()=>{const q=sinTilde(inp.value.trim());
-  if(q.length<2){el.innerHTML=`<p class="nota">${L.length} proyectos con Recursos Ordinarios en ${new Set(L.map(x=>x.ue)).size} unidades. Escriba al menos 2 caracteres.</p>`;return}
-  const R=L.filter(x=>sinTilde(x.c+' '+x.n).includes(q)).sort((a,b)=>b.ri-a.ri);
-  if(!R.length){el.innerHTML='<p class="nota">No se encontró ningún proyecto con ese CUI o nombre.</p>';return}
-  el.innerHTML=`<div class="tabla" style="max-height:none"><table><thead><tr><th scope="col">CUI</th><th class="t" scope="col">Proyecto</th><th class="t" scope="col">Unidad ejecutora</th><th scope="col">Saldo por devengar</th><th scope="col">Riesgo estimado</th><th scope="col"><span class="sr" style="position:absolute;left:-9999px">Acción</span></th></tr></thead><tbody>${R.slice(0,8).map(x=>`<tr style="cursor:default"><td>${esc(x.c)}</td><td class="t" style="min-width:240px;white-space:normal">${esc(x.n)}</td><td class="t">${esc(un[x.ue]?nom(un[x.ue]):x.ue)}</td><td>${M(x.s)}</td><td><b>${M(x.ri)}</b></td><td><button class="btn" type="button" data-ue="${x.ue}">Ver la unidad</button></td></tr>`).join('')}</tbody></table></div><p class="nota">${R.length>8?`Se muestran 8 de ${R.length} coincidencias, por riesgo estimado. Precise la búsqueda.`:`${R.length} coincidencia${R.length>1?'s':''}, por riesgo estimado.`}</p>`;
-  el.querySelectorAll('button[data-ue]').forEach(b=>b.onclick=()=>detalle(b.dataset.ue,true))};
- inp.oninput=pintarB;pintarB()}
-// ---------- evolución ----------
-function linea(el,fechas,series,fmt=M,alto=230){
- const W=560,H=alto,pl=58,pr=16,pt=26,pb=34,vals=series.flatMap(s=>s.v).filter(v=>v!=null),[mx,pso]=escala(Math.max(...vals)*1.12||1),nt=Math.round(mx/pso);
- const x=i=>fechas.length<2?pl+(W-pl-pr)/2:pl+i*(W-pl-pr)/(fechas.length-1),y=v=>pt+(H-pt-pb)*(1-v/mx);
- const gap=fechas.map((f,i)=>i&&((new Date(f)-new Date(fechas[i-1]))/864e5>(new Date(fechas[i-1]).getUTCDay()===5?3:1)));
- let g='';for(let k=0;k<=nt;k++){const v=pso*k;g+=`<line x1="${pl}" x2="${W-pr}" y1="${y(v)}" y2="${y(v)}" stroke="#e6e9f0"/><text x="${pl-8}" y="${y(v)+4}" font-size="11" text-anchor="end" fill="#5f6878">${fmt===M?(v/1e6).toLocaleString('en-US',{maximumFractionDigits:0}):(100*v).toFixed(0)+' %'}</text>`}
- const paso=Math.ceil(fechas.length/6);fechas.forEach((f,i)=>{if(i%paso===0||i===fechas.length-1)g+=`<text x="${x(i)}" y="${H-12}" font-size="11" text-anchor="middle" fill="#5f6878">${F5(f)}</text>`});
- series.forEach(s=>{for(let i=1;i<s.v.length;i++){if(s.v[i]==null||s.v[i-1]==null)continue;g+=`<line x1="${x(i-1)}" y1="${y(s.v[i-1])}" x2="${x(i)}" y2="${y(s.v[i])}" stroke="${s.c}" stroke-width="2.5" ${(s.dash||gap[i])?'stroke-dasharray="6 5"':''}/>`}
-  g+=s.v.map((v,i)=>v==null?'':`<circle cx="${x(i)}" cy="${y(v)}" r="4" fill="${s.c}"><title>${s.n} ${F(fechas[i])}: ${fmt(v)}</title></circle>`).join('');
-  const k=s.v.length-1,si=series.indexOf(s);if(s.v[k]!=null)g+=`<text x="${x(k)}" y="${y(s.v[k])+(si%2?17:-9)}" font-size="11.5" font-weight="600" text-anchor="end" fill="${s.c}">${fmt(s.v[k])}</text>`});
- const tabla=`<details class="valores"><summary>Ver los valores de cada corte</summary><table class="ttab"><thead><tr><th scope="col">Corte</th>${series.map(s=>`<th scope="col">${s.n}</th>`).join('')}</tr></thead><tbody>${fechas.map((f,i)=>`<tr><td>${F(f)}${gap[i]?' · tras un intervalo sin corte':''}</td>${series.map(s=>`<td>${s.v[i]==null?'Sin dato':fmt(s.v[i])}</td>`).join('')}</tr>`).join('')}</tbody></table></details>`;
- el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Evolución por fecha de corte; los valores están en la tabla que sigue">${g}<text x="${pl}" y="12" font-size="10.5" fill="#5f6878">${fmt===M?'Millones de soles':'Porcentaje del saldo'}</text></svg><div class="ley">${series.map(s=>`<span style="--c:${s.c}">${s.n}</span>`).join('')}</div>${fechas.length<2?'<p class="nota">La línea se dibuja desde el segundo corte.</p>':''}${tabla}`;
-}
-function evolucion(){
- const ss=[{n:'Saldo por devengar',v:D.serie.saldo,c:'#13294b'},{n:'Riesgo estimado (ejecución reciente)',v:D.serie.riesgo,c:'#d99a06'}];
- if(D.serie.riesgo_hist&&D.serie.riesgo_hist.some(v=>v!=null))ss.push({n:'Riesgo según patrones 2023–2025',v:D.serie.riesgo_hist,c:'#2f80ed',dash:1});
- linea(document.getElementById('graf'),D.fechas,ss);
-}
-// ---------- por qué cambió el riesgo estimado ----------
-function fichaRiesgo(u){if(u.et==null||u.dri==null)return'';
- const tot=u.ep+u.ed+u.et,ok=Math.abs(tot-u.dri)<1,dd=u.dev-u.dev_ant;
- const fz=D.fuentes||[],fa=fz[fz.length-2],fb=fz[fz.length-1],cambioFuente=!!(fa&&fb&&fa!==fb);
- let txt;
- if(Math.abs(u.dri)<0.5)txt='El riesgo estimado no cambió entre cortes.';
- else if(u.dri>0&&u.et>0.5&&dd>0.5)txt=`La unidad devengó ${M(dd)} entre cortes. Con menos tiempo hasta el 31/12, el cálculo ya contaba con que devengara unos ${M(u.et)} en ese lapso según su ritmo reciente. Como devengó menos, la estimación sube. Esto no demuestra por sí solo falta de ejecución: planillas, entregas y valorizaciones se concentran en ciertas fechas.`;
- else if(u.dri>0&&dd<=0.5)txt=`No hubo devengado entre cortes${dd<-0.5?' (hubo un ajuste negativo)':''} y queda menos tiempo hasta el 31/12; por eso la estimación sube.`;
- else if(u.dri>0)txt='El aumento viene de la variación del PIM o de un cambio en los supuestos del cálculo, como se ve en el cuadro.';
- else if(dd>0.5&&dd>u.et)txt=`El devengado entre cortes (${M(dd)}) superó lo que el ritmo reciente preveía para ese lapso; por eso la estimación baja.`;
- else txt='La estimación baja por los componentes que muestra el cuadro.';
- if(Math.abs(u.ep)>=0.5)txt+=` El PIM cambió en ${M(u.ep)}, lo que también mueve el saldo y el riesgo.`;
- return `<h4 style="margin:12px 0 4px;color:var(--navy)">Por qué cambió el riesgo estimado</h4><p class="ps" style="margin:0 0 4px">${txt} <b>Causa por verificar con la unidad.</b></p>
- <table class="descomp"><tbody><tr><td>Variación del PIM</td><td>${MS(u.ep)}</td></tr><tr><td>Efecto del devengado entre cortes (un devengado positivo lo reduce; un ajuste negativo lo aumenta)</td><td>${MS(u.ed)}</td></tr><tr><td>Menor tiempo restante y supuestos del cálculo (ritmo, tope en el saldo${cambioFuente?', cambio de fuente entre cortes':''})</td><td>${MS(u.et)}</td></tr><tr><td>Variación del riesgo estimado${ok?'':' (no concilia: revisar)'}</td><td>${MS(u.dri)}</td></tr></tbody></table>
- <p class="nota" style="margin-top:2px">Riesgo = saldo − lo que el ritmo reciente prevé devengar hasta el 31/12. Por eso su variación = variación del PIM − devengado entre cortes − variación de lo previsto. Los tres términos suman la variación total.</p>`}
-// ---------- ficha de la unidad ----------
-function detalle(s,ir){
- const u=filas().find(x=>x.sec===s);if(!u)return;if(sel!==s){uq='';uver=15;usolo=false;uord='ri';udir=-1}sel=s;tabla();
- const sec=document.getElementById('detalle');sec.hidden=false;const S=D.serie_ue[s]||{saldo:[],riesgo:[]};
- const gens=Object.entries(u.gen).sort((a,b)=>b[1][3]-a[1][3]),ant=D.corte_anterior;
- const et=[['Sin certificar',u.pim-u.cert],['Certificado sin compromiso',u.cert-u.comp],['Comprometido sin devengar',u.comp-u.dev]];
- document.getElementById('det').innerHTML=`<p class="volver"><button class="btn" type="button" id="volver">← Volver al cuadro</button></p>
- <div class="det-cab"><h3>${esc(u.ue)}</h3><span class="nivel ${u.nivel}">Nivel de riesgo ${u.nivel.toLowerCase()}</span></div>
- <p class="ps" style="margin:4px 0 0">Código ${u.sec} · Recursos Ordinarios · corte ${F(D.corte)}${ant?` (anterior: ${F(ant)})`:''} · cifras del día: ${esc(D.parametros.fuente)} · ritmo y detalle: Datos Abiertos al ${F(D.parametros.corte_detalle||D.corte)}</p>
- <div class="mini"><div><b>${M(u.saldo)}</b><small>Saldo por devengar</small>${dlt(u.dsal)}</div><div><b>${u.dd==null?'Sin dato':M(u.dd)}</b><small>Devengado entre cortes${u.dd<-0.5?' (ajuste negativo)':''}</small></div><div><b>${u.dpim==null?'Sin dato':Math.abs(u.dpim)<0.5?'Sin variación':M(u.dpim)}</b><small>Variación del PIM entre cortes</small></div><div><b style="color:#a86a12">${M(u.riesgo)}</b><small>Riesgo estimado (ejecución reciente)</small>${dlt(u.dri)}</div><div><b>${u.riesgo_hist==null?'—':M(u.riesgo_hist)}</b><small>Según patrones 2023–2025${u.rh_bajo!=null?` (${M(u.rh_bajo)} a ${M(u.rh_alto)})`:''}</small></div><div><b>${u.saldo_ini>0?P(u.avance):'No aplica'}</b><small>Avance del saldo desde el ${F5(D.parametros.fecha_base)}${u.esperado>0?` · referencia ${P(u.esperado)} · ${CORTO[CLASE(u.avance,u.esperado)]}`:u.saldo_ini>0?' · sin referencia':''}</small></div></div>
- ${sinRef(u)&&u.saldo_ini>0?aviso(`<b>Sin referencia estadística.</b> ${sinRef(u)} <small>No se clasifica como «alcanza el umbral» ni como atraso.</small>`,'',I_INFO):''}
- ${fichaRiesgo(u)}
- <h4 style="margin:6px 0;color:var(--navy)">Saldo por etapa presupuestaria</h4>
- <table class="ttab"><thead><tr><th scope="col">Etapa</th><th scope="col">Monto</th><th scope="col">% del saldo</th><th scope="col">Qué verificar</th></tr></thead><tbody>
- ${et.map(([n,v],k)=>`<tr><td>${n}</td><td>${M(v)}</td><td>${P(u.saldo?v/u.saldo:0)}</td><td style="text-align:left;white-space:normal">${['Si se certificará este año o si corresponde sincerar el PIM.','Si los procesos de selección o contratos se firmarán antes del cierre; anular lo que no se use.','Si las entregas, conformidades o valorizaciones llegarán antes del 31/12.'][k]}</td></tr>`).join('')}</tbody></table>
- <p class="nota">Programación de la unidad: no registrada. Cuando exista, aquí se comparará lo programado con lo ejecutado.</p>
- <div class="dos" style="margin-top:12px"><div><h4 style="margin:6px 0;color:var(--navy)">Evolución entre cortes</h4><div id="gue"></div></div>
- <div><h4 style="margin:6px 0;color:var(--navy)">Por genérica (orden: riesgo estimado)${D.parametros.corte_detalle&&D.parametros.corte_detalle!==D.corte?` · datos al ${F(D.parametros.corte_detalle)}`:''}</h4><div class="tabla" style="max-height:none"><table><thead><tr><th class="t" scope="col">Genérica</th><th scope="col">PIM</th><th scope="col">Saldo por devengar</th><th scope="col">Riesgo estimado</th></tr></thead><tbody>${gens.map(([g,v])=>`<tr style="cursor:default"><td class="t" style="min-width:170px">${GEN[g]||g}</td><td>${M(v[0])}</td><td>${M(v[2])}</td><td>${M(v[3])}</td></tr>`).join('')}</tbody></table></div></div></div>
- <div id="pue"></div>
- <p class="nota">La unidad ocupa el puesto ${u.i} de ${D.ues.length} por riesgo estimado.</p>`;
- linea(document.getElementById('gue'),D.fechas,[{n:'Saldo por devengar',v:S.saldo,c:'#13294b'},{n:'Riesgo estimado',v:S.riesgo,c:'#d99a06'}],M,200);
- document.getElementById('volver').onclick=()=>{document.getElementById('cuadro').scrollIntoView({behavior:'smooth'});const r=document.querySelector(`#cuerpo tr[data-s="${s}"]`)||document.querySelector(`#tarjetas [data-s="${s}"]`);if(r)setTimeout(()=>r.focus({preventScroll:true}),400)};
- proyUE(s);
- if(ir){sec.scrollIntoView({behavior:'smooth'});setTimeout(()=>document.getElementById('det').focus({preventScroll:true}),350)}
-}
-// ---------- productos y proyectos de la unidad ----------
-const PCOLS=[['Producto o proyecto','n','t'],['Riesgo estimado','ri','m'],['PIM RO','pim','m'],['Saldo al 31/10','si','m'],['Avance del saldo vs. referencia','av','a'],['Saldo por devengar','s','m'],['Devengado entre cortes','dd','m'],['Ejecución del PIM','ej','p']];
-const TIPO=t=>t==='P'?'<span class="tipo P">Proyecto</span>':'<span class="tipo">Producto o actividad</span>';
-const ordenar=(R,k,d)=>R.sort((a,b)=>{const x=a[k],y=b[k];if(x==null&&y==null)return 0;if(x==null)return 1;if(y==null)return -1;return(typeof x==='string'?x.localeCompare(y,'es'):x-y)*d});
-const cabecera=(el,cols,o,d,fn)=>{el.innerHTML=cols.map(([t,k,ty])=>`<th scope="col" class="${ty==='t'?'t':''}" aria-sort="${k===o?(d>0?'ascending':'descending'):'none'}"><button type="button" data-k="${k}">${t.replace('31/10',F5(D.parametros.fecha_base))} <span class="fl" aria-hidden="true"></span></button></th>`).join('');el.querySelectorAll('button').forEach(b=>b.onclick=()=>fn(b.dataset.k))};
-const AVP=x=>x.si>0.5?(x.t==='P'&&!(x.esp>0)?`<span class="av"><span style="font-weight:600">${P(x.av)}</span></span><span class="rango">referencia mensual: desde el cierre de noviembre</span>`:AV(x.av,x.esp)):'No aplica';
-const celdas=x=>`<td><b>${M(x.ri)}</b></td><td>${M(x.pim)}</td><td>${M(x.si)}</td><td>${AVP(x)}</td><td>${M(x.s)}</td><td class="${x.dd<-0.5?'neg':''}">${x.dd==null?'Sin dato':M(x.dd)}</td><td>${P(x.pim?x.dev/x.pim:0)}</td>`;
-const pieP=(R,etq)=>{const s=k=>R.reduce((a,x)=>a+(x[k]||0),0),si=s('si'),db=R.reduce((a,x)=>a+(x.si-x.s),0);
- return `<tr><td class="t">${etq}</td><td>${M(s('ri'))}</td><td>${M(s('pim'))}</td><td>${M(si)}</td><td>${si>0.5?P(db/si):'—'}</td><td>${M(s('s'))}</td><td>${PJ.corte_anterior?M(s('dd')):'—'}</td><td>${P(s('dev')/s('pim'))}</td></tr>`};
-let uord='ri',udir=-1,usolo=false,uver=15,uq='';
-function proyUE(s){
- const el=document.getElementById('pue');if(!el)return;
- if(!PJ){el.innerHTML='<p class="nota">Cargando el detalle por producto y proyecto…</p>';return}
- const L=(PJ.ues[s]||[]).map(x=>({...x,ej:x.pim?x.dev/x.pim:0}));const np=L.filter(x=>x.t==='P').length;
- let R=L.filter(x=>(!usolo||x.t==='P')&&(!uq||(x.n+' '+x.c).toLowerCase().includes(uq)));ordenar(R,uord,udir);
- el.innerHTML=`<h4 style="margin:18px 0 6px;color:var(--navy)">Productos, actividades y proyectos que explican el saldo${PJ.corte!==D.corte?` · datos al ${F(PJ.corte)}`:''}</h4>
- <div class="buscar"><input id="uq" type="search" placeholder="Buscar producto, proyecto o CUI…" aria-label="Buscar en la unidad" value="${esc(uq)}"><label class="chk"><input type="checkbox" id="usolo" ${usolo?'checked':''} ${np?'':'disabled'}> Solo proyectos de inversión (${np})</label><span>${R.length} de ${L.length}</span></div>
- <div class="tabla"><table><thead><tr id="ucab"></tr></thead><tbody>${R.length?'':`<tr><td class="t" colspan="8">${usolo?'Esta unidad no tiene proyectos de inversión con Recursos Ordinarios.':'Sin resultados para la búsqueda.'}</td></tr>`}${R.slice(0,uver).map(x=>`<tr style="cursor:default"><td class="t" style="min-width:260px">${TIPO(x.t)}${esc(x.n)} <span style="color:#5f6878;font-size:12.5px">(${x.t==='P'?'CUI ':''}${x.c})</span></td>${celdas(x)}</tr>`).join('')}</tbody><tfoot>${pieP(R,`Total (${R.length})`)}</tfoot></table></div>
- ${R.length>uver?`<button class="mas" id="umas" type="button">Ver los ${R.length}</button>`:''}
- <p class="nota">La suma de productos y proyectos coincide con el total de la unidad. Orden: ${uord==='ri'&&udir<0?'riesgo estimado, de mayor a menor':'según la columna elegida'}.</p>`;
- cabecera(document.getElementById('ucab'),PCOLS,uord,udir,k=>{udir=uord===k?-udir:(k==='n'?1:-1);uord=k;proyUE(s)});
- const qi=document.getElementById('uq');qi.oninput=()=>{uq=qi.value.trim().toLowerCase();uver=15;proyUE(s);const n=document.getElementById('uq');n.focus();n.setSelectionRange(n.value.length,n.value.length)};
- document.getElementById('usolo').onchange=e=>{usolo=e.target.checked;uver=15;proyUE(s)};
- const m=document.getElementById('umas');if(m)m.onclick=()=>{uver=1e9;proyUE(s)};
-}
 </script>
 </body>
 </html>
