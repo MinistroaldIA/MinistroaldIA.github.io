@@ -1,12 +1,12 @@
 {
- "ultimo_intento": "2026-11-14T00:55",
+ "ultimo_intento": "2026-11-14T01:06",
  "fuentes": {
-  "Consulta Amigable": "no consultada (recálculo local)",
-  "Datos Abiertos": "no consultado (recálculo local)"
+  "Datos Abiertos": "leído: archivo publicado Fri, 13 Nov 2026 21:17:06 GMT; corte 12/11/2026 (día anterior a la publicación)",
+  "Consulta Amigable": "leída: corte 12/11/2026, no más reciente que Datos Abiertos"
  },
  "metodo": "2026-11-14.1",
- "resultado": "recalculo",
- "detalle": "Corte 12/11/2026 recalculado con el método 2026-11-14.1 (estados de variación y racha), sin consultar al MEF. Las cifras presupuestales no cambiaron.",
+ "resultado": "sin_cambios",
+ "detalle": "Consulta sin corte nuevo: se mantiene el corte 12/11/2026 y sus totales.",
  "corte_publicado": "2026-11-12",
  "corte_candidato": "2026-11-12",
  "textos": {
@@ -15,5 +15,7 @@
   "sin_cambios": "Consulta sin cambios",
   "corte_retenido": "Se conservó el corte publicado",
   "recalculo": "Recalculado con el método nuevo"
- }
+ },
+ "fuente": "Datos Abiertos",
+ "ultimo_exito": "2026-11-14T01:06"
 }
