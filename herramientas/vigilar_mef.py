@@ -5,12 +5,13 @@ Mira dos señales:
   1. La fecha de «Última actualización» de la Consulta Amigable (una sola página).
   2. La fecha de publicación (Last-Modified) del archivo diario de gasto en Datos Abiertos (solo la cabecera).
 
-Compara con minsa/ro/fuentes_vistas.json, que guarda lo visto en la última actualización completa.
-Escribe en GITHUB_OUTPUT: novedad (true/false), motivo, ca_fecha, da_publicado y da_clave (para la caché).
-Si nada cambió pero la última actualización tiene más de 24 horas, también pide correr (red de seguridad).
+Las señales son las mismas para todas las entidades; lo visto se guarda por entidad en <id>/ro/fuentes_vistas.json.
+Revisa cada entidad de herramientas/pliegos.json (salvo "control": false) y escribe en GITHUB_OUTPUT: novedad (true/false),
+pliegos (lista JSON de las entidades que deben actualizarse), motivo, ca_fecha, da_publicado y da_clave (para la caché).
+Si nada cambió pero la última actualización de una entidad tiene más de 24 horas, también la actualiza (red de seguridad).
 
-Uso:  python herramientas/vigilar_mef.py [ruta_vistas]
-      python herramientas/vigilar_mef.py --guardar CA_FECHA DA_PUBLICADO [ruta_vistas]
+Uso:  python herramientas/vigilar_mef.py [id ...]
+      python herramientas/vigilar_mef.py --guardar CA_FECHA DA_PUBLICADO ID
 """
 import datetime as dt
 import json
@@ -22,9 +23,11 @@ from email.utils import parsedate_to_datetime
 AQUI = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, AQUI)
 RAIZ = os.path.dirname(AQUI)
-VISTAS = os.path.join(RAIZ, "minsa", "ro", "fuentes_vistas.json")
-DATOS = os.path.join(RAIZ, "minsa", "ro", "datos.json")
-ANIO = 2026
+PLIEGOS = json.load(open(os.path.join(AQUI, "pliegos.json"), encoding="utf-8"))
+ACTIVOS = [k for k, v in PLIEGOS.items() if v.get("control", True)]
+ANIO = max(PLIEGOS[k]["anio"] for k in ACTIVOS)
+vistas_de = lambda eid: os.path.join(RAIZ, eid, "ro", "fuentes_vistas.json")
+datos_de = lambda eid: os.path.join(RAIZ, eid, "ro", "datos.json")
 DA = f"https://fs.datosabiertos.mef.gob.pe/datastorefiles/{ANIO}-Gasto-Diario.csv"
 UA = {"User-Agent": "Mozilla/5.0 (cuadro de control de saldos)"}
 LIMA = dt.timezone(dt.timedelta(hours=-5))
@@ -50,9 +53,9 @@ def clave(publicado):
     return re.sub(r"[^0-9A-Za-z]+", "-", publicado or "sin-fecha").strip("-")
 
 
-def horas_desde_ultima():
+def horas_desde_ultima(eid):
     try:
-        p = json.load(open(DATOS, encoding="utf-8"))["parametros"]["consulta_ok"]
+        p = json.load(open(datos_de(eid), encoding="utf-8"))["parametros"]["consulta_ok"]
         t = dt.datetime.fromisoformat(p).replace(tzinfo=LIMA)
         return (dt.datetime.now(LIMA) - t).total_seconds() / 3600
     except Exception:
@@ -89,15 +92,15 @@ def salida(**kv):
 def main():
     a = sys.argv[1:]
     if a and a[0] == "--guardar":
-        ruta = a[3] if len(a) > 3 else VISTAS
+        ruta = vistas_de(a[3])
         previo = json.load(open(ruta, encoding="utf-8")) if os.path.isfile(ruta) else {}
         nuevo = {"ca_fecha": a[1] or previo.get("ca_fecha"), "da_publicado": a[2] or previo.get("da_publicado"),
                  "guardado": dt.datetime.now(LIMA).strftime("%Y-%m-%dT%H:%M")}
+        os.makedirs(os.path.dirname(ruta), exist_ok=True)
         json.dump(nuevo, open(ruta, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-        print(f"guardado: {nuevo}")
+        print(f"guardado ({a[3]}): {nuevo}")
         return
-    ruta = a[0] if a else VISTAS
-    vistas = json.load(open(ruta, encoding="utf-8")) if os.path.isfile(ruta) else {}
+    ids = a or ACTIVOS
     try:
         ca = fecha_consulta_amigable()
     except Exception as e:
@@ -108,8 +111,19 @@ def main():
     except Exception as e:
         print(f"No se pudo leer Datos Abiertos: {e}")
         da = None
-    nov, motivo = decidir(vistas, ca, da, horas_desde_ultima())
-    salida(novedad=str(nov).lower(), motivo=motivo, ca_fecha=ca or "", da_publicado=da or "", da_clave=clave(da))
+    pend, motivos = [], []
+    for eid in ids:
+        ruta = vistas_de(eid)
+        vistas = json.load(open(ruta, encoding="utf-8")) if os.path.isfile(ruta) else {}
+        nov, motivo = decidir(vistas, ca, da, horas_desde_ultima(eid))
+        if not os.path.isfile(datos_de(eid)):
+            nov, motivo = True, "entidad nueva: todavía no tiene control publicado"
+        print(f"{eid}: {'actualizar' if nov else 'al día'} · {motivo}")
+        if nov:
+            pend.append(eid)
+            motivos.append(f"{eid}: {motivo}")
+    salida(novedad=str(bool(pend)).lower(), pliegos=json.dumps(pend), motivo=" | ".join(motivos) or "sin novedades del MEF",
+           ca_fecha=ca or "", da_publicado=da or "", da_clave=clave(da))
 
 
 if __name__ == "__main__":
