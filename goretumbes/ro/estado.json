@@ -1,5 +1,5 @@
 {
- "ultimo_intento": "2026-11-14T22:17",
+ "ultimo_intento": "2026-11-14T22:57",
  "fuentes": {
   "Datos Abiertos": "leído: archivo publicado Sat, 14 Nov 2026 13:39:18 GMT; corte 13/11/2026 (día anterior a la publicación)",
   "Consulta Amigable": "leída: corte 13/11/2026, no más reciente que Datos Abiertos"
@@ -10,7 +10,7 @@
  "corte_publicado": "2026-11-13",
  "corte_candidato": "2026-11-13",
  "fuente": "Datos Abiertos",
- "ultimo_exito": "2026-11-14T22:17",
+ "ultimo_exito": "2026-11-14T22:57",
  "textos": {
   "nuevo_corte": "Nuevo corte",
   "cifras_revisadas": "Cifras revisadas",
