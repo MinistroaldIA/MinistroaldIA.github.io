@@ -21,6 +21,10 @@ on:
         description: "Solo esta entidad (su clave en pliegos.json, por ejemplo minsa). Vacío = todas"
         type: string
         default: ""
+      rama_nucleo:
+        description: "Rama del núcleo de análisis (kronos-nucleo) para probar cambios en una rama de prueba. Vacío = main"
+        type: string
+        default: ""
 
 # Mínimo privilegio: lectura por defecto; solo el trabajo que publica puede escribir en el repositorio.
 permissions:
@@ -112,6 +116,7 @@ jobs:
         with:
           repository: AlcaldealdIA/kronos-nucleo
           ssh-key: ${{ secrets.KRONOS_DEPLOY_KEY }}
+          ref: ${{ inputs.rama_nucleo || 'main' }}
           path: kronos
       - name: ¿La entidad tiene informe en el núcleo?
         id: nucleo
@@ -168,7 +173,8 @@ jobs:
             W=kronos/salida/pliegos/$P/web_publica
             mkdir -p "$P/descargas"
             cp $W/index.html $W/anexos.html $W/estado_informe.json "$P/"
-            rm -f "$P"/descargas/*.xlsx && cp $W/descargas/*.xlsx "$P/descargas/"
+            # Excel y, si la entidad los tiene, los informes en PDF (ejecutivo y detallado) de la cabecera
+            rm -f "$P"/descargas/*.xlsx "$P"/descargas/*.pdf && cp $W/descargas/* "$P/descargas/"
             [ -f $W/ro_referencias.json ] && cp $W/ro_referencias.json "$P/ro/referencias.json"
             python herramientas/actualizar_portada.py "$P"
           else
