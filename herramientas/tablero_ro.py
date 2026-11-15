@@ -823,7 +823,7 @@ def main():
               "cortes": [[fechas[i], round(dserie[i] - dserie[i - 1], 2), dias_habiles(fds[i - 1] + dt.timedelta(days=1), fds[i]), fechas[i - 1]]
                          for i in range(1, len(fechas))]}
     J = {"id": eid, "pliego": cfg["nombre"], "sigla": cfg.get("sigla", ""), "codigo": cfg["pliego"], "nivel": cfg["nivel"], "sector": cfg["sector"],
-         "informe": os.path.isfile(os.path.join(RAIZ, eid, "index.html")), "hist_inicio": fechas[0], "anio": cfg["anio"], "corte": fc, "corte_anterior": prev, "comparacion": comparacion, "parametros": par,
+         "informe": os.path.isfile(os.path.join(RAIZ, eid, "index.html")), "vigilancia": cfg.get("control", True), "hist_inicio": fechas[0], "anio": cfg["anio"], "corte": fc, "corte_anterior": prev, "comparacion": comparacion, "parametros": par,
          "actualizado": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
          "total": {k: (None if pd.isna(v) else v) for k, v in serie.loc[fc].to_dict().items()},
          "serie": {k: [None if pd.isna(x) else x for x in serie[k].tolist()] for k in serie.columns}, "fechas": list(serie.index),
