@@ -72,6 +72,17 @@
    "no_certificado": 485537049.29,
    "riesgo": 1029679210.27,
    "riesgo_hist": 186683346.48
+  },
+  "2026-11-14": {
+   "publicado": "2026-11-15T08:16",
+   "fuente": "Consulta Amigable",
+   "corte_detalle": "2026-11-13",
+   "PIM": 10425228243.0,
+   "DEVENGADO": 8593591810.5,
+   "saldo": 1831636432.5,
+   "no_certificado": 483020472.22,
+   "riesgo": 1041836744.07,
+   "riesgo_hist": 191934691.53
   }
  },
  "revisiones": [
