@@ -167,7 +167,7 @@ jobs:
           echo "archivo del MEF: $nuevo · informe publicado con: $previo"
           if [ "$nuevo" = "$previo" ] && [ "$REHACER" != "true" ]; then echo "El informe ya está al día."; exit 0; fi
           # LibreOffice recalcula las fórmulas del Excel para que guarde sus resultados (comprobación 10)
-          (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends libreoffice-calc >/dev/null) || echo "::warning::No se pudo instalar LibreOffice; la comprobación del Excel fallará y se conservará el informe anterior."
+          (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends libreoffice-calc libreoffice-writer fonts-liberation >/dev/null) || echo "::warning::No se pudo instalar LibreOffice; la comprobación del Excel fallará y se conservará el informe anterior."
           python kronos/pliegos/datos/descargar_pliego.py "$P" --solo-inversiones
           if python kronos/pliegos/automatico.py "$P"; then
             W=kronos/salida/pliegos/$P/web_publica
