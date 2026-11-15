@@ -364,12 +364,13 @@ function consultarRun(forzar){let c=null;try{c=JSON.parse(localStorage.getItem(R
  .then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{const w=(j.workflow_runs||[])[0]||null;RUN=w&&{status:w.status,conclusion:w.conclusion,run_started_at:w.run_started_at,created_at:w.created_at,html_url:w.html_url};RUN_ERR=false;
   try{localStorage.setItem(RUN_KEY,JSON.stringify({t:Date.now(),run:RUN}))}catch(e){}pintarOp()})
  .catch(()=>{RUN_ERR=!RUN;pintarOp()})}
-function pintarOp(){const el=document.getElementById('op');if(!el||!D)return;const L=[];
- if(RUN){const t=HL(RUN.run_started_at||RUN.created_at),lk=RUN.html_url?` <a href="${esc(RUN.html_url)}" target="_blank" rel="noopener">registro</a>`:'';
+function pintarOp(){const el=document.getElementById('op');if(!el||!D)return;const L=[];const AP=D.vigilancia===false;
+ if(AP)L.push('Se actualiza <b>a pedido</b>: no se consulta al MEF cada hora.');
+ else if(RUN){const t=HL(RUN.run_started_at||RUN.created_at),lk=RUN.html_url?` <a href="${esc(RUN.html_url)}" target="_blank" rel="noopener">registro</a>`:'';
   if(RUN.status!=='completed')L.push(`<b>Consultando al MEF</b> (desde ${t}).${lk}`);
   else if(RUN.conclusion==='success')L.push(`Última consulta automática: <b>${t}</b>, <span class="bien">terminó sin errores</span>.${lk}`);
   else L.push(`<span class="mal">La última consulta automática (${t}) no terminó bien: no se pudo verificar si hay datos más recientes.</span>${lk}`)}
- else if(RUN_ERR)L.push('No se pudo leer el estado de la consulta automática.');
+ else if(RUN_ERR&&!AP)L.push('No se pudo leer el estado de la consulta automática.');
  if(EO){const tx=(EO.textos||{})[EO.resultado]||EO.resultado;L.push(`Última actualización publicada: <b>${HLi(EO.ultimo_intento)}</b> · ${esc(tx)}.`)}
  if(AVISO)L.push(AVISO);
  el.innerHTML=L.map(x=>`<p>${x}</p>`).join('');
@@ -377,12 +378,12 @@ function pintarOp(){const el=document.getElementById('op');if(!el||!D)return;con
  // aviso en el cuerpo de la página solo con evidencia: corte conservado o consulta fallida
  const v=document.getElementById('vigencia');let h='';
  if(EO&&EO.resultado==='corte_retenido')h=`<div class="alerta am">${esc(EO.detalle||'Se conservó el corte publicado porque la fuente disponible traía un corte anterior.')}</div>`;
- else if(RUN&&RUN.status==='completed'&&RUN.conclusion!=='success')h=`<div class="alerta am">No se pudo verificar si hay datos más recientes que el corte del ${F(D.corte)} (la consulta automática de las ${HL(RUN.run_started_at||RUN.created_at)} no terminó bien).</div>`;
+ else if(!AP&&RUN&&RUN.status==='completed'&&RUN.conclusion!=='success')h=`<div class="alerta am">No se pudo verificar si hay datos más recientes que el corte del ${F(D.corte)} (la consulta automática de las ${HL(RUN.run_started_at||RUN.created_at)} no terminó bien).</div>`;
  v.innerHTML=h}
 // Reloj de la próxima consulta (cuenta regresiva cada segundo). No deduce nada de la hora: «Consultando al MEF» solo
 // aparece cuando GitHub informa una corrida en curso. Poco después de cada hora programada se lee ese estado real.
 function ultimaProgramada(now){let c=proximaConsulta(new Date(now.getTime()-18*36e5)),n;while((n=proximaConsulta(new Date(c.getTime()+1000)))<=now)c=n;return c<=now?c:null}
-function reloj(){const el=document.getElementById('radar');if(!el)return;el.hidden=false;
+function reloj(){const el=document.getElementById('radar');if(!el)return;if(D&&D.vigilancia===false){el.hidden=true;return}el.hidden=false;
  const svg=`<svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1f8f6a" stop-opacity="0"/><stop offset="1" stop-color="#1f8f6a" stop-opacity=".55"/></linearGradient></defs><circle cx="20" cy="20" r="18" fill="#eef6f2" stroke="#1f8f6a" stroke-opacity=".35"/><circle cx="20" cy="20" r="11.5" fill="none" stroke="#1f8f6a" stroke-opacity=".25"/><circle cx="20" cy="20" r="5" fill="none" stroke="#1f8f6a" stroke-opacity=".2"/><circle class="eco" cx="20" cy="20" r="18" fill="none" stroke="#1f8f6a" stroke-width="1.2"/><g class="barrido"><path d="M20 20 L20 2 A18 18 0 0 1 35.6 11 Z" fill="url(#rg)"/><line x1="20" y1="20" x2="20" y2="2" stroke="#0f7a62" stroke-width="1.6"/></g><circle cx="20" cy="20" r="2" fill="#0f7a62"/></svg>`;
  el.innerHTML=svg+'<span><span class="rd-t" id="rd-t">Próxima consulta al MEF</span><span class="rd-b" id="rd-b">--:--</span> <span id="rd-h"></span></span>';
  let meta=proximaConsulta(new Date()),leida=null;
