@@ -1,14 +1,14 @@
 {
- "ultimo_intento": "2026-11-16T10:36",
+ "ultimo_intento": "2026-11-17T08:33",
  "fuentes": {
   "Datos Abiertos": "leído: archivo publicado Mon, 16 Nov 2026 13:36:47 GMT; corte 15/11/2026 (día anterior a la publicación)",
-  "Consulta Amigable": "leída: corte 15/11/2026, no más reciente que Datos Abiertos"
+  "Consulta Amigable": "leída: corte 16/11/2026 (se usa para las cifras del día)"
  },
  "metodo": "2026-11-14.2",
  "resultado": "nuevo_corte",
- "detalle": "Nuevo corte 15/11/2026 (antes 14/11/2026).",
- "corte_publicado": "2026-11-15",
- "corte_candidato": "2026-11-15",
+ "detalle": "Nuevo corte 16/11/2026 (antes 15/11/2026).",
+ "corte_publicado": "2026-11-16",
+ "corte_candidato": "2026-11-16",
  "textos": {
   "nuevo_corte": "Nuevo corte",
   "cifras_revisadas": "Cifras revisadas",
@@ -16,6 +16,6 @@
   "corte_retenido": "Se conservó el corte publicado",
   "recalculo": "Recalculado con el método nuevo"
  },
- "fuente": "Datos Abiertos",
- "ultimo_exito": "2026-11-16T10:36"
+ "fuente": "Consulta Amigable",
+ "ultimo_exito": "2026-11-17T08:33"
 }
