@@ -99,7 +99,11 @@ jobs:
         with:
           python-version: "3.12"
       - name: Instalar dependencias
-        run: pip install pandas requests openpyxl lxml beautifulsoup4 markdown html5lib python-docx pypdf qrcode
+        # Versiones fijas, iguales a kronos-nucleo/requirements.txt (auditoría F1, M4): producción corre con lo mismo que se probó.
+        # Subirlas solo junto con el núcleo y con los controles en verde.
+        run: >-
+          pip install -q pandas==3.0.5 lxml==6.1.3 beautifulsoup4==4.15.0 markdown==3.11 pypdf==6.17.0 openpyxl==3.1.5
+          python-docx==1.2.0 qrcode==8.2 requests==2.34.2 html5lib==1.1
       - name: Datos de la entidad
         id: ent
         run: |
