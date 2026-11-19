@@ -26,6 +26,11 @@
    "version": "2026-11-14.2",
    "desde": "2026-11-14",
    "cambio": "Cambio de año: un corte posterior al 31/12 se trata como cierre del ejercicio (sin meses ni días hábiles por delante; el saldo no devengado es definitivo). En un ejercicio nuevo, sin meses completos, la proyección usa provisionalmente lo devengado en el mes en curso, y el mes base pasa al 31/12 del año previo. Para los cortes de noviembre y diciembre de 2026 las cifras no cambian."
+  },
+  {
+   "version": "2026-11-19.1",
+   "desde": "2026-11-19",
+   "cambio": "Los cortes sin días hábiles respecto del anterior (sábado, domingo o feriado) no cuentan como «cortes sin aumento neto» y la página los rotula «sin días hábiles», sin compararlos con lo necesario por día hábil. Antes, el lunes 16/11 esa cuenta marcó 13 unidades con «3 cortes o más» tras un solo día hábil. Si en un sábado, domingo o feriado sí se registra aumento, la racha se reinicia igual. Las cifras presupuestales (PIM, devengado, saldos y proyecciones) no cambian."
   }
  ],
  "primera_publicacion": {
