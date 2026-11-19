@@ -66,7 +66,8 @@ th.ord{cursor:pointer}th.ord::after{content:" ↕";opacity:.5}th.asc::after{cont
 .anillo div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
 .anillo b{font:700 27px/1 var(--f-t)}.anillo small{font-size:13px;color:#dbe3ef;margin-top:4px}
 .fuentes-cab{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap;margin:30px 0 12px}
-.fuentes-cab h3{margin:0;font:700 22px/1.2 var(--f-t)}.fuentes-cab span{color:var(--muted);font-size:13.5px}
+.fuentes-cab h3{margin:0;font:700 22px/1.2 var(--f-t)}
+.nota-legal{margin:6px 0 0;font-size:13px;color:var(--muted)}.nota-legal summary{cursor:pointer;font-weight:600;color:var(--navy)}.nota-legal p{margin:6px 0 0}.fuentes-cab span{color:var(--muted);font-size:13.5px}
 .fuentes{display:grid;grid-template-columns:repeat(auto-fit,minmax(196px,1fr));gap:14px}
 .fte{background:#fff;border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column}
 .fte.top{border:2px solid var(--navy);box-shadow:0 10px 26px -20px rgba(19,41,75,.6)}
@@ -347,15 +348,15 @@ function csv(nombre,cab,filas,meta=[]){const q=v=>{const s=v==null?'':String(v);
 // Detalle de las unidades (todas las fuentes o una fuente)
 (function(){const el=document.getElementById('t-ue');if(!el)return;const D=JSON.parse(document.getElementById('d-ue').textContent);
  let ord='s',dir=-1;const q=el.querySelector('input'),f=el.querySelector('select'),tb=el.querySelector('tbody'),cnt=el.querySelector('.c');
- const filas=()=>{const fu=f.value,m={};D.f.forEach(r=>{if(fu&&r[1]!==fu)return;const k=r[0];m[k]=m[k]||{u:k,n:D.n[k],c:D.c[k],pim:0,dev:0,s:0};m[k].pim+=r[2];m[k].dev+=r[3];m[k].s+=r[2]-r[3]});
+ const filas=()=>{const fu=f.value,m={};D.f.forEach(r=>{if(fu&&r[1]!==fu)return;const k=r[0];m[k]=m[k]||{u:k,n:D.n[k],c:D.c[k],pim:0,dev:0,s:0,sc:0};m[k].pim+=r[2];m[k].dev+=r[3];m[k].s+=r[2]-r[3];m[k].sc+=r[2]-(r[4]||0)});
   let R=Object.values(m).filter(x=>Math.abs(x.pim)>=0.5).map(x=>({...x,ej:x.pim?x.dev/x.pim:0}));R.sort((a,b)=>b.s-a.s);R.forEach((x,i)=>x.i=i+1);
   const t=q.value.trim().toLowerCase();if(t)R=R.filter(x=>(x.n+' '+x.c+' '+x.u).toLowerCase().includes(t));
   R.sort((a,b)=>{const x=a[ord],y=b[ord];return(typeof x==='string'?x.localeCompare(y,'es'):x-y)*dir});return R};
- const pintar=()=>{const R=filas();tb.innerHTML=R.map(x=>`<tr><td>${x.i}</td><td class="tx" title="${xesc(x.n)}">${xesc(x.c)}</td><td>${fM(x.pim)}</td><td>${fM(x.dev)}</td><td><b>${fM(x.s)}</b></td><td>${fP(x.ej)}<span class="mb"><i style="width:${Math.max(0,Math.min(100,100*x.ej))}%"></i></span></td></tr>`).join('');
+ const pintar=()=>{const R=filas();tb.innerHTML=R.map(x=>`<tr><td>${x.i}</td><td class="tx" title="${xesc(x.n)}">${xesc(x.c)}</td><td>${fM(x.pim)}</td><td>${fM(x.dev)}</td><td><b>${fM(x.s)}</b></td><td>${fM(x.sc)}</td><td>${fP(x.ej)}<span class="mb"><i style="width:${Math.max(0,Math.min(100,100*x.ej))}%"></i></span></td></tr>`).join('');
   cnt.textContent=`${R.length} unidades`};
  el.querySelectorAll('th[data-k]').forEach(th=>{th.tabIndex=0;th.setAttribute('role','button');th.onclick=()=>{const k=th.dataset.k;dir=ord===k?-dir:(k==='c'||k==='i'?1:-1);ord=k;el.querySelectorAll('th[data-k]').forEach(h=>h.setAttribute('aria-sort',h.dataset.k===ord?(dir>0?'ascending':'descending'):'none'));pintar()};th.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();th.click()}}});
  q.oninput=pintar;f.onchange=pintar;
- el.querySelector('.exp').onclick=()=>{const R=filas();csv(`unidades_${f.value?'fuente_'+f.value:'todas_las_fuentes'}.csv`,['N.','Codigo','Unidad ejecutora','PIM','Devengado','Saldo por devengar','Ejecucion'],R.map(x=>[x.i,x.u,x.n,x.pim,x.dev,x.s,x.ej]),[`Filtros: fuente ${f.selectedOptions[0].text}; búsqueda «${q.value}»`])};
+ el.querySelector('.exp').onclick=()=>{const R=filas();csv(`unidades_${f.value?'fuente_'+f.value:'todas_las_fuentes'}.csv`,['N.','Codigo','Unidad ejecutora','PIM','Devengado','Saldo por devengar','Saldo por certificar','Ejecucion'],R.map(x=>[x.i,x.u,x.n,x.pim,x.dev,x.s,x.sc,x.ej]),[`Filtros: fuente ${f.selectedOptions[0].text}; búsqueda «${q.value}»`])};
  pintar()})();
 // Metas de RO en la genérica 2.6
 (function(){const el=document.getElementById('t-met');if(!el)return;const D=JSON.parse(document.getElementById('d-met').textContent);
