@@ -218,7 +218,7 @@ header.cab{padding:28px 0 22px !important}header.cab h1{font-size:clamp(26px,4vw
 /* —— Resumen: panel principal y franja de cierre fiscal —— */
 header.cab{padding:20px 0 16px !important}header.cab h1{font-size:clamp(24px,3vw,34px) !important;margin:4px 0 6px !important}
 header.cab .sub{font-size:14.5px;margin:0 0 6px}
-#resumen{padding-top:22px !important}#resumen .res-cab{margin-bottom:12px}
+#resumen{padding-top:18px !important}#resumen .res-cab{margin-bottom:12px;align-items:center}#resumen .res-cab h2{border-top:0;padding-top:0;margin:0}#resumen .res-cab h2::before{display:none}#resumen .res-cab .sub2,#resumen .res-cab .corte small{display:none}
 #resumen .fuentes-cab{margin:20px 0 12px}
 .franja{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px 26px;align-items:center;background:linear-gradient(135deg,#0f2240,#13294b 60%,#183560);color:#fff;border-radius:16px;padding:18px 24px;box-shadow:0 6px 18px rgba(19,41,75,.18)}
 .franja .nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
@@ -370,7 +370,7 @@ header.cab2w{background:linear-gradient(135deg,#13294b 0%,#1b3766 60%,#13294b 10
 <circle cx="29" cy="29" r="24" fill="#fff" stroke="#d9dee7" stroke-width="4"/>
 <g class="gira"><path d="M 9.2 15.2 A 24 24 0 0 1 29 5" fill="none" stroke="url(#estela)" stroke-width="4" stroke-linecap="round"/><circle cx="29" cy="5" r="4.2" fill="#19c39c"/></g>
 </svg><span class="cen k-hab">—</span></span>
-<span><span class="tt">Cierre fiscal 2026 · 31/12</span><small><span class="k-hab2">—</span> días hábiles<span class="k-ref"></span></small></span></div>
+<span><span class="tt">Cierre fiscal 2026 · 31/12</span><small>días hábiles desde el corte</small></span></div>
 <div class="ro"><span><small>Recursos Ordinarios por devengar</small><b class="k-sal">—</b><small>No pasa al 2027</small></span></div>
 <div class="ritmo"><span><small>Requerido por semana</small><b class="k-nec">—</b></span><span><small class="k-base">Última semana</small><b class="k-real">—</b></span><span class="k-difw" hidden><small>Diferencia</small><span class="dif k-dif"></span></span></div>
 <a class="ir" href="ro/">Control diario →</a>
@@ -380,8 +380,7 @@ function M(v){return 'S/ '+(v/1e6).toLocaleString('en-US',{minimumFractionDigit
 function F(iso){var p=iso.split('-');return p[2]+'/'+p[1]}
 fetch(c.dataset.src+'?'+Date.now()).then(function(r){return r.json()}).then(function(d){var w=d.semana,tt=d.total,pa=d.parametros||{};
 if(!w||!tt||w.dias_habiles==null)return;
-q('.k-hab').textContent=w.dias_habiles;q('.k-hab2').textContent=w.dias_habiles;
-var ref=pa.fecha_efectiva||d.corte;if(ref)q('.k-ref').textContent=' desde el corte del '+F(ref);
+q('.k-hab').textContent=w.dias_habiles;var ref=pa.fecha_efectiva||d.corte;if(ref)q('.plazo').title='Días hábiles contados desde el día siguiente al corte del '+F(ref)+' hasta el 31/12';
 q('.k-sal').textContent=M(tt.saldo);q('.k-nec').textContent=M(w.nec_sem);q('.k-real').textContent=M(w.real_sem);
 if(w.base)q('.k-base').textContent=w.base.charAt(0).toUpperCase()+w.base.slice(1);
 if(w.nec_sem>0){var p=(w.real_sem-w.nec_sem)/w.nec_sem*100,e=q('.k-dif');
