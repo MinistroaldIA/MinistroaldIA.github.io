@@ -1,6 +1,6 @@
 {
  "descripcion": "Revisiones de cifras y de método del control diario de RO. Cada fila dice qué cambió, cuándo, por qué y cuánto. Los valores publicados por primera vez se conservan en «primera_publicacion».",
- "metodo_vigente": "2026-11-14.2",
+ "metodo_vigente": "2026-11-19.1",
  "metodos": [
   {
    "version": "2026-11-12.1",
