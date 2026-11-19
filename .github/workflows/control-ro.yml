@@ -49,7 +49,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - run: pip install -q requests
+      - run: pip install -q requests==2.34.2          # versión fija, igual que la del trabajo «actualizar»
       - name: Revisar si el MEF publicó algo nuevo
         id: mef
         env:
@@ -102,7 +102,7 @@ jobs:
         # Versiones fijas, iguales a kronos-nucleo/requirements.txt (auditoría F1, M4): producción corre con lo mismo que se probó.
         # Subirlas solo junto con el núcleo y con los controles en verde.
         run: >-
-          pip install -q pandas==3.0.5 lxml==6.1.3 beautifulsoup4==4.15.0 markdown==3.11 pypdf==6.17.0 openpyxl==3.1.5
+          pip install -q pandas==3.0.5 lxml==6.1.3 beautifulsoup4==4.15.0 markdown==3.11 pypdf==6.21.4 openpyxl==3.1.5
           python-docx==1.2.0 qrcode==8.2 requests==2.34.2 html5lib==1.1
       - name: Datos de la entidad
         id: ent
@@ -122,6 +122,7 @@ jobs:
           ssh-key: ${{ secrets.KRONOS_DEPLOY_KEY }}
           ref: ${{ inputs.rama_nucleo || 'main' }}
           path: kronos
+          persist-credentials: false       # la clave del núcleo no queda guardada en disco durante el resto de la corrida
       - name: ¿La entidad tiene informe en el núcleo?
         id: nucleo
         run: |
