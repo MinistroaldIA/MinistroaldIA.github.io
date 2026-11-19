@@ -214,6 +214,25 @@ header.cab{padding:28px 0 22px !important}header.cab h1{font-size:clamp(26px,4vw
 #t-met td:nth-child(2){min-width:240px;max-width:380px}#t-met .mt{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 #t-met th{white-space:nowrap}
 .fte .cmp{font-size:12.5px;color:var(--ink);margin-top:6px}
+.cuenta{position:relative;overflow:hidden;background:radial-gradient(120% 140% at 0% 0%,#1d3a66 0%,#13294b 55%,#0d1d36 100%);color:#fff;border-radius:18px;padding:22px 22px 18px;margin:6px 0 22px;display:grid;grid-template-columns:auto 1fr;gap:18px 26px;align-items:center;box-shadow:0 10px 30px rgba(19,41,75,.25)}
+.cuenta .ojo{font:700 12px var(--f-t);letter-spacing:.14em;text-transform:uppercase;color:#f6c76b;grid-column:1/-1;display:flex;align-items:center;gap:8px}
+.cuenta .ojo i{width:8px;height:8px;border-radius:50%;background:#19c39c;flex:none;animation:pulso 1.8s infinite}
+@keyframes pulso{0%{box-shadow:0 0 0 0 rgba(25,195,156,.7)}70%{box-shadow:0 0 0 10px rgba(25,195,156,0)}100%{box-shadow:0 0 0 0 rgba(25,195,156,0)}}
+.reloj{position:relative;width:170px;height:170px}.reloj svg{position:absolute;inset:0}
+.reloj .aguja{transform-origin:85px 85px;animation:gira 60s linear infinite}@keyframes gira{to{transform:rotate(360deg)}}
+.reloj .cen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.reloj .cen b{font:800 54px/1 var(--f-t);letter-spacing:-.02em;color:#fff}.reloj .cen small{font-size:13px;color:#cfd8e6}
+.cuenta .lado h3{margin:0 0 4px;font:700 22px/1.25 var(--f-t);color:#fff}
+.cuenta .tic{font:600 15px var(--f-m);color:#9fe8d6;margin:0 0 12px;font-variant-numeric:tabular-nums}
+.cuenta .kp{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.cuenta .kp[hidden]{display:none}
+.cuenta .kp div{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px}
+.cuenta .kp small{display:block;font-size:12px;color:#cfd8e6}.cuenta .kp b{font:700 21px var(--f-t);white-space:nowrap;color:#fff}
+.cuenta .kp b.v{color:#19c39c}.cuenta .kp b.r{color:#ff9b8a}
+.cuenta .msj{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid rgba(255,255,255,.14);padding-top:12px;font-size:14.5px}
+.cuenta .msj a{background:#19c39c;color:#0d2b3e;font-weight:700;text-decoration:none;border-radius:10px;padding:9px 14px;white-space:nowrap}
+@media(max-width:640px){.cuenta{grid-template-columns:1fr;justify-items:center;text-align:center;padding:18px 16px}.cuenta .ojo{justify-content:center}.cuenta .lado{width:100%}
+ .cuenta .msj{justify-content:center;text-align:center}.cuenta .kp{grid-template-columns:1fr}.cuenta .tic{text-align:center}}
+@media(prefers-reduced-motion:reduce){.reloj .aguja,.cuenta .ojo i{animation:none}}
 .ue-saldo{margin-top:28px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 18px 14px;box-shadow:0 1px 2px rgba(19,41,75,.05)}
 .ue-saldo .cab-ue{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;border-bottom:3px solid var(--turq);padding-bottom:10px;margin-bottom:10px}
 .ue-saldo h3{margin:0;font:700 20px/1.25 var(--f-t);color:var(--navy)}.ue-saldo .monto{font:700 24px var(--f-t);color:var(--navy);white-space:nowrap}
@@ -319,7 +338,34 @@ header.cab2w{background:linear-gradient(135deg,#13294b 0%,#1b3766 60%,#13294b 10
 <header class="cab2w"><div class="wrap cab2"><div class="cab-txt"><div class="eyebrow">Gobierno Regional de Tumbes · saldos y finanzas 2026 · plataforma independiente, no es un sitio oficial</div><h1>En 2023–2025 ejecutó en promedio 94.6&nbsp;% de su presupuesto, pero en 2026 su inversión avanza menos que en casi todos los gobiernos regionales (58.2&nbsp;% en la genérica 2.6, puesto 23 de 25).</h1><div class="chips-cab"><span class="ch fo"><i aria-hidden="true">▲</i>Fortaleza · Ejecución 2023–2025: <b>94.6&nbsp;% en promedio (93&nbsp;%, 97&nbsp;%, 94&nbsp;%)</b></span><span class="ch de alerta"><i aria-hidden="true">▼</i>Mayor debilidad · Inversión (genérica 2.6) 2026: <b>58.2&nbsp;% (puesto 23 de 25)</b> <small>(referencia: mediana regional: 73.0&nbsp;%)</small></span></div><p class="meta-cab">Presupuesto con datos al 17/11/2026 · publicado por el MEF el 18/11/2026 08:39 · cada sección indica su fecha</p></div><div class="desc-cab" aria-label="Informes para descargar"><a class="b-oro" href="descargas/Informe_ejecutivo_GORE_Tumbes_2026_al_20261117.pdf" download>Descargar informe ejecutivo<small>PDF · 1 hoja</small></a><a class="b-sec" href="descargas/Informe_detallado_GORE_Tumbes_2026_al_20261117.pdf" download>Informe detallado<small>PDF</small></a><a class="b-sec" href="descargas/Saldos_GORE_Tumbes_2026_al_20261117.xlsx" download>Excel verificable<small>todas las cifras con fórmulas</small></a></div></div></header>
 <nav class="saltos" aria-label="Secciones"><div class="wrap"><a href="#resumen">Resumen</a><a href="#finanzas">Finanzas</a><a href="#pares">Comparación</a><a href="#unidades">Unidades</a><a href="#ro">RO</a><a href="#ro26">RO–2.6</a><a href="#g26">Inversiones</a><a class="prim" href="anexos.html">Anexos</a><a class="prim" style="background:var(--turq-d);border-color:var(--turq-d)" href="ro/">Control diario</a></div></nav>
 <main>
-<section id="resumen"><div class="wrap"><div class="res-cab"><div><h2>Resumen ejecutivo</h2><p class="sub2">Presupuesto y saldos por fuente de financiamiento</p></div>
+<section id="resumen"><div class="wrap"><div class="cuenta" aria-label="Cuenta regresiva al cierre del año fiscal" data-src="ro/datos.json" data-fin="2026-12-31T23:59:59-05:00" data-ini="2026-01-01T00:00:00-05:00">
+<div class="ojo"><i></i>Cierre del año fiscal 2026 · lo no devengado al 31/12 no se ejecuta</div>
+<div class="reloj"><svg width="170" height="170" viewBox="0 0 170 170" aria-hidden="true">
+<circle cx="85" cy="85" r="74" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="10"/>
+<circle class="arco" cx="85" cy="85" r="74" fill="none" stroke="#f6c76b" stroke-width="10" stroke-linecap="round" transform="rotate(-90 85 85)" stroke-dasharray="0 465"/>
+<g class="aguja"><circle cx="85" cy="11" r="7" fill="#19c39c" stroke="#0d1d36" stroke-width="2"/></g></svg>
+<div class="cen"><b class="dias">—</b><small>días para el 31/12</small></div></div>
+<div class="lado"><h3><span class="hab">Por devengar al 31/12:</span> S/ 142.5 M</h3>
+<p class="tic">&nbsp;</p>
+<div class="kp" hidden>
+<div><small>Recursos Ordinarios: no pasa al 2027</small><b class="k-sal"></b></div>
+<div><small>RO: se necesita por semana</small><b class="k-nec"></b></div>
+<div><small>RO: se devengó la última semana</small><b class="k-real"></b></div>
+</div></div>
+<div class="msj"><span class="k-msj">Cuánto se necesita devengar cada semana y quién no registra devengado.</span><a href="ro/">Ver el control diario →</a></div>
+</div>
+<script>(function(){var c=document.querySelector('.cuenta');if(!c)return;var fin=new Date(c.dataset.fin),ini=new Date(c.dataset.ini),T=fin-ini;
+function q(k){return c.querySelector(k)}function p(n){return String(n).padStart(2,'0')}
+function t(){var r=Math.max(0,fin-new Date()),d=Math.floor(r/864e5),h=Math.floor(r/36e5)%24,m=Math.floor(r/6e4)%60,s=Math.floor(r/1e3)%60;
+q('.dias').textContent=Math.ceil(r/864e5);q('.tic').textContent=d+' d · '+p(h)+' h · '+p(m)+' m · '+p(s)+' s';
+q('.arco').setAttribute('stroke-dasharray',(465*(1-r/T)).toFixed(1)+' 465')}
+t();setInterval(t,1000);
+function M(v){return 'S/ '+(v/1e6).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' M'}
+fetch(c.dataset.src+'?'+Date.now()).then(function(r){return r.json()}).then(function(d){var w=d.semana,tt=d.total;if(!w||!tt)return;
+q('.hab').textContent='Quedan '+w.dias_habiles+' días hábiles para devengar';q('.k-sal').textContent=M(tt.saldo);q('.k-nec').textContent=M(w.nec_sem);
+var ok=w.real_sem>=w.nec_sem,b=q('.k-real');b.textContent=M(w.real_sem);b.className='k-real '+(ok?'v':'r');
+q('.k-msj').textContent='En Recursos Ordinarios, la última semana se devengó '+(ok?'más':'menos')+' de lo necesario. '+(ok?'Si se mantiene ese ritmo, alcanza para el 31/12.':'A ese ritmo no alcanza para el 31/12.');
+q('.kp').hidden=false}).catch(function(){})})();</script><div class="res-cab"><div><h2>Resumen ejecutivo</h2><p class="sub2">Presupuesto y saldos por fuente de financiamiento</p></div>
 <div class="corte"><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Corte: 17/11/2026</b><small>Importes en millones de soles (M)</small></div></div>
 <div class="hero"><div><div class="tres">
 <div><div class="et">PIM total · todas las fuentes</div><div class="num">S/ 813.9 M</div><div class="ds">Presupuesto Institucional Modificado</div></div>
