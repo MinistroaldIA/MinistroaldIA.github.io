@@ -215,33 +215,47 @@ header.cab{padding:28px 0 22px !important}header.cab h1{font-size:clamp(26px,4vw
 #t-met td:nth-child(2){min-width:240px;max-width:380px}#t-met .mt{overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 #t-met th{white-space:nowrap}
 .fte .cmp{font-size:12.5px;color:var(--ink);margin-top:6px}
-.cuenta{position:relative;overflow:hidden;background:radial-gradient(120% 140% at 0% 0%,#1d3a66 0%,#13294b 55%,#0d1d36 100%);color:#fff;border-radius:18px;padding:22px 22px 18px;margin:6px 0 22px;display:grid;grid-template-columns:auto 1fr;gap:18px 26px;align-items:center;box-shadow:0 10px 30px rgba(19,41,75,.25)}
-.cuenta .ojo{font:700 12px var(--f-t);letter-spacing:.14em;text-transform:uppercase;color:#f6c76b;grid-column:1/-1;display:flex;align-items:center;gap:8px}
-.cuenta .ojo i{width:8px;height:8px;border-radius:50%;background:#19c39c;flex:none;animation:pulso 1.8s infinite}
-@keyframes pulso{0%{box-shadow:0 0 0 0 rgba(25,195,156,.7)}70%{box-shadow:0 0 0 10px rgba(25,195,156,0)}100%{box-shadow:0 0 0 0 rgba(25,195,156,0)}}
-.reloj{position:relative;width:170px;height:170px}.reloj svg{position:absolute;inset:0}
-.reloj .aguja{transform-origin:85px 85px;animation:gira 60s linear infinite}@keyframes gira{to{transform:rotate(360deg)}}
-.reloj .cen{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
-.reloj .cen b{font:800 54px/1 var(--f-t);letter-spacing:-.02em;color:#fff}.reloj .cen small{font-size:13px;color:#cfd8e6}
-.cuenta .lado h3{margin:0 0 4px;font:700 22px/1.25 var(--f-t);color:#fff}
-.cuenta .tic{font:600 15px var(--f-m);color:#9fe8d6;margin:0 0 12px;font-variant-numeric:tabular-nums}
-.cuenta .kp{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.cuenta .kp[hidden]{display:none}
-.cuenta .kp div{background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:12px;padding:10px 12px}
-.cuenta .kp small{display:block;font-size:12px;color:#cfd8e6}.cuenta .kp b{font:700 21px var(--f-t);white-space:nowrap;color:#fff}
-.cuenta .kp b.v{color:#19c39c}.cuenta .kp b.r{color:#ff9b8a}
-.cuenta .msj{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid rgba(255,255,255,.14);padding-top:12px;font-size:14.5px}
-.cuenta .msj b.v{color:#19c39c}.cuenta .msj b.r{color:#ff9b8a}.cuenta .msj span{flex:1 1 420px;line-height:1.5}
-.cuenta .msj a{background:#19c39c;color:#0d2b3e;font-weight:700;text-decoration:none;border-radius:10px;padding:9px 14px;white-space:nowrap}
-@media(max-width:640px){.cuenta{grid-template-columns:1fr;justify-items:center;text-align:center;padding:18px 16px}.cuenta .ojo{justify-content:center}.cuenta .lado{width:100%}
- .cuenta .msj{justify-content:center;text-align:center}.cuenta .kp{grid-template-columns:1fr}.cuenta .tic{text-align:center}}
-@media(prefers-reduced-motion:reduce){.reloj .aguja,.cuenta .ojo i{animation:none}}
-@media(max-width:640px){header.cab{padding:14px 0 12px !important}header.cab h1{font-size:23px !important;margin:2px 0 4px !important}header.cab .sub{display:none}header.cab .eyebrow{font-size:10.5px !important}.cuenta{margin-top:0}.reloj{width:150px;height:150px}.reloj svg{width:150px;height:150px}.reloj .cen b{font-size:46px}#resumen{padding-top:14px !important}.cuenta .kp{gap:6px}.cuenta .kp div{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;text-align:left}.cuenta .kp small{font-size:12.5px}.cuenta .kp b{font-size:18px}}
-.franja{display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:0 0 6px}
-.franja>div{padding:12px 16px;border-left:1px solid var(--line)}.franja>div:first-child{border-left:0}
-.franja small{display:block;font:700 11.5px var(--f-t);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
-.franja b{display:block;font:700 22px/1.2 var(--f-t);color:var(--navy);white-space:nowrap;margin-top:3px}
-.franja .bar{height:6px;border-radius:3px;background:#e3e8ef;margin-top:7px;overflow:hidden}.franja .bar i{display:block;height:100%;background:var(--turq)}
-@media(max-width:640px){.franja{grid-template-columns:1fr 1fr}.franja>div:nth-child(3){border-left:0}.franja>div:nth-child(n+3){border-top:1px solid var(--line)}.franja b{font-size:19px}}
+/* —— Resumen: panel principal y franja de cierre fiscal —— */
+header.cab{padding:20px 0 16px !important}header.cab h1{font-size:clamp(24px,3vw,34px) !important;margin:4px 0 6px !important}
+header.cab .sub{font-size:14.5px;margin:0 0 6px}
+#resumen{padding-top:22px !important}#resumen .res-cab{margin-bottom:12px}
+#resumen .fuentes-cab{margin:20px 0 12px}
+.franja{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px 26px;align-items:center;background:linear-gradient(135deg,#0f2240,#13294b 60%,#183560);color:#fff;border-radius:16px;padding:18px 24px;box-shadow:0 6px 18px rgba(19,41,75,.18)}
+.franja .nums{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.franja .nums>div{padding:0 20px;border-left:1px solid rgba(255,255,255,.18);min-width:0}.franja .nums>div:first-child{padding-left:0;border-left:0}
+.franja small{display:block;font:700 12px var(--f-t);letter-spacing:.05em;text-transform:uppercase;color:#dbe3ef}
+.franja b{display:block;font:700 clamp(23px,2.5vw,32px)/1.15 var(--f-t);color:#fff;white-space:nowrap;margin-top:5px}
+.franja .sb{display:block;font-size:13px;color:#cfd8e6;margin-top:2px}
+.franja .barra2{display:flex;height:18px;border-radius:999px;overflow:hidden;background:#3b4f72;margin:14px 0 6px;font:600 11.5px/18px var(--f-t)}
+.franja .barra2 i{display:block;background:#19c39c;color:#0d2b3e;text-align:center;font-style:normal}.franja .barra2 span{flex:1;text-align:center;color:#e8eef7}
+.franja .pie2{font-size:12.5px;color:#cfd8e6}
+.anillo-s{position:relative;width:112px;height:112px}.anillo-s svg{display:block}
+.anillo-s div{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.anillo-s b{font:700 20px/1 var(--f-t);color:#fff;margin:0}.anillo-s small{font-size:11px;letter-spacing:.04em;margin-top:3px;text-transform:none;font-weight:600}
+.cierre{display:grid;grid-template-columns:auto auto minmax(0,1fr) auto;align-items:center;gap:8px 0;background:var(--soft);border:1px solid var(--line);border-radius:12px;margin-top:10px;padding:8px 10px 8px 12px}
+.cierre[hidden]{display:none}
+.cierre>div{display:flex;align-items:center;gap:10px;padding:2px 16px;border-left:1px solid var(--line);min-width:0}
+.cierre>div:first-child{border-left:0;padding-left:0}
+
+.cierre small{display:block;font-size:12.5px;color:var(--muted);line-height:1.3}
+.cierre b{font:700 17px/1.25 var(--f-t);color:var(--navy);white-space:nowrap}
+.cierre .tt{font:700 14px/1.25 var(--f-t);color:var(--navy)}
+.cierre .ritmo{gap:6px 20px;flex-wrap:nowrap}.cierre .ritmo>span{display:block;flex:none}.cierre .ritmo small,.cierre .plazo small,.cierre .ro small{white-space:nowrap}
+.cierre .dif{display:inline-block;margin-top:3px;font:700 14px var(--f-t);padding:2px 10px;border-radius:999px;white-space:nowrap}
+.cierre .dif.v{background:#dff5ee;color:#0b7a60}.cierre .dif.a{background:#fbefd9;color:#93600e}
+.cierre a.ir{justify-self:end;margin-left:12px;background:var(--navy);color:#fff;font:700 13.5px var(--f-t);text-decoration:none;border-radius:9px;padding:9px 14px;white-space:nowrap}
+.cierre a.ir:hover{background:#1d3a66}
+.reloj{position:relative;flex:none;width:58px;height:58px}.reloj svg{display:block}
+.reloj .gira{transform-origin:29px 29px;animation:gira 12s linear infinite}@keyframes gira{to{transform:rotate(360deg)}}
+.reloj .cen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font:800 19px/1 var(--f-t);color:var(--navy)}
+@media(prefers-reduced-motion:reduce){.reloj .gira{animation:none}}
+@media(max-width:1060px){.cierre{grid-template-columns:auto minmax(0,1fr) auto}.cierre .ritmo{grid-column:1/-1;grid-row:2;flex-wrap:wrap;border-left:0;padding:10px 0 2px;border-top:1px solid var(--line)}}
+@media(max-width:640px){header.cab{padding:14px 0 12px !important}header.cab h1{font-size:23px !important}header.cab .sub{display:none}header.cab .eyebrow{font-size:10.5px !important}
+ #resumen{padding-top:14px !important}
+ .franja{padding:16px;gap:12px 14px}.franja .nums{grid-template-columns:1fr;gap:10px}.franja .nums>div{padding:0;border-left:0}.franja b{font-size:21px;margin-top:2px}.franja .izq{display:contents}.franja .nums{grid-column:1;grid-row:1}.anillo-s{grid-column:2;grid-row:1;width:96px;height:96px;align-self:start}.anillo-s svg{width:96px;height:96px}.anillo-s b{font-size:17px}.franja .barra2{grid-column:1/-1;margin:2px 0 0}.franja .pie2{grid-column:1/-1;margin-top:-6px}
+ .cierre{grid-template-columns:1fr;padding:10px 12px;gap:0}.cierre>div{border-left:0;padding:9px 0;border-top:1px solid var(--line)}.cierre>div:first-child{border-top:0;padding-top:2px}
+ .cierre .ritmo{grid-column:auto;grid-row:auto;display:grid;grid-template-columns:1fr 1fr auto;gap:8px 10px;align-items:start}.cierre .ritmo small{white-space:normal}.cierre .ritmo b{font-size:16px}
+ #resumen .res-cab{gap:8px;margin-bottom:10px}#resumen .res-cab .sub2{display:none}#resumen .res-cab h2{margin-bottom:0}.cierre a.ir{margin:8px 0 2px;justify-self:stretch;text-align:center}}
 .ue-saldo{margin-top:28px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 18px 14px;box-shadow:0 1px 2px rgba(19,41,75,.05)}
 .ue-saldo .cab-ue{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;border-bottom:3px solid var(--turq);padding-bottom:10px;margin-bottom:10px}
 .ue-saldo h3{margin:0;font:700 20px/1.25 var(--f-t);color:var(--navy)}.ue-saldo .monto{font:700 24px var(--f-t);color:var(--navy);white-space:nowrap}
@@ -347,37 +361,32 @@ header.cab2w{background:linear-gradient(135deg,#13294b 0%,#1b3766 60%,#13294b 10
 <header class="cab2w"><div class="wrap cab2"><div class="cab-txt"><div class="eyebrow">Gobierno Regional de Tumbes · saldos y finanzas 2026 · plataforma independiente, no es un sitio oficial</div><h1>En 2023–2025 ejecutó en promedio 94.6&nbsp;% de su presupuesto, pero en 2026 su inversión avanza menos que en casi todos los gobiernos regionales (58.2&nbsp;% en la genérica 2.6, puesto 23 de 25).</h1><div class="chips-cab"><span class="ch fo"><i aria-hidden="true">▲</i>Fortaleza · Ejecución 2023–2025: <b>94.6&nbsp;% en promedio (93&nbsp;%, 97&nbsp;%, 94&nbsp;%)</b></span><span class="ch de alerta"><i aria-hidden="true">▼</i>Mayor debilidad · Inversión (genérica 2.6) 2026: <b>58.2&nbsp;% (puesto 23 de 25)</b> <small>(referencia: mediana regional: 73.0&nbsp;%)</small></span></div><p class="meta-cab">Presupuesto con datos al 17/11/2026 · publicado por el MEF el 18/11/2026 08:39 · cada sección indica su fecha</p></div><div class="desc-cab" aria-label="Informes para descargar"><a class="b-oro" href="descargas/Informe_ejecutivo_GORE_Tumbes_2026_al_20261117.pdf" download>Descargar informe ejecutivo<small>PDF · 1 hoja</small></a><a class="b-sec" href="descargas/Informe_detallado_GORE_Tumbes_2026_al_20261117.pdf" download>Informe detallado<small>PDF</small></a><a class="b-sec" href="descargas/Saldos_GORE_Tumbes_2026_al_20261117.xlsx" download>Excel verificable<small>todas las cifras con fórmulas</small></a></div></div></header>
 <nav class="saltos" aria-label="Secciones"><div class="wrap"><a href="#resumen">Resumen</a><a href="#finanzas">Finanzas</a><a href="#pares">Comparación</a><a href="#unidades">Unidades</a><a href="#ro">RO</a><a href="#ro26">RO–2.6</a><a href="#g26">Inversiones</a><a class="prim" href="anexos.html">Anexos</a><a class="prim" style="background:var(--turq-d);border-color:var(--turq-d)" href="ro/">Control diario</a></div></nav>
 <main>
-<section id="resumen"><div class="wrap"><div class="cuenta" aria-label="Cuenta regresiva al cierre del año fiscal" data-src="ro/datos.json" data-fin="2026-12-31T23:59:59-05:00" data-ini="2026-01-01T00:00:00-05:00">
-<div class="ojo"><i></i>Cierre del año fiscal 2026 · lo no devengado al 31/12 no se ejecuta</div>
-<div class="reloj"><svg width="170" height="170" viewBox="0 0 170 170" aria-hidden="true">
-<circle cx="85" cy="85" r="74" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="10"/>
-<circle class="arco" cx="85" cy="85" r="74" fill="none" stroke="#f6c76b" stroke-width="10" stroke-linecap="round" transform="rotate(-90 85 85)" stroke-dasharray="0 465"/>
-<g class="aguja"><circle cx="85" cy="11" r="7" fill="#19c39c" stroke="#0d1d36" stroke-width="2"/></g></svg>
-<div class="cen"><b class="dias">—</b><small>días para el 31/12</small></div></div>
-<div class="lado"><h3><span class="hab">Por devengar al 31/12:</span> S/ 142.5 M</h3>
-<p class="tic">&nbsp;</p>
-<div class="kp" hidden>
-<div><small>Recursos Ordinarios: no pasa al 2027</small><b class="k-sal"></b></div>
-<div><small>RO: se necesita por semana</small><b class="k-nec"></b></div>
-<div><small>RO: se devengó la última semana</small><b class="k-real"></b></div>
-</div></div>
-<div class="msj"><span class="k-msj">Cuánto se necesita devengar cada semana y quién no registra devengado.</span><a href="ro/">Ver el control diario →</a></div>
-</div>
-<script>(function(){var c=document.querySelector('.cuenta');if(!c)return;var fin=new Date(c.dataset.fin),ini=new Date(c.dataset.ini),T=fin-ini;
-function q(k){return c.querySelector(k)}function p(n){return String(n).padStart(2,'0')}
-function t(){var r=Math.max(0,fin-new Date()),d=Math.floor(r/864e5),h=Math.floor(r/36e5)%24,m=Math.floor(r/6e4)%60,s=Math.floor(r/1e3)%60;
-q('.dias').textContent=Math.ceil(r/864e5);q('.tic').textContent=d+' d · '+p(h)+' h · '+p(m)+' m · '+p(s)+' s';
-q('.arco').setAttribute('stroke-dasharray',(465*(1-r/T)).toFixed(1)+' 465')}
-t();setInterval(t,1000);
-function M(v){return 'S/ '+(v/1e6).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' M'}
-fetch(c.dataset.src+'?'+Date.now()).then(function(r){return r.json()}).then(function(d){var w=d.semana,tt=d.total;if(!w||!tt)return;
-q('.hab').textContent='Quedan '+w.dias_habiles+' días hábiles para devengar';q('.k-sal').textContent=M(tt.saldo);q('.k-nec').textContent=M(w.nec_sem);
-var ok=w.real_sem>=w.nec_sem,b=q('.k-real');b.textContent=M(w.real_sem);b.className='k-real '+(ok?'v':'r');
-var dif=Math.abs(w.real_sem-w.nec_sem);q('.k-msj').innerHTML='<b>Recursos Ordinarios:</b> la última semana se devengaron '+M(dif)+(ok?' más':' menos')+' de lo que hace falta por semana. '+(ok?'<b class="v">Si se mantiene ese ritmo, todo el saldo de RO se devenga antes del 31/12.</b>':'<b class="r">A ese ritmo, parte del saldo de RO quedará sin devengar al 31/12 y se pierde: no pasa al '+(new Date(c.dataset.fin).getFullYear()+1)+'.</b>');
-q('.kp').hidden=false}).catch(function(){})})();</script><div class="res-cab"><div><h2>Resumen ejecutivo</h2><p class="sub2">Presupuesto y saldos por fuente de financiamiento</p></div>
+<section id="resumen"><div class="wrap"><div class="res-cab"><div><h2>Resumen ejecutivo</h2><p class="sub2">Presupuesto y saldos por fuente de financiamiento</p></div>
 <div class="corte"><b><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Corte: 17/11/2026</b><small>Importes en millones de soles (M)</small></div></div>
-<div class="franja" role="group" aria-label="Presupuesto del pliego, todas las fuentes"><div><small>PIM · todas las fuentes</small><b>S/ 813.9 M</b></div><div><small>Devengado</small><b>S/ 671.4 M</b></div><div><small>Saldo por devengar</small><b>S/ 142.5 M</b></div><div><small>Ejecución</small><b>82.5 %</b><div class="bar" role="img" aria-label="Ejecución 82.5 %"><i style="width:82.5%"></i></div></div></div>
-<div class="fuentes-cab"><h3>Saldos por devengar por fuente de financiamiento: <b style="white-space:nowrap">S/ 142.5 M</b></h3><span>Saldo = PIM − devengado</span></div>
+<div class="franja" role="group" aria-label="Presupuesto del pliego, todas las fuentes"><div class="izq"><div class="nums"><div><small>PIM · todas las fuentes</small><b>S/ 813.9 M</b></div><div><small>Devengado</small><b>S/ 671.4 M</b></div><div><small>Saldo por devengar</small><b>S/ 142.5 M</b><span class="sb">17.5 % del PIM</span></div></div><div class="barra2" role="img" aria-label="Devengado 82.5 %, por devengar 17.5 %"><i style="width:82.5%">82.5 %</i><span>17.5 %</span></div><div class="pie2">9 unidades ejecutoras · Año fiscal 2026</div></div><div class="anillo-s"><svg width="112" height="112" viewBox="0 0 112 112" aria-hidden="true"><circle cx="56" cy="56" r="46" fill="none" stroke="#3b4f72" stroke-width="11"/><circle cx="56" cy="56" r="46" fill="none" stroke="#19c39c" stroke-width="11" stroke-linecap="round" transform="rotate(-90 56 56)" stroke-dasharray="238.4 289.0"/></svg><div><b>82.5 %</b><small>Ejecución</small></div></div></div>
+<div class="cierre" role="group" aria-label="Cierre fiscal 2026: Recursos Ordinarios" data-src="ro/datos.json" hidden>
+<div class="plazo"><span class="reloj" aria-hidden="true"><svg width="58" height="58" viewBox="0 0 58 58">
+<defs><linearGradient id="estela" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#19c39c" stop-opacity="0"/><stop offset="1" stop-color="#19c39c" stop-opacity=".55"/></linearGradient></defs>
+<circle cx="29" cy="29" r="24" fill="#fff" stroke="#d9dee7" stroke-width="4"/>
+<g class="gira"><path d="M 9.2 15.2 A 24 24 0 0 1 29 5" fill="none" stroke="url(#estela)" stroke-width="4" stroke-linecap="round"/><circle cx="29" cy="5" r="4.2" fill="#19c39c"/></g>
+</svg><span class="cen k-hab">—</span></span>
+<span><span class="tt">Cierre fiscal 2026 · 31/12</span><small><span class="k-hab2">—</span> días hábiles<span class="k-ref"></span></small></span></div>
+<div class="ro"><span><small>Recursos Ordinarios por devengar</small><b class="k-sal">—</b><small>No pasa al 2027</small></span></div>
+<div class="ritmo"><span><small>Requerido por semana</small><b class="k-nec">—</b></span><span><small class="k-base">Última semana</small><b class="k-real">—</b></span><span class="k-difw" hidden><small>Diferencia</small><span class="dif k-dif"></span></span></div>
+<a class="ir" href="ro/">Control diario →</a>
+</div>
+<script>(function(){var c=document.querySelector('.cierre');if(!c)return;function q(k){return c.querySelector(k)}
+function M(v){return 'S/ '+(v/1e6).toLocaleString('en-US',{minimumFractionDigits:1,maximumFractionDigits:1})+' M'}
+function F(iso){var p=iso.split('-');return p[2]+'/'+p[1]}
+fetch(c.dataset.src+'?'+Date.now()).then(function(r){return r.json()}).then(function(d){var w=d.semana,tt=d.total,pa=d.parametros||{};
+if(!w||!tt||w.dias_habiles==null)return;
+q('.k-hab').textContent=w.dias_habiles;q('.k-hab2').textContent=w.dias_habiles;
+var ref=pa.fecha_efectiva||d.corte;if(ref)q('.k-ref').textContent=' desde el corte del '+F(ref);
+q('.k-sal').textContent=M(tt.saldo);q('.k-nec').textContent=M(w.nec_sem);q('.k-real').textContent=M(w.real_sem);
+if(w.base)q('.k-base').textContent=w.base.charAt(0).toUpperCase()+w.base.slice(1);
+if(w.nec_sem>0){var p=(w.real_sem-w.nec_sem)/w.nec_sem*100,e=q('.k-dif');
+e.textContent=(p>=0?'+':'−')+Math.abs(p).toFixed(1)+' %';e.title=(p>=0?'Por encima':'Por debajo')+' del ritmo requerido';e.className='dif k-dif '+(p>=0?'v':'a');q('.k-difw').hidden=false}
+c.hidden=false}).catch(function(){})})();</script><div class="fuentes-cab"><h3>Saldos por devengar por fuente de financiamiento: <b style="white-space:nowrap">S/ 142.5 M</b></h3><span>Saldo = PIM − devengado</span></div>
 <div class="fuentes"><article class="fte top" style="--c:#12a37f"><div class="fc"><span class="sg">RO</span><span class=badge>Mayor saldo</span></div><h4 title="Recursos Ordinarios">Rec. Ordinarios</h4><div class="l2">Saldo por devengar</div><div class="mo">S/ 73.8 M</div><div class="fl"><span>PIM</span><b>S/ 607.0 M</b></div><div class="fl" style="border-bottom:0"><span>Ejecución</span><b>87.8 %</b></div><div class="bar" aria-hidden="true"><i style="width:87.8%"></i></div><div class="cmp">+5.4 puntos porcentuales sobre el pliego</div></article><article class="fte" style="--c:#2f80ed"><div class="fc"><span class="sg">RDR</span></div><h4 title="Recursos Directamente Recaudados">Dir. Recaudados</h4><div class="l2">Saldo por devengar</div><div class="mo">S/ 5.0 M</div><div class="fl"><span>PIM</span><b>S/ 8.8 M</b></div><div class="fl" style="border-bottom:0"><span>Ejecución</span><b>42.6 %</b></div><div class="bar" aria-hidden="true"><i style="width:42.6%"></i></div><div class="cmp">−39.9 puntos porcentuales bajo el pliego</div></article><article class="fte" style="--c:#7c4dff"><div class="fc"><span class="sg">ROOC</span></div><h4 title="Recursos por Operaciones Oficiales de Crédito">Op. de Crédito</h4><div class="l2">Saldo por devengar</div><div class="mo">S/ 0.67 M</div><div class="fl"><span>PIM</span><b>S/ 9.2 M</b></div><div class="fl" style="border-bottom:0"><span>Ejecución</span><b>92.7 %</b></div><div class="bar" aria-hidden="true"><i style="width:92.7%"></i></div><div class="cmp">+10.2 puntos porcentuales sobre el pliego</div></article><article class="fte" style="--c:#d99a06"><div class="fc"><span class="sg">DyT</span></div><h4 title="Donaciones y Transferencias">Donac. y Transf.</h4><div class="l2">Saldo por devengar</div><div class="mo">S/ 5.7 M</div><div class="fl"><span>PIM</span><b>S/ 17.1 M</b></div><div class="fl" style="border-bottom:0"><span>Ejecución</span><b>66.9 %</b></div><div class="bar" aria-hidden="true"><i style="width:66.9%"></i></div><div class="cmp">−15.6 puntos porcentuales bajo el pliego</div></article><article class="fte bajo" style="--c:#4b5d7a"><div class="fc"><span class="sg">RD</span><span class="badge rojo">Menor ejecución</span></div><h4 title="Recursos Determinados">Rec. Determinados</h4><div class="l2">Saldo por devengar</div><div class="mo">S/ 57.4 M</div><div class="fl"><span>PIM</span><b>S/ 171.8 M</b></div><div class="fl" style="border-bottom:0"><span>Ejecución</span><b>66.6 %</b></div><div class="bar" aria-hidden="true"><i style="width:66.6%"></i></div><div class="cmp">−15.9 puntos porcentuales bajo el pliego</div></article></div>
 <p class="nota" style="margin:8px 0 0">% Ejecución = Devengado / PIM, acumulado del año. Debajo de cada fuente: diferencia en puntos porcentuales frente a la ejecución del pliego (82.5 %).</p><details class="nota-legal"><summary>Ver más: qué pasa con el saldo después del 31/12</summary><p>Después del 31/12 no se compromete ni se devenga con cargo a 2026 (D. Leg. 1440, art. 36). En Recursos Ordinarios, lo no devengado no genera saldo de balance. En las demás fuentes, lo recaudado y no devengado puede incorporarse en 2027 como saldo de balance (art. 50).</p></details>
 <div class="idea"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 11v6M12 7.5v.5"/></svg>
