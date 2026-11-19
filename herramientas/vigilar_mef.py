@@ -48,7 +48,21 @@ def publicado_datos_abiertos():
     import requests
     r = requests.head(DA, timeout=60, headers=UA, allow_redirects=True)
     r.raise_for_status()
-    return r.headers.get("Last-Modified")
+    return fecha_http(r.headers.get("Last-Modified"))
+
+
+FECHA_HTTP = re.compile(r"[A-Za-z]{3}, \d{2} [A-Za-z]{3} \d{4} \d{2}:\d{2}:\d{2} GMT")
+
+
+def fecha_http(v):
+    """La fecha de publicación llega de un servidor externo y termina en archivos y comandos de la tarea automática: solo se acepta
+    con la forma estándar («Wed, 18 Nov 2026 13:39:08 GMT»). Cualquier otro texto se rechaza (revisión de seguridad del 19/11/2026, I1)."""
+    if v is None:
+        return None
+    v = v.strip()
+    if not FECHA_HTTP.fullmatch(v):
+        raise ValueError("la fecha de publicación del archivo no tiene el formato esperado")
+    return v
 
 
 def clave(publicado):

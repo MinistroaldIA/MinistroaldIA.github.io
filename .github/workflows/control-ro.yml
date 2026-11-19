@@ -189,13 +189,17 @@ jobs:
             echo "::warning::Una comprobación del informe falló; se conserva la versión anterior."
           fi
       - name: Registrar lo que se vio del MEF
+        # Las fechas vienen del servidor del MEF: se pasan como datos (variables entrecomilladas), nunca pegadas dentro del guion.
+        env:
+          DA_PUB: ${{ needs.vigilar.outputs.da_publicado }}
+          CA_FECHA: ${{ needs.vigilar.outputs.ca_fecha }}
         run: |
           # Si el informe falló, no se da por vista la publicación de Datos Abiertos: la próxima revisión volverá a intentarlo.
-          da="${{ needs.vigilar.outputs.da_publicado }}"
+          da="$DA_PUB"
           # Tampoco si la entidad tiene informe publicado pero esta corrida no pudo rehacerlo (sin acceso al núcleo).
           if [ -f /tmp/informe_fallo ] || { [ "${{ steps.nucleo.outputs.si }}" != "true" ] && [ -f "$P/estado_informe.json" ]; }; then da=""; fi
           # Si se conservó el corte (fuente anterior), no se da por vista ninguna señal: la próxima revisión reintenta.
-          ca="${{ needs.vigilar.outputs.ca_fecha }}"
+          ca="$CA_FECHA"
           if [ -f /tmp/control_retenido ]; then ca=""; da=""; fi
           python herramientas/vigilar_mef.py --guardar "$ca" "$da" "$P"
       - name: Publicar
