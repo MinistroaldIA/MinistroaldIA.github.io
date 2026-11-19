@@ -38,7 +38,7 @@ COLUMNAS = {"MES": "MES_EJE", "NIVEL": "NIVEL_GOBIERNO", "SECTOR": "SECTOR", "PL
 PROD_NOM = {}                    # nombres de productos y proyectos según Datos Abiertos (respaldo de los de la Consulta Amigable)
 MONTOS = ["PIA", "PIM", "CERTIFICADO", "COMPROMETIDO_ANUAL", "COMPROMETIDO", "DEVENGADO", "GIRADO"]
 LLAVES = ["SEC_EJEC", "SEC_FUNC", "TIPO_ACT_PROY", "PRODUCTO_PROYECTO", "META", "RUBRO", "GENERICA"]
-METODO = "2026-11-14.2"     # subir la versión (y describirla en <id>/ro/revisiones.json) cada vez que cambie el cálculo
+METODO = "2026-11-19.1"     # subir la versión (y describirla en <id>/ro/revisiones.json) cada vez que cambie el cálculo
 TOL_VAR = 1.0               # soles: una variación del devengado entre cortes dentro de ±1 sol cuenta como «sin variación»
 ESTADOS = {"aumento": "Aumento del devengado", "sin_variacion": "Sin variación del devengado",
            "ajuste_negativo": "Ajuste neto negativo", "sin_comparacion": "Sin comparación"}
@@ -578,7 +578,8 @@ def racha_sin_aumento(valores, fechas, tol=TOL_VAR):
     """Cortes consecutivos, contados desde el último, sin aumento neto observado del devengado acumulado.
     valores y fechas en orden cronológico (None/NaN = la unidad no figura en ese corte).
     Devuelve None si no hay al menos dos cortes, o {"n", "desde", "minimo", "cobertura", "ajustes"}:
-      n         cortes sin aumento neto (0 si el último corte trae aumento);
+      n         cortes sin aumento neto (0 si el último corte trae aumento); solo cuentan los cortes con al menos un día hábil
+                desde el corte anterior (no los de sábado, domingo o feriado);
       desde     corte de referencia: el último que mostró aumento neto (o el primero disponible);
       minimo    True si la racha llega al inicio del historial o a un hueco: entonces n es un mínimo («n o más»);
       cobertura "completa" o "interrumpida" (la unidad falta en algún corte: no se infiere nada antes del hueco);
@@ -593,8 +594,11 @@ def racha_sin_aumento(valores, fechas, tol=TOL_VAR):
         d = v[i] - v[i - 1]
         if d > tol:
             return {"n": n, "desde": fechas[i], "minimo": False, "cobertura": "completa", "ajustes": aj}
-        n += 1
-        aj += d < -tol
+        # Revisión externa (19/11/2026), punto 3: un corte sin días hábiles respecto del anterior (sábado, domingo o feriado) no cuenta
+        # como «corte sin aumento»: ahí no se espera devengado. Si ese día sí hubo aumento, la racha se reinicia igual (línea de arriba).
+        if dias_habiles(dt.date.fromisoformat(fechas[i - 1]) + dt.timedelta(days=1), dt.date.fromisoformat(fechas[i])) > 0:
+            n += 1
+            aj += d < -tol
     return {"n": n, "desde": fechas[0], "minimo": True, "cobertura": "completa", "ajustes": aj}
 
 

@@ -195,7 +195,7 @@ nav.top{margin-top:0}
 <li><b>Se devenga por semana</b>: promedio de los últimos días hábiles con datos (o desde el inicio del mes, mientras no haya una semana de historial), llevado a 5 días.</li>
 <li><b>Variación entre cortes</b>: devengado acumulado del corte actual menos el del corte anterior (se indican ambas fechas). Puede abarcar más de un día hábil. Es una cifra neta: un aumento no muestra cada operación del periodo.</li>
 <li><b>Estado</b>: <i>aumento</i> si la variación supera <span class="tolx">S/ 1</span>; <i>sin variación</i> si queda entre −<span class="tolx">S/ 1</span> y <span class="tolx">S/ 1</span>; <i>ajuste neto negativo</i> si baja más de <span class="tolx">S/ 1</span> (anulaciones o rebajas mayores que lo nuevo: no prueba inactividad); <i>sin comparación</i> si la unidad no figura en el corte anterior.</li>
-<li><b>Cortes sin aumento neto</b>: cortes consecutivos, contados desde el último, en que el devengado acumulado no subió. «2+» significa al menos 2: el historial empieza el <span id="hini">primer corte registrado</span> o la unidad falta en un corte anterior. No se cuentan días sin evidencia diaria.</li>
+<li><b>Cortes sin aumento neto</b>: cortes consecutivos, contados desde el último, en que el devengado acumulado no subió. «2+» significa al menos 2: el historial empieza el <span id="hini">primer corte registrado</span> o la unidad falta en un corte anterior. No se cuentan días sin evidencia diaria. Tampoco cuentan los cortes de sábado, domingo o feriado: ahí no se espera devengado.</li>
 <li><b>Días hábiles</b>: lunes a viernes, sin los feriados del 8, 9 y 25 de diciembre. Después del 31/12 no se compromete ni se devenga con cargo al año (D. Leg. 1440, art. 36); en Recursos Ordinarios lo no devengado no pasa al año siguiente.</li>
 <li><b>Consultas automáticas</b>: cada hora de 7:23 a 23:23 (hora de Lima). GitHub puede iniciarlas con retraso. Arriba se informa el resultado real de la última consulta (leído de GitHub, con hasta 10 minutos de demora), no una suposición por la hora.</li>
 </ul>
@@ -217,16 +217,17 @@ const colR=r=>r>=0.9?'#19c39c':r>=0.5?'#e0a526':'#e8604c';
 const ES={aumento:['aum','Aumento','Aumento del devengado'],sin_variacion:['sv','Sin variación','Sin variación del devengado'],ajuste_negativo:['aj','Ajuste neto negativo','Ajuste neto negativo'],sin_comparacion:['sc','Sin comparación','Sin comparación con un corte anterior']};
 const EST=u=>{const e=ES[u.estado]||ES.sin_comparacion;return`<span class="es ${e[0]}">${e[1]}</span>`};
 const RN=u=>u.sin_aumento?u.sin_aumento.n:null;
+const FINDE=()=>(D.comparacion||{}).habiles===0;     // el último periodo no tuvo días hábiles (sábado, domingo o feriado)
 const RACHA=u=>{const r=u.sin_aumento;if(!r)return'—';const c=r.n>=3?'r':r.n>=1?'a':'v',txt=r.n+(r.minimo&&r.n?'+':'');
- const t=r.n===0?'Aumento neto en el último corte':`${r.n} corte${r.n>1?'s':''} sin aumento neto ${r.minimo?(r.cobertura==='interrumpida'?'(al menos: la unidad falta en el corte anterior al '+F5(r.desde)+')':'(al menos: el historial empieza el '+F5(r.desde)+')'):'desde el corte del '+F5(r.desde)+', el último con aumento'}${r.ajustes?' · incluye '+r.ajustes+' ajuste'+(r.ajustes>1?'s':'')+' neto'+(r.ajustes>1?'s':'')+' negativo'+(r.ajustes>1?'s':''):''}`;
+ const t=r.n===0?(u.estado==='aumento'?'Aumento neto en el último corte':'Sin días hábiles desde el último aumento (fin de semana o feriado): no se cuenta'):`${r.n} corte${r.n>1?'s':''} sin aumento neto ${r.minimo?(r.cobertura==='interrumpida'?'(al menos: la unidad falta en el corte anterior al '+F5(r.desde)+')':'(al menos: el historial empieza el '+F5(r.desde)+')'):'desde el corte del '+F5(r.desde)+', el último con aumento'}${r.ajustes?' · incluye '+r.ajustes+' ajuste'+(r.ajustes>1?'s':'')+' neto'+(r.ajustes>1?'s':'')+' negativo'+(r.ajustes>1?'s':''):''}`;
  return `<span class="dias ${c}" title="${esc(t)}">${txt}</span><span class="sr"> ${esc(t)}</span>`};
 let D,PJ=null,REV=null,EO=null,chip='todas',ord='riesgo',dir=-1,sel=null,origen=null;
 const TOL=()=>D.parametros.tolerancia_variacion??1;
 const PASO=u=>u.nec_sem>0?u.real_sem/u.nec_sem:null;
-const CMP=(corto)=>{const c=D.comparacion||{};if(!c.desde)return'';return corto?`${F5(c.desde)} → ${F5(c.hasta)}`:`del ${F5(c.desde)} al ${F5(c.hasta)}${c.habiles>1?` (${c.habiles} días hábiles)`:''}`};
+const CMP=(corto)=>{const c=D.comparacion||{};if(!c.desde)return'';return corto?`${F5(c.desde)} → ${F5(c.hasta)}`:`del ${F5(c.desde)} al ${F5(c.hasta)}${c.habiles>1?` (${c.habiles} días hábiles)`:c.habiles===0?' (sin días hábiles: fin de semana o feriado)':''}`};
 const CHIPS=[['todas','Todas',u=>true],['sv','Sin variación entre cortes',u=>u.estado==='sin_variacion'&&u.saldo>TOL()],
  ['aj','Ajuste neto negativo',u=>u.estado==='ajuste_negativo'],['r3','3 cortes o más sin aumento neto',u=>RN(u)>=3&&u.saldo>TOL()]];
-const ALERTA=u=>(u.estado==='sin_variacion'&&u.saldo>TOL())||(RN(u)>=3&&u.saldo>TOL());
+const ALERTA=u=>(u.estado==='sin_variacion'&&u.saldo>TOL()&&!FINDE())||(RN(u)>=3&&u.saldo>TOL());
 const COLS=()=>[['n','Unidad ejecutora','t'],['pim','PIM vigente'],['ej','Ejecución'],['saldo','Saldo por devengar'],['riesgo','Saldo proyectado al 31/12'],
  ['nec_sem','Necesita por semana'],['real_sem','Devenga por semana'],['var','Variación entre cortes','',CMP(true)],['estado','Estado'],['racha','Cortes sin aumento neto']];
 const VAL=(u,k)=>k==='racha'?RN(u):k==='estado'?['sin_variacion','ajuste_negativo','sin_comparacion','aumento'].indexOf(u.estado):u[k];
@@ -241,7 +242,7 @@ function pintar(){
  document.getElementById('cortetx').textContent='Último corte disponible: '+F(D.corte);
  identidad();
  const rv=(D.revisiones_corte||[]).filter(r=>r.corte===D.corte).length;
- document.getElementById('meta').innerHTML=`Fuente: ${esc(p.fuente)} del MEF${rv?` · <a href="#metodo" id="vrev">cifras revisadas</a>`:''}`;
+ document.getElementById('meta').innerHTML=`Cifras al ${F(D.corte)} · ${esc(p.fuente)} del MEF${p.corte_detalle&&p.corte_detalle!==D.corte?` · Ritmo de los últimos meses y detalle por genérica: Datos Abiertos al ${F(p.corte_detalle)}`:''}${rv?` · <a href="#metodo" id="vrev">cifras revisadas</a>`:''}`;
  const vr=document.getElementById('vrev');if(vr)vr.onclick=()=>{document.querySelector('details.met').open=true};
  const r=S.nec_sem>0?S.real_sem/S.nec_sem:null;
  if(!D.semana)document.getElementById('ritmo').innerHTML='<p style="margin:0">Actualizando el ritmo semanal…</p>';else document.getElementById('ritmo').innerHTML=`<div class="r4">
@@ -256,13 +257,14 @@ function pintar(){
  document.getElementById('pliego').innerHTML=[['PIM vigente',M(T.PIM),''],['Devengado',M(T.DEVENGADO),P(T.DEVENGADO/T.PIM)+' del PIM'],
   ['Saldo por devengar',M(T.saldo),P(T.saldo/T.PIM)+' del PIM'],['Saldo proyectado al 31/12',M(T.riesgo),mt]]
   .map(([a,b,c])=>`<div><div class="et">${a}</div><div class="num">${b}</div><div class="ds">${esc(c)}</div></div>`).join('');
- document.getElementById('nproy').textContent='Saldo proyectado: en 2024 y 2025 el saldo real al cierre fue menor, porque diciembre se acelera.';
+ document.getElementById('nproy').textContent='Estos cuatro indicadores son de todo el pliego en Recursos Ordinarios: no cambian con los filtros ni con la búsqueda del cuadro. Saldo proyectado: en 2024 y 2025 el saldo real al cierre fue menor que el proyectado, porque diciembre se acelera.';
  if(p.meses_ritmo_txt)document.getElementById('mrit').textContent=p.meses_ritmo_txt;
  document.querySelectorAll('.tolx').forEach(e=>e.textContent='S/ '+TOL().toLocaleString('en-US'));
  const A=filas(),usv=A.filter(CHIPS[1][2]),uaj=A.filter(CHIPS[2][2]),u3=A.filter(CHIPS[3][2]),lista=L=>L.slice(0,8).map(u=>esc(u.n)).join(', ')+(L.length>8?` y ${L.length-8} más`:'');
  const pl=(n,s,p_)=>n+' '+(n>1?p_:s);
  let h='';
- if(usv.length)h+=`<div class="alerta"><span aria-hidden="true">⚠</span><span><b>${pl(usv.length,'unidad','unidades')} sin variación del devengado entre cortes (${CMP(true)}):</b> ${lista(usv)}. <button type="button" data-c="sv">Ver en el cuadro</button></span></div>`;
+ if(usv.length&&FINDE())h+=`<div class="alerta inf"><span aria-hidden="true">ℹ</span><span><b>Entre los dos últimos cortes (${CMP(true)}) no hubo días hábiles</b> (fin de semana o feriado). Que ${pl(usv.length,'unidad no registre','unidades no registren')} variación es lo esperado: no se cuenta como alerta. <button type="button" data-c="sv">Ver en el cuadro</button></span></div>`;
+ else if(usv.length)h+=`<div class="alerta"><span aria-hidden="true">⚠</span><span><b>${pl(usv.length,'unidad','unidades')} sin variación del devengado entre cortes (${CMP(true)}):</b> ${lista(usv)}. <button type="button" data-c="sv">Ver en el cuadro</button></span></div>`;
  if(u3.length)h+=`<div class="alerta"><span aria-hidden="true">⚠</span><span><b>${pl(u3.length,'unidad','unidades')} con 3 cortes o más sin aumento neto.</b> <button type="button" data-c="r3">Ver en el cuadro</button></span></div>`;
  if(uaj.length)h+=`<div class="alerta am"><span aria-hidden="true">↘</span><span><b>${pl(uaj.length,'unidad','unidades')} con ajuste neto negativo (${CMP(true)}):</b> ${uaj.slice(0,8).map(u=>esc(u.n)+' '+MS(u.var)).join(', ')}. Es una disminución neta (anulaciones o rebajas): no indica por sí sola falta de ejecución. <button type="button" data-c="aj">Ver en el cuadro</button></span></div>`;
  if(!h)h=D.corte_anterior?`<div class="alerta ok"><span aria-hidden="true">✓</span><span>Todas las unidades con saldo registraron aumento neto del devengado entre cortes (${CMP(true)}).</span></div>`
@@ -297,7 +299,7 @@ function tabla(){const R=filtradas(),C=COLS();
   <td>${M(u.nec_sem)}</td><td>${M(u.real_sem)}${r!=null?`<span class="mini" title="${P(r)} de lo necesario"><i style="width:${Math.min(100,100*r)}%;background:${colR(r)}"></i></span>`:''}</td>
   <td class="${u.estado==='ajuste_negativo'?'neg':''}">${MS(u.var)}</td><td>${EST(u)}</td><td>${RACHA(u)}</td></tr>`}).join('')||`<tr><td class="t" colspan="10">Ninguna unidad cumple el filtro.</td></tr>`;
  const s=k=>R.reduce((a,u)=>a+(u[k]||0),0);
- document.getElementById('pie').innerHTML=`<tr><td class="t">Total (${R.length})</td><td>${M(s('pim'))}</td><td>${P(s('dev')/s('pim'))}</td><td>${M(s('saldo'))}</td><td>${M(s('riesgo'))}</td><td>${M(s('nec_sem'))}</td><td>${M(s('real_sem'))}</td><td>${R.some(u=>u.var!=null)?MS(s('var')):'—'}</td><td></td><td></td></tr>`;
+ document.getElementById('pie').innerHTML=`<tr><td class="t">Total de lo filtrado (${R.length} de ${D.ues.length})</td><td>${M(s('pim'))}</td><td>${P(s('dev')/s('pim'))}</td><td>${M(s('saldo'))}</td><td>${M(s('riesgo'))}</td><td>${M(s('nec_sem'))}</td><td>${M(s('real_sem'))}</td><td>${R.some(u=>u.var!=null)?MS(s('var')):'—'}</td><td></td><td></td></tr>`;
  document.querySelectorAll('#cuerpo tr[data-s]').forEach(tr=>{tr.onclick=()=>abrir(tr.dataset.s,tr);tr.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();abrir(tr.dataset.s,tr)}}});
  // tarjetas para celular: nombre, saldo, variación entre cortes y estado; el resto en el detalle
  document.getElementById('tarjetas').innerHTML=R.map(u=>`<li class="tj ${cls(u)}"><button type="button" data-s="${esc(u.sec)}" title="${esc(u.ue)}: ver detalle">
@@ -313,17 +315,17 @@ function diario(){const S=D.semana||{},C=(S.cortes||[]).slice(-20),el=document.g
  const W=1100,H=210,l=8,b=24,top=18,bw=Math.min(54,(W-l*2)/V.length*0.6),gx=(W-l*2)/V.length,y=v=>top+(H-b-top)*(mx-v)/(mx-mn),y0=y(0);
  const svg=`<div class="svgw"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Variación del devengado por día hábil entre cortes frente a lo necesario por día">
  <line x1="${l}" x2="${W-l}" y1="${y0}" y2="${y0}" stroke="#c9c2b2"/>
- ${V.map((x,i)=>{const cx=l+gx*i+gx/2,yy=Math.min(y(x.v),y0),hh=Math.abs(y(x.v)-y0);return`<rect x="${cx-bw/2}" y="${yy}" width="${bw}" height="${Math.max(hh,1)}" rx="3" fill="${x.v<0?'#a86a12':colR(nd?x.v/nd:1)}"><title>${F5(x.fa)} → ${F5(x.f)}: ${MS(x.v)} por día hábil${x.d>1?' (promedio de '+x.d+' días hábiles; total '+MS(x.tot)+')':''}${x.v<0?' · ajuste neto negativo':''}</title></rect><text x="${cx}" y="${x.v<0?yy+hh+14:yy-5}" text-anchor="middle" font-size="12" fill="#13294b" font-weight="600">${MS(x.v).replace('S/ ','')}</text><text x="${cx}" y="${H-6}" text-anchor="middle" font-size="12" fill="#5f6878">${F5(x.f)}</text>`}).join('')}
+ ${V.map((x,i)=>{const cx=l+gx*i+gx/2,yy=Math.min(y(x.v),y0),hh=Math.abs(y(x.v)-y0);return`<rect x="${cx-bw/2}" y="${yy}" width="${bw}" height="${Math.max(hh,1)}" rx="3" fill="${x.v<0?'#a86a12':x.d===0?'#9aa3b2':colR(nd?x.v/nd:1)}"><title>${F5(x.fa)} → ${F5(x.f)}: ${x.d===0?MS(x.tot)+' en un periodo sin días hábiles (fin de semana o feriado); no se compara con lo necesario por día hábil':MS(x.v)+' por día hábil'}${x.d>1?' (promedio de '+x.d+' días hábiles; total '+MS(x.tot)+')':''}${x.v<0?' · ajuste neto negativo':''}</title></rect><text x="${cx}" y="${x.v<0?yy+hh+14:yy-5}" text-anchor="middle" font-size="12" fill="#13294b" font-weight="600">${MS(x.v).replace('S/ ','')}</text><text x="${cx}" y="${H-6}" text-anchor="middle" font-size="12" fill="#5f6878">${F5(x.f)}</text>`}).join('')}
  <line x1="${l}" x2="${W-l}" y1="${y(nd)}" y2="${y(nd)}" stroke="#13294b" stroke-dasharray="5 4" stroke-width="1.5"/><text x="${W-l}" y="${y(nd)-6}" text-anchor="end" font-size="12.5" fill="#13294b" font-weight="700">Necesario por día hábil: ${M(nd)}</text></svg></div>`;
  // celular: lista compacta legible sin zoom (cortes más recientes primero)
  const lst=`<ul class="dlist" aria-label="Variación entre cortes, del más reciente al más antiguo">${V.slice().reverse().slice(0,8).map(x=>{const r=nd?x.v/nd:null;return`<li><span class="df">${F5(x.fa)} → ${F5(x.f)}</span><span class="dv${x.v<0?' neg':''}">${MS(x.tot)}</span>
-  <span class="dd">${x.d>1?`${x.d} días hábiles · promedio ${MS(x.v)} por día · `:'1 día hábil · '}${x.v<0?'ajuste neto negativo':r!=null?P(r)+' de lo necesario por día':''}</span>
-  <span class="db" aria-hidden="true"><i style="width:${x.v<0?0:Math.min(100,100*(r||0))}%;background:${colR(r??1)}"></i></span></li>`}).join('')}</ul><p class="nota">Necesario por día hábil: <b>${M(nd)}</b>.</p>`;
- el.innerHTML=svg+lst+`<p class="nota">Variación neta del devengado entre dos cortes (promedio por día hábil si el periodo abarca más de uno). Un valor negativo es un ajuste neto negativo, no una barra en cero.</p>`}
+  <span class="dd">${x.d===0?'sin días hábiles (fin de semana o feriado) · no se compara con lo necesario por día'+(x.v<0?' · ajuste neto negativo':''):(x.d>1?`${x.d} días hábiles · promedio ${MS(x.v)} por día · `:'1 día hábil · ')+(x.v<0?'ajuste neto negativo':r!=null?P(r)+' de lo necesario por día':'')}</span>
+  <span class="db" aria-hidden="true"><i style="width:${x.v<0||x.d===0?0:Math.min(100,100*(r||0))}%;background:${colR(r??1)}"></i></span></li>`}).join('')}</ul><p class="nota">Necesario por día hábil: <b>${M(nd)}</b>.</p>`;
+ el.innerHTML=svg+lst+`<p class="nota">Variación neta del devengado entre dos cortes (promedio por día hábil si el periodo abarca más de uno). Un valor negativo es un ajuste neto negativo, no una barra en cero. Un periodo sin días hábiles (sábado, domingo o feriado) va en gris y no se compara con lo necesario por día hábil.</p>`}
 function detalle(s,ir){const u=filas().find(x=>x.sec===s);if(!u)return;sel=s;const sec=document.getElementById('detalle'),el=document.getElementById('det');sec.hidden=false;
  const r=PASO(u),G=Object.entries(u.gen||{}).sort((a,b)=>b[1][3]-a[1][3]),p=D.parametros,cd=p.corte_detalle&&p.corte_detalle!==D.corte?p.corte_detalle:null;
  const L=PJ?(PJ.ues[s]||[]).slice().sort((a,b)=>b.ri-a.ri).slice(0,12):null;
- const ra=u.sin_aumento,rtxt=!ra?'sin comparación disponible':ra.n===0?'el último corte trae aumento neto':`${ra.n}${ra.minimo?' o más':''} corte${ra.n>1?'s':''} sin aumento neto${ra.minimo?'':' desde el corte del '+F5(ra.desde)+' (último con aumento)'}`;
+ const ra=u.sin_aumento,rtxt=!ra?'sin comparación disponible':ra.n===0?(u.estado==='aumento'?'el último corte trae aumento neto':'sin días hábiles desde el último aumento (fin de semana o feriado)'):`${ra.n}${ra.minimo?' o más':''} corte${ra.n>1?'s':''} sin aumento neto${ra.minimo?'':' desde el corte del '+F5(ra.desde)+' (último con aumento)'}`;
  el.innerHTML=`<div style="display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:flex-start"><div><h3>${esc(u.ue)}</h3><p class="nota" style="margin:2px 0 0">Unidad ejecutora ${esc(u.sec)} · Recursos Ordinarios · corte del ${F(D.corte)}</p></div><button class="btn" type="button" id="volver">Volver al cuadro</button></div>
  <div class="f6"><div><span>PIM vigente</span><b>${M(u.pim)}</b></div><div><span>Devengado</span><b>${M(u.dev)}</b></div><div><span>Saldo por devengar</span><b>${M(u.saldo)}</b></div><div><span>Saldo proyectado al 31/12</span><b>${M(u.riesgo)}</b></div><div><span>Sin certificar</span><b>${M(u.no_cert)}</b></div><div><span>Variación entre cortes (${CMP(true)})</span><b class="${u.estado==='ajuste_negativo'?'neg':''}">${MS(u.var)}</b></div></div>
  <p style="margin:0">Estado: ${EST(u)} · ${esc(rtxt)}.${u.estado==='ajuste_negativo'?' Un ajuste neto negativo combina anulaciones o rebajas con posibles operaciones nuevas: no indica por sí solo falta de ejecución.':''}</p>

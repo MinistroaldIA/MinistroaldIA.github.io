@@ -36,6 +36,17 @@ def estado_esperado(var, tol):
     return "aumento" if var > tol else ("ajuste_negativo" if var < -tol else "sin_variacion")
 
 
+def _hay_dia_habil(desde, hasta):
+    """¿Hay al menos un día hábil después de «desde» y hasta «hasta»? (lunes a viernes, sin el 8, 9 y 25 de diciembre). Implementación propia."""
+    import datetime as _dt
+    d, fin = _dt.date.fromisoformat(desde) + _dt.timedelta(days=1), _dt.date.fromisoformat(hasta)
+    while d <= fin:
+        if d.weekday() < 5 and not (d.month == 12 and d.day in (8, 9, 25)):
+            return True
+        d += _dt.timedelta(days=1)
+    return False
+
+
 def racha_esperada(serie, fechas, tol):
     """Cortes consecutivos sin aumento neto, recorriendo la serie de atrás hacia adelante (implementación independiente)."""
     pares = list(zip(fechas, serie))
@@ -49,7 +60,8 @@ def racha_esperada(serie, fechas, tol):
             return None if n == 0 else (n, fk, True)
         if b - a > tol:
             return (n, fk, False)
-        n += 1
+        if _hay_dia_habil(pares[k - 1][0], fk):       # un corte de sábado, domingo o feriado no cuenta como corte sin aumento
+            n += 1
         k -= 1
     return (n, pares[0][0], True)
 
@@ -155,7 +167,11 @@ def verificar(D, PJ=None):
         if (esp is None) != (pub is None) or (esp and (pub["n"], pub["desde"], pub["minimo"]) != esp):
             malas.append(f"{u['sec']} (publicado {None if pub is None else (pub['n'], pub['desde'], pub['minimo'])}, esperado {esp})")
     ok("Racha de cortes sin aumento neto reproducida desde el historial de cada unidad", not malas, "; ".join(malas[:4]))
-    malas = [u["sec"] for u in U if u.get("sin_aumento") and ((u["estado"] == "aumento") != (u["sin_aumento"]["n"] == 0))]
+    # Con aumento en el último corte la racha es 0. Lo contrario (racha 0 sin aumento) solo se admite cuando el último periodo no
+    # tuvo días hábiles (fin de semana o feriado): ese corte no se cuenta.
+    hab0 = (D.get("comparacion") or {}).get("habiles") == 0
+    malas = [u["sec"] for u in U if u.get("sin_aumento") and ((u["estado"] == "aumento" and u["sin_aumento"]["n"] != 0)
+                                                           or (u["estado"] != "aumento" and u["sin_aumento"]["n"] == 0 and not hab0))]
     ok("Una unidad con aumento en el último corte tiene 0 cortes sin aumento, y viceversa", not malas, ", ".join(malas))
     return res
 

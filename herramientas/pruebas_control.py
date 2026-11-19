@@ -106,6 +106,41 @@ def _():
     assert T.racha_sin_aumento([10, 20, None], F5[:3]) is None
 
 
+# Revisión externa del 19/11/2026, punto 3: jueves 12, viernes 13, sábado 14, domingo 15 y lunes 16 de noviembre de 2026
+FINDE = ["2026-11-12", "2026-11-13", "2026-11-14", "2026-11-15", "2026-11-16"]
+
+
+@prueba("R3", "Fin de semana: sábado y domingo sin devengado no cuentan como cortes sin aumento (antes el lunes marcaba 3)")
+def _():
+    r = T.racha_sin_aumento([10, 20, 20, 20, 20], FINDE)
+    assert (r["n"], r["desde"], r["minimo"]) == (1, "2026-11-13", False), r          # solo cuenta el lunes
+    r = T.racha_sin_aumento([10, 20, 20, 20], FINDE[:4])                              # visto el domingo: ningún corte hábil sin aumento
+    assert (r["n"], r["desde"]) == (0, "2026-11-13"), r
+    assert V.racha_esperada([10, 20, 20, 20, 20], FINDE, 1.0) == (1, "2026-11-13", False)   # la verificación independiente coincide
+
+
+@prueba("R3", "Fin de semana: un aumento registrado el sábado sí reinicia la racha; un ajuste negativo del domingo no suma")
+def _():
+    r = T.racha_sin_aumento([10, 20, 30, 30, 30], FINDE)
+    assert (r["n"], r["desde"]) == (1, "2026-11-14"), r
+    r = T.racha_sin_aumento([10, 20, 20, 15, 15], FINDE)
+    assert (r["n"], r["ajustes"]) == (1, 0), r
+
+
+@prueba("R3", "Feriados del 8 y 9 de diciembre: tampoco cuentan como cortes sin aumento")
+def _():
+    r = T.racha_sin_aumento([10, 20, 20, 20, 20], ["2026-12-04", "2026-12-07", "2026-12-08", "2026-12-09", "2026-12-10"])
+    assert (r["n"], r["desde"]) == (1, "2026-12-07"), r
+
+
+@prueba("R3", "Página: un periodo sin días hábiles no se rotula «1 día hábil» ni se compara con lo necesario por día")
+def _():
+    s = open(os.path.join(AQUI, "plantilla_control_ro.html"), encoding="utf-8").read()
+    assert "x.d===0?'sin días hábiles (fin de semana o feriado)" in s and "const FINDE=" in s
+    assert "&&!FINDE())" in s                                                         # sin variación en fin de semana: sin borde de alerta
+    assert "Cifras al ${F(D.corte)}" in s and "Total de lo filtrado" in s             # puntos 2 y 5: fecha a la vista y total del filtro
+
+
 @prueba("M02", "El método anterior («días sin devengar» desde el inicio del mes) ya no existe en el generador ni en la página")
 def _():
     src = open(os.path.join(AQUI, "tablero_ro.py"), encoding="utf-8").read()
