@@ -172,7 +172,9 @@ jobs:
           if [ "$nuevo" = "$previo" ] && [ "$REHACER" != "true" ]; then echo "El informe ya está al día."; exit 0; fi
           # LibreOffice recalcula las fórmulas del Excel para que guarde sus resultados (comprobación 10)
           (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends libreoffice-calc libreoffice-writer fonts-liberation >/dev/null) || echo "::warning::No se pudo instalar LibreOffice; la comprobación del Excel fallará y se conservará el informe anterior."
-          python kronos/pliegos/datos/descargar_pliego.py "$P" --solo-inversiones
+          # Auditoría F2, A5: si el MEF publica un archivo de inversiones vacío o dañado, la descarga lo rechaza y se sigue con
+          # el F12B anterior del núcleo (aviso en la corrida), sin frenar el informe ni el control diario.
+          python kronos/pliegos/datos/descargar_pliego.py "$P" --solo-inversiones || echo "::warning::Inversiones del MEF rechazadas; el informe usa el F12B anterior."
           if python kronos/pliegos/automatico.py "$P"; then
             W=kronos/salida/pliegos/$P/web_publica
             mkdir -p "$P/descargas"
