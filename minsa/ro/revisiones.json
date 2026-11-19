@@ -31,6 +31,11 @@
    "version": "2026-11-19.1",
    "desde": "2026-11-19",
    "cambio": "Los cortes sin días hábiles respecto del anterior (sábado, domingo o feriado) no cuentan como «cortes sin aumento neto» y la página los rotula «sin días hábiles», sin compararlos con lo necesario por día hábil. Antes, el lunes 16/11 esa cuenta marcó 13 unidades con «3 cortes o más» tras un solo día hábil. Si en un sábado, domingo o feriado sí se registra aumento, la racha se reinicia igual. Las cifras presupuestales (PIM, devengado, saldos y proyecciones) no cambian."
+  },
+  {
+   "version": "2026-11-19.2",
+   "desde": "2026-11-19",
+   "cambio": "Días hábiles: se descuentan todos los feriados nacionales del año, igual que en el día por día municipal (antes solo los del 8, 9 y 25 de diciembre). En 2026 no cambia ninguna cifra (desde noviembre solo quedan esos tres feriados); evita contar como hábiles en 2027 el 1 de enero, Semana Santa, el 28 y 29 de julio y los demás feriados."
   }
  ],
  "primera_publicacion": {

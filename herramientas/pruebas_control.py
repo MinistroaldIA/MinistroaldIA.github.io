@@ -7,6 +7,7 @@ Uso:  python herramientas/pruebas_control.py              (sin red; corre en la 
 Termina con código 1 si alguna prueba falla. Cada prueba lleva el identificador del hallazgo que protege.
 """
 import copy
+import datetime as dt
 import contextlib
 import io
 import json
@@ -115,6 +116,26 @@ def _():
     assert (r["n"], r["minimo"], r["cobertura"], r["desde"]) == (1, True, "interrumpida", F5[2]), r
     assert T.racha_sin_aumento([10, 20, None, 30], F5[:4]) is None          # el corte anterior falta: no hay comparación
     assert T.racha_sin_aumento([10, 20, None], F5[:3]) is None
+
+
+@prueba("R3", "Feriados nacionales de todo el año (no solo diciembre) y el mismo calendario que el día por día municipal")
+def _():
+    d = lambda s: dt.date.fromisoformat(s)
+    assert T.dias_habiles(d("2027-01-01"), d("2027-01-01")) == 0                     # Año Nuevo 2027 (viernes)
+    assert T.dias_habiles(d("2027-03-22"), d("2027-03-26")) == 3                     # Semana Santa 2027: jueves 25 y viernes 26
+    assert T.dias_habiles(d("2027-07-26"), d("2027-07-30")) == 3                     # 28 y 29 de julio de 2027 (miércoles y jueves)
+    assert T.dias_habiles(d("2026-11-19"), d("2026-12-31")) == 28                    # 2026 no cambia: solo quedan el 8, 9 y 25 de diciembre
+    assert {T._pascua(y) for y in (2025, 2026, 2027)} == {d("2025-04-20"), d("2026-04-05"), d("2027-03-28")}
+    nucleo = [os.path.join(os.path.dirname(AQUI), "kronos", "nucleo", "control", "dia.py"),
+              os.path.join(os.path.dirname(os.path.dirname(AQUI)), "kronos-nucleo", "nucleo", "control", "dia.py")]
+    f = next((x for x in nucleo if os.path.isfile(x)), None)
+    if f:                                                                            # en GitHub está el núcleo: los dos calendarios deben coincidir
+        src = open(f, encoding="utf-8").read()
+        ns = {"dt": dt}
+        exec(src[src.index("FIJOS = "):src.index("RUBRO = ")], ns)
+        exec(src[src.index("def _pascua"):src.index("def habiles")], ns)
+        for y in range(2025, 2031):
+            assert ns["feriados"](y) == T.feriados(y), (y, ns["feriados"](y) ^ T.feriados(y))
 
 
 # Revisión externa del 19/11/2026, punto 3: jueves 12, viernes 13, sábado 14, domingo 15 y lunes 16 de noviembre de 2026

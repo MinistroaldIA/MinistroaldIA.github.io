@@ -38,7 +38,7 @@ COLUMNAS = {"MES": "MES_EJE", "NIVEL": "NIVEL_GOBIERNO", "SECTOR": "SECTOR", "PL
 PROD_NOM = {}                    # nombres de productos y proyectos según Datos Abiertos (respaldo de los de la Consulta Amigable)
 MONTOS = ["PIA", "PIM", "CERTIFICADO", "COMPROMETIDO_ANUAL", "COMPROMETIDO", "DEVENGADO", "GIRADO"]
 LLAVES = ["SEC_EJEC", "SEC_FUNC", "TIPO_ACT_PROY", "PRODUCTO_PROYECTO", "META", "RUBRO", "GENERICA"]
-METODO = "2026-11-19.1"     # subir la versión (y describirla en <id>/ro/revisiones.json) cada vez que cambie el cálculo
+METODO = "2026-11-19.2"     # subir la versión (y describirla en <id>/ro/revisiones.json) cada vez que cambie el cálculo
 TOL_VAR = 1.0               # soles: una variación del devengado entre cortes dentro de ±1 sol cuenta como «sin variación»
 ESTADOS = {"aumento": "Aumento del devengado", "sin_variacion": "Sin variación del devengado",
            "ajuste_negativo": "Ajuste neto negativo", "sin_comparacion": "Sin comparación"}
@@ -53,8 +53,11 @@ FUENTES = {}               # resultado de cada fuente en esta corrida (se public
 
 class CorteRetrocede(RuntimeError):
     """La fuente disponible trae un corte anterior al ya publicado: se conserva el publicado."""
-FERIADOS_DIC = {8, 9, 25}   # feriados nacionales de diciembre: Inmaculada Concepción, Batalla de Ayacucho (Ley 31381) y Navidad
-CALENDARIO = ("Días hábiles: lunes a viernes, sin los feriados nacionales del 8, 9 y 25 de diciembre. Se cuentan desde el día siguiente al corte "
+# Feriados nacionales: los mismos del día por día municipal (nucleo/control/dia.py). Antes aquí solo estaban los de diciembre:
+# en 2026 da lo mismo (desde noviembre solo quedan el 8, 9 y 25 de diciembre), pero en 2027 se habrían contado como hábiles
+# el 1 de enero, Semana Santa, el 28 y 29 de julio, etc. Jueves y Viernes Santo se calculan desde la fecha de Pascua.
+FIJOS = [(1, 1), (5, 1), (6, 7), (6, 29), (7, 23), (7, 28), (7, 29), (8, 6), (8, 30), (10, 8), (11, 1), (12, 8), (12, 9), (12, 25)]
+CALENDARIO = ("Días hábiles: lunes a viernes, sin los feriados nacionales. Se cuentan desde el día siguiente al corte "
               "hasta el 31 de diciembre. No incluye días no laborables que el Gobierno decrete después.")
 _MIN = {"De", "Del", "La", "Las", "Los", "Y", "En", "El", "Para", "A", "Por"}
 _TILDE = {"Administracion": "Administración", "Direccion": "Dirección", "Credito": "Crédito", "Estrategicos": "Estratégicos", "Pediatricas": "Pediátricas",
@@ -193,10 +196,30 @@ def desde_json(ruta, excluir=()):
     return df, J["nombres"]["ue"], J["meta"]["publicado"]
 
 
+def _pascua(y):
+    """Domingo de Pascua (calendario gregoriano, método de Meeus/Jones/Butcher)."""
+    a, b, c = y % 19, y // 100, y % 100
+    d, e = b // 4, b % 4
+    g = (8 * b + 13) // 25
+    h = (19 * a + b - d - g + 15) % 30
+    i, k = c // 4, c % 4
+    l_ = (2 * e + 2 * i - h - k + 32) % 7
+    m = (a + 11 * h + 22 * l_) // 451
+    mes = (h + l_ - 7 * m + 114) // 31
+    return dt.date(y, mes, (h + l_ - 7 * m + 114) % 31 + 1)
+
+
+def feriados(y):
+    p = _pascua(y)
+    return {dt.date(y, m, d) for m, d in FIJOS} | {p - dt.timedelta(days=3), p - dt.timedelta(days=2)}
+
+
 def dias_habiles(desde, hasta):
-    d, n = desde, 0
+    d, n, F = desde, 0, {}
     while d <= hasta:
-        if d.weekday() < 5 and not (d.month == 12 and d.day in FERIADOS_DIC):
+        if d.year not in F:
+            F[d.year] = feriados(d.year)
+        if d.weekday() < 5 and d not in F[d.year]:
             n += 1
         d += dt.timedelta(days=1)
     return n
@@ -505,7 +528,7 @@ def procedencia(fuente, corte, corte_da, publicado, PR_ca):
         {"componente": "Productos, actividades y proyectos de cada unidad", "fuente": dia if PR_ca else f"Datos Abiertos al {f(corte_da)}"},
         {"componente": "Ritmo de los tres últimos meses completos, detalle por meta y genérica, y devengado mensual", "fuente": da},
         {"componente": "Escenario según patrones de 2023–2025", "fuente": "Datos Abiertos, años cerrados 2023, 2024 y 2025 (devengado mensual por unidad y genérica)"},
-        {"componente": "Días hábiles al 31/12", "fuente": "Calendario de lunes a viernes sin los feriados nacionales del 8, 9 y 25 de diciembre"},
+        {"componente": "Días hábiles al 31/12", "fuente": "Calendario de lunes a viernes sin los feriados nacionales"},
     ]
 
 

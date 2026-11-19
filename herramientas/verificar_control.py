@@ -37,11 +37,13 @@ def estado_esperado(var, tol):
 
 
 def _hay_dia_habil(desde, hasta):
-    """¿Hay al menos un día hábil después de «desde» y hasta «hasta»? (lunes a viernes, sin el 8, 9 y 25 de diciembre). Implementación propia."""
+    """¿Hay al menos un día hábil después de «desde» y hasta «hasta»? (lunes a viernes, sin feriados nacionales). Implementación propia:
+    la lista de feriados es la de tablero_ro.py, comparada con la del núcleo en pruebas_control.py."""
     import datetime as _dt
+    from tablero_ro import feriados as _fer
     d, fin = _dt.date.fromisoformat(desde) + _dt.timedelta(days=1), _dt.date.fromisoformat(hasta)
     while d <= fin:
-        if d.weekday() < 5 and not (d.month == 12 and d.day in (8, 9, 25)):
+        if d.isoweekday() <= 5 and d not in _fer(d.year):
             return True
         d += _dt.timedelta(days=1)
     return False
