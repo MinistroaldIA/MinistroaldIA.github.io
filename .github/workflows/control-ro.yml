@@ -179,6 +179,7 @@ jobs:
             W=kronos/salida/pliegos/$P/web_publica
             mkdir -p "$P/descargas"
             cp $W/index.html $W/anexos.html $W/estado_informe.json "$P/"
+            [ -f $W/prioridades.html ] && cp $W/prioridades.html "$P/"
             # Excel y, si la entidad los tiene, los informes en PDF (ejecutivo y detallado) de la cabecera
             rm -f "$P"/descargas/*.xlsx "$P"/descargas/*.pdf && cp $W/descargas/* "$P/descargas/"
             [ -f $W/ro_referencias.json ] && cp $W/ro_referencias.json "$P/ro/referencias.json"
