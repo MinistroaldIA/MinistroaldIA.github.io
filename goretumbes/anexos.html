@@ -229,10 +229,18 @@ header.cab{padding:28px 0 22px !important}header.cab h1{font-size:clamp(26px,4vw
 .cuenta .kp small{display:block;font-size:12px;color:#cfd8e6}.cuenta .kp b{font:700 21px var(--f-t);white-space:nowrap;color:#fff}
 .cuenta .kp b.v{color:#19c39c}.cuenta .kp b.r{color:#ff9b8a}
 .cuenta .msj{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px;border-top:1px solid rgba(255,255,255,.14);padding-top:12px;font-size:14.5px}
+.cuenta .msj b.v{color:#19c39c}.cuenta .msj b.r{color:#ff9b8a}.cuenta .msj span{flex:1 1 420px;line-height:1.5}
 .cuenta .msj a{background:#19c39c;color:#0d2b3e;font-weight:700;text-decoration:none;border-radius:10px;padding:9px 14px;white-space:nowrap}
 @media(max-width:640px){.cuenta{grid-template-columns:1fr;justify-items:center;text-align:center;padding:18px 16px}.cuenta .ojo{justify-content:center}.cuenta .lado{width:100%}
  .cuenta .msj{justify-content:center;text-align:center}.cuenta .kp{grid-template-columns:1fr}.cuenta .tic{text-align:center}}
 @media(prefers-reduced-motion:reduce){.reloj .aguja,.cuenta .ojo i{animation:none}}
+@media(max-width:640px){header.cab{padding:14px 0 12px !important}header.cab h1{font-size:23px !important;margin:2px 0 4px !important}header.cab .sub{display:none}header.cab .eyebrow{font-size:10.5px !important}.cuenta{margin-top:0}.reloj{width:150px;height:150px}.reloj svg{width:150px;height:150px}.reloj .cen b{font-size:46px}#resumen{padding-top:14px !important}.cuenta .kp{gap:6px}.cuenta .kp div{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 12px;text-align:left}.cuenta .kp small{font-size:12.5px}.cuenta .kp b{font-size:18px}}
+.franja{display:grid;grid-template-columns:repeat(4,1fr);background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:0 0 6px}
+.franja>div{padding:12px 16px;border-left:1px solid var(--line)}.franja>div:first-child{border-left:0}
+.franja small{display:block;font:700 11.5px var(--f-t);letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.franja b{display:block;font:700 22px/1.2 var(--f-t);color:var(--navy);white-space:nowrap;margin-top:3px}
+.franja .bar{height:6px;border-radius:3px;background:#e3e8ef;margin-top:7px;overflow:hidden}.franja .bar i{display:block;height:100%;background:var(--turq)}
+@media(max-width:640px){.franja{grid-template-columns:1fr 1fr}.franja>div:nth-child(3){border-left:0}.franja>div:nth-child(n+3){border-top:1px solid var(--line)}.franja b{font-size:19px}}
 .ue-saldo{margin-top:28px;background:#fff;border:1px solid var(--line);border-radius:16px;padding:18px 18px 14px;box-shadow:0 1px 2px rgba(19,41,75,.05)}
 .ue-saldo .cab-ue{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:4px 12px;border-bottom:3px solid var(--turq);padding-bottom:10px;margin-bottom:10px}
 .ue-saldo h3{margin:0;font:700 20px/1.25 var(--f-t);color:var(--navy)}.ue-saldo .monto{font:700 24px var(--f-t);color:var(--navy);white-space:nowrap}
