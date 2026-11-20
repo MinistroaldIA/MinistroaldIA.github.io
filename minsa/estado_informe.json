@@ -1,10 +1,10 @@
 {
- "corte": "2026-11-17",
- "corte_txt": "17/11/2026",
- "publicado": "Wed, 18 Nov 2026 13:39:08 GMT",
- "pim": 11898282591.0,
- "devengado": 9577943778.65,
- "saldo": 2320338812.3500004,
+ "corte": "2026-11-19",
+ "corte_txt": "19/11/2026",
+ "publicado": "Fri, 20 Nov 2026 13:53:32 GMT",
+ "pim": 11895015269.0,
+ "devengado": 9770418646.79,
+ "saldo": 2124596622.21,
  "ok": true,
  "controles": [
   "ninguna UE del archivo fuera del padrón",
@@ -14,7 +14,7 @@
   "saldo por devengar = PIM − devengado",
   "sin certificar = PIM − certificado",
   "PIM y devengado con valores",
-  "la web muestra el corte 17/11/2026",
+  "la web muestra el corte 19/11/2026",
   "la web muestra el PIM del pliego",
   "el Excel trae los valores calculados y sin errores"
  ]

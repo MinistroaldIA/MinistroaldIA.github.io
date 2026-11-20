@@ -258,6 +258,24 @@
    "despues": 190008546.94,
    "motivo": "Las cifras del día pasaron de Consulta Amigable a Datos Abiertos; el ritmo y el detalle de Datos Abiertos pasaron del 16/11/2026 al 17/11/2026.",
    "tipo": "fuente"
+  },
+  {
+   "registrado": "2026-11-20T10:23",
+   "corte": "2026-11-19",
+   "indicador": "Riesgo estimado (ejecución reciente)",
+   "antes": 884037168.2,
+   "despues": 900134364.57,
+   "motivo": "Las cifras del día pasaron de Consulta Amigable a Datos Abiertos; el ritmo y el detalle de Datos Abiertos pasaron del 17/11/2026 al 19/11/2026.",
+   "tipo": "fuente"
+  },
+  {
+   "registrado": "2026-11-20T10:23",
+   "corte": "2026-11-19",
+   "indicador": "Riesgo según patrones 2023–2025",
+   "antes": 179483959.38,
+   "despues": 181791735.85,
+   "motivo": "Las cifras del día pasaron de Consulta Amigable a Datos Abiertos; el ritmo y el detalle de Datos Abiertos pasaron del 17/11/2026 al 19/11/2026.",
+   "tipo": "fuente"
   }
  ]
 }
