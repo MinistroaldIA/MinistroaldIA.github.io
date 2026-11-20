@@ -23,6 +23,17 @@ import tablero_ro as T  # noqa: E402
 import verificar_control as V  # noqa: E402
 import vigilar_mef as VM  # noqa: E402
 
+# Las pruebas usan la entidad de ejemplo «minsa» con datos sintéticos (herramientas/pruebas). Este portal no la publica,
+# así que se agrega solo durante las pruebas, en una carpeta temporal: el pliegos.json real no se toca.
+_EJEMPLO = json.load(open(os.path.join(AQUI, "pruebas", "pliegos_prueba.json"), encoding="utf-8"))
+_HERR = tempfile.mkdtemp(prefix="herr_pruebas_")
+_cfg = json.load(open(os.path.join(AQUI, "pliegos.json"), encoding="utf-8"))
+_cfg.update(_EJEMPLO)
+json.dump(_cfg, open(os.path.join(_HERR, "pliegos.json"), "w", encoding="utf-8"), ensure_ascii=False)
+shutil.copyfile(os.path.join(AQUI, "plantilla_control_ro.html"), os.path.join(_HERR, "plantilla_control_ro.html"))
+T.AQUI = _HERR
+VM.PLIEGOS.update(_EJEMPLO)
+
 RES = []
 
 
@@ -291,7 +302,7 @@ def correr_main(raiz, args, anio=None):
     if anio:
         aqui = os.path.join(raiz, "_herr")
         os.makedirs(aqui, exist_ok=True)
-        cfg = json.load(open(os.path.join(AQUI, "pliegos.json"), encoding="utf-8"))
+        cfg = json.load(open(os.path.join(_HERR, "pliegos.json"), encoding="utf-8"))
         cfg["minsa"]["anio"] = anio
         json.dump(cfg, open(os.path.join(aqui, "pliegos.json"), "w", encoding="utf-8"))
         shutil.copyfile(os.path.join(AQUI, "plantilla_control_ro.html"), os.path.join(aqui, "plantilla_control_ro.html"))

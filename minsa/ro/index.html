@@ -151,6 +151,7 @@ nav.top{margin-top:0}
 @media (max-width:820px){header .hcab{grid-template-columns:1fr}header{padding:14px 0 14px}}
 @media (max-width:640px){header .eyebrow{font-size:11px}header h1{font-size:24px;margin:2px 0 4px}header .meta{font-size:12.5px}header .indep{font-size:12px;margin-top:6px}header .corte>b{padding:8px 12px;font-size:14.5px}header .radar{padding:6px 12px}}
 </style>
+<link rel="stylesheet" href="/herramientas/marco.css"><script src="/herramientas/portal.js"></script><script src="/herramientas/marco.js"></script>
 </head>
 <body>
 <a href="#cuadro" class="sr" onfocus="this.classList.remove('sr')" onblur="this.classList.add('sr')">Saltar al cuadro por unidad</a>
@@ -232,7 +233,7 @@ const COLS=()=>[['n','Unidad ejecutora','t'],['pim','PIM vigente'],['ej','Ejecuc
  ['nec_sem','Necesita por semana'],['real_sem','Devenga por semana'],['var','Variación entre cortes','',CMP(true)],['estado','Estado'],['racha','Cortes sin aumento neto']];
 const VAL=(u,k)=>k==='racha'?RN(u):k==='estado'?['sin_variacion','ajuste_negativo','sin_comparacion','aumento'].indexOf(u.estado):u[k];
 
-fetch('datos.json?'+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{D=j;pintar();estadoOperativo();
+fetch('datos.json?'+Date.now()).then(r=>{if(!r.ok)throw 0;return r.json()}).then(j=>{D=j;pintar();estadoOperativo();uePorDireccion();
  fetch('revisiones.json?'+Date.now()).then(r=>r.ok?r.json():null).then(x=>{REV=x;revisiones()}).catch(()=>{});
  fetch('proyectos.json?'+Date.now()).then(r=>r.json()).then(p=>{PJ=p;buscador();if(sel)detalle(sel,false)}).catch(()=>{document.getElementById('bres').innerHTML='<p class="nota">No se pudo cargar el detalle por proyecto.</p>'})
 }).catch(()=>{document.getElementById('vigencia').innerHTML='<div class="alerta">No se pudieron cargar los datos. Recargue la página.</div>';document.getElementById('cortetx').textContent='Sin datos'});
@@ -363,7 +364,7 @@ function revisiones(){const L=(REV&&REV.revisiones||D.revisiones_corte||[]).slic
 // 1) estado.json: lo que hizo la última corrida que publicó (nuevo corte, cifras revisadas, sin cambios o corte conservado).
 // 2) API pública de GitHub: estado real de la última consulta automática (en curso, terminada sin errores o con error).
 // 3) Hora de la próxima consulta prevista: solo informativa; GitHub puede iniciarla con retraso.
-const REPO=location.hostname.endsWith('.github.io')?location.hostname.split('.')[0]+'/'+location.hostname:'MinistroaldIA/MinistroaldIA.github.io';
+const REPO=location.hostname.endsWith('.github.io')?location.hostname.split('.')[0]+'/'+location.hostname:(window.MC_PORTAL&&MC_PORTAL.repo)||'MinistroaldIA/MinistroaldIA.github.io';
 const HL=iso=>new Date(iso).toLocaleString('es-PE',{timeZone:'America/Lima',day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).replace(',','');
 const HLi=s=>s?`${s.slice(8,10)}/${s.slice(5,7)} ${s.slice(11,16)}`:'—';     // fecha local de Lima ya escrita como AAAA-MM-DDTHH:MM
 function proximaConsulta(now){const L=new Date(now.getTime()-5*36e5);
@@ -420,6 +421,10 @@ function vigilar(){fetch('datos.json?'+Date.now()).then(r=>r.json()).then(j=>{
  if(j.corte!==D.corte)AVISO=`<button class="nuevo" type="button">Nuevo corte: ${F(j.corte)} · actualizar</button>`;
  else if((j.revisiones_corte||[]).length>(D.revisiones_corte||[]).length)AVISO='<button class="nuevo" type="button">Cifras revisadas · actualizar</button>';
  else AVISO='';pintarOp()}).catch(()=>{})}
+
+// Abre la ficha de una unidad desde la dirección: ro/#ue=936 (lo usa el acceso «Sede» del menú).
+function uePorDireccion(){const m=location.hash.match(/^#ue=(\w+)$/);if(m&&D)detalle(m[1],true)}
+window.addEventListener('hashchange',uePorDireccion);
 </script>
 </body>
 </html>

@@ -1,0 +1,19 @@
+{
+ "minsa": {
+  "nombre": "Ministerio de Salud",
+  "sigla": "MINSA",
+  "nivel": "E",
+  "sector": "11",
+  "pliego": "011",
+  "anio": 2026,
+  "excluir_json": [
+   "1061"
+  ],
+  "siglas_ue": {
+   "1345": "CENARES",
+   "1655": "PRONIS",
+   "1734": "PCRIS",
+   "117": "Administración Central"
+  }
+ }
+}
