@@ -1,6 +1,7 @@
-/* Marco común de los portales de pliegos (Ministro al Día y GORE al Día; una sola versión, en el núcleo): menú vertical (barra inferior en el celular) y efectos sobrios.
+/* Marco común de los portales (Ministro al Día, GORE al Día y Alcalde al Día; una sola versión, en el núcleo): menú vertical (barra inferior en el celular) y efectos sobrios.
    Cada entidad es un portal aparte: dentro de una entidad el menú solo lleva a sus páginas, nunca a otra entidad.
-   La lista de entidades y el código de su sede salen de /herramientas/pliegos.json. Sin librerías. */
+   La lista de entidades sale de /herramientas/pliegos.json (o del archivo que diga portal.json en «entidades»).
+   Un portal puede definir sus propias opciones de menú en portal.json («menu»); si no, usa las de los pliegos. Sin librerías. */
 (function () {
   'use strict';
   // Identidad del portal: herramientas/portal.js (lo genera insertar_marco.py desde portal.json, propio de cada portal).
@@ -25,6 +26,15 @@
     : partes[1] === 'prioridades.html' ? 'prioridades'
     : partes[1] === 'anexos.html' ? 'anexos'
     : 'resumen';
+  if (PORTAL.menu && ID) {
+    // Menú propio: la vista es la opción cuya ruta (sin #) coincide con la página; una página fuera del menú no marca ninguna.
+    var sub = partes.slice(1).join('/').replace(/index\.html$/, '').replace(/\/$/, '');
+    VISTA = sub ? 'otra' : 'resumen';
+    PORTAL.menu.forEach(function (m) {
+      var r = (m.ruta || '').replace(/index\.html$/, '').replace(/\/$/, '');
+      if (!m.panel && (m.ruta || '').indexOf('#') < 0 && r === sub) VISTA = m.k;
+    });
+  }
 
   /* La entrada animada solo se ve en la portada, una vez por sesión. */
   // La entrada animada se ve una vez por sesión, en la primera página (portada o resumen ejecutivo).
@@ -32,7 +42,7 @@
   if (conIntro) document.documentElement.classList.add('mc-arranca');
 
   // Con una sola entidad publicada, la portada lleva directo a su resumen ejecutivo (con varias, muestra la lista).
-  var LISTA = fetch(RAIZ + 'herramientas/pliegos.json').then(function (r) { return r.json(); });
+  var LISTA = fetch(RAIZ + 'herramientas/' + (PORTAL.entidades || 'pliegos.json')).then(function (r) { return r.json(); });
   if (VISTA === 'portada') {
     document.documentElement.classList.add('mc-arranca');
     var destapar = function () { if (!conIntro) document.documentElement.classList.remove('mc-arranca'); };
@@ -52,7 +62,12 @@
     sede: '<path d="M3 21h18"/><path d="M5 21V10l7-5 7 5v11"/><path d="M9 21v-6h6v6"/><path d="M12 5V2"/>',
     anexos: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 17h6"/>',
     descargas: '<path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M4 21h16"/>',
-    mas: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>'
+    mas: '<circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/>',
+    presupuesto: '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/><path d="M7 15h4"/>',
+    ingresos: '<path d="M4 19V9M10 19V5M16 19v-7M22 19H2"/><path d="m14 7 3-3 3 3"/>',
+    nino: '<path d="M7 15a4 4 0 0 1-.5-7.97A5.5 5.5 0 0 1 17 6.5 3.75 3.75 0 0 1 17.5 15H7z"/><path d="M8 18.5 7 21M12 18.5 11 21M16 18.5 15 21"/>',
+    ruta: '<circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M8 19h7a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h7"/>',
+    informe: '<path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"/><path d="M14 3v5h5"/><path d="M9 17v-3M12 17v-6M15 17v-4"/>'
   };
   // solo: 'e' = solo escritorio, 'c' = solo celular
   var VISTAS = [
@@ -66,8 +81,22 @@
     { k: 'mas', t: 'Más', solo: 'c', panel: 'mas' }
   ];
 
+  if (PORTAL.menu) {
+    VISTAS = [VISTAS[0]].concat(PORTAL.menu.map(function (m) {
+      return { k: m.k, t: m.t, solo: m.solo, ico: m.ico, panel: m.panel,
+               url: m.panel ? null : function (id) { return RAIZ + id + '/' + (m.ruta || ''); } };
+    }), [VISTAS[VISTAS.length - 1]]);
+  }
+
   var ENT = {};
   var riel, panel, velo;
+  // Nombre corto y tipo de la entidad: sigla y pliego en los pliegos; en las municipalidades, a partir del nombre.
+  function corto(e) { return e.sigla || (e.nombre || '').replace(/^Municipalidad (Provincial|Distrital) (del? |de la )?/, ''); }
+  function tipo(e) {
+    if (e.pliego) return 'Pliego ' + e.pliego;
+    var m = (e.nombre || '').match(/^Municipalidad (Provincial|Distrital)/);
+    return m ? 'Municipalidad ' + m[1].toLowerCase() : 'Entidad';
+  }
 
   function svg(k) {
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ICO[k] + '</svg>';
@@ -88,18 +117,18 @@
     VISTAS.forEach(function (v, i) {
       var cls = 'mc-item' + (v.solo === 'e' ? ' mc-solo-escritorio' : v.solo === 'c' ? ' mc-solo-celular' : '');
       var li = '<li' + (v.solo === 'e' ? ' class="mc-solo-escritorio"' : v.solo === 'c' ? ' class="mc-solo-celular"' : '') + ' style="animation-delay:' + (120 + i * 45) + 'ms">';
-      if (v.panel) { h += li + '<button type="button" class="' + cls + '" data-panel="' + v.panel + '">' + svg(v.k) + v.t + '</button></li>'; return; }
-      if (v.k === 'portada' && Object.keys(ENT).length === 1) return;   // una sola entidad: la portada es su resumen
-      if (v.k === 'portada') { h += li + '<a class="' + cls + '" href="' + RAIZ + '"' + (VISTA === 'portada' ? ' aria-current="page"' : '') + '>' + svg(v.k) + v.t + '</a></li>'; return; }
+      if (v.panel) { h += li + '<button type="button" class="' + cls + '" data-panel="' + v.panel + '">' + svg(v.ico || v.k) + v.t + '</button></li>'; return; }
+      if (v.k === 'portada') return;   // cada entidad ve solo lo suyo: sin salida a la portada ni a otras entidades
+      if (v.k === 'portada') { h += li + '<a class="' + cls + '" href="' + RAIZ + '"' + (VISTA === 'portada' ? ' aria-current="page"' : '') + '>' + svg(v.ico || v.k) + v.t + '</a></li>'; return; }
       if (!ID) {   // en la portada todavía no hay entidad
-        h += li + '<button type="button" class="' + cls + '" data-panel="entidades" data-destino="' + v.k + '">' + svg(v.k) + v.t + '</button></li>';
+        h += li + '<button type="button" class="' + cls + '" data-panel="entidades" data-destino="' + v.k + '">' + svg(v.ico || v.k) + v.t + '</button></li>';
         return;
       }
       var url = v.url(ID);
       if (!url) return;   // por ejemplo, Sede si la entidad no tiene sede registrada
       var actual = v.k === 'sede' ? (VISTA === 'control' && sedeActual()) : (v.k === VISTA && !(VISTA === 'control' && sedeActual()));
       var titulo = v.k === 'sede' && ENT[ID].siglas_ue ? ' title="' + esc(ENT[ID].siglas_ue[ENT[ID].sede] || 'Sede') + '"' : '';
-      h += li + '<a class="' + cls + '" data-k="' + v.k + '" href="' + url + '"' + titulo + (actual ? ' aria-current="page"' : '') + '>' + svg(v.k) + v.t + '</a></li>';
+      h += li + '<a class="' + cls + '" data-k="' + v.k + '" href="' + url + '"' + titulo + (actual ? ' aria-current="page"' : '') + '>' + svg(v.ico || v.k) + v.t + '</a></li>';
     });
     return h;
   }
@@ -107,9 +136,9 @@
     riel = document.createElement('nav');
     riel.className = 'mc-riel';
     riel.setAttribute('aria-label', 'Navegación del portal');
-    riel.innerHTML = '<a class="mc-marca" href="' + RAIZ + '" title="' + PORTAL.nombre.replace(/<[^>]+>/g, '') + ' · portada">' +
+    riel.innerHTML = '<a class="mc-marca" href="' + (ID ? RAIZ + ID + '/' : RAIZ) + '" title="' + PORTAL.nombre.replace(/<[^>]+>/g, '') + '">' +
       '<span class="mc-sello"><b>' + PORTAL.sello + '</b></span><small>' + PORTAL.corto + '</small></a>' +
-      '<div class="mc-entidad mc-fija"><small>' + (ID ? 'Pliego' : 'Portal') + '</small><span class="mc-entidad-t">' + (ID ? '…' : PORTAL.portada) + '</span></div>' +
+      '<div class="mc-entidad mc-fija"><small>' + (ID ? '…' : 'Portal') + '</small><span class="mc-entidad-t">' + (ID ? '…' : PORTAL.portada) + '</span></div>' +
       '<ul class="mc-items">' + htmlItems() + '</ul>' +
       '<div class="mc-vivo mc-pausa" title="Cargando el estado de la revisión automática">' +
       '<span class="mc-et"><span class="mc-punto"></span><span class="mc-vivo-t">EN VIVO</span></span>' +
@@ -139,8 +168,8 @@
   function conEntidades() {
     if (ID) {
       var e = ENT[ID];
-      riel.querySelector('.mc-entidad-t').textContent = e ? e.sigla : ID.toUpperCase();
-      if (e) riel.querySelector('.mc-entidad small').textContent = 'Pliego ' + e.pliego;
+      riel.querySelector('.mc-entidad-t').textContent = e ? corto(e) : ID.toUpperCase();
+      if (e) riel.querySelector('.mc-entidad small').textContent = tipo(e);
       riel.querySelector('.mc-items').innerHTML = htmlItems();   // agrega «Sede» con el código de pliegos.json
     } else if (Object.keys(ENT).length === 1) {
       // Con una sola entidad publicada, desde la portada se va directo a ella.
@@ -185,7 +214,7 @@
     panel.innerHTML = cabecera(PORTAL.elegir, 'Para ver su ' + v.t.toLowerCase() + '.') + '<ul class="mc-lista">' +
       Object.keys(ENT).map(function (id) {
         var e = ENT[id], url = v.url ? v.url(id) : RAIZ + id + '/';
-        return op(url || RAIZ + id + '/', esc(e.sigla.replace(/^GORE\s*/, '').slice(0, 5)), esc(e.nombre), 'Pliego ' + esc(e.pliego));
+        return op(url || RAIZ + id + '/', esc(corto(e).replace(/^GORE\s*/, '').slice(0, 5)), esc(e.nombre), esc(tipo(e)));
       }).join('') + '</ul>';
     escalonar();
   }
@@ -195,7 +224,7 @@
       : '<p class="mc-nota">Todavía no hay archivos para descargar.</p>';
   }
   function pintarDescargas() {
-    var sigla = ENT[ID] ? ENT[ID].sigla : ID;
+    var sigla = ENT[ID] ? corto(ENT[ID]) : ID;
     var poner = function () { panel.innerHTML = cabecera('Descargas', esc(sigla) + ' · archivos del último informe') + listaDescargas(cacheDescargas); escalonar(); };
     if (cacheDescargas) return poner();
     panel.innerHTML = cabecera('Descargas', 'Buscando los archivos…');
@@ -203,7 +232,7 @@
     var base = RAIZ + ID + '/';
     fetch(base).then(function (r) { return r.text(); }).then(function (html) {
       var doc = new DOMParser().parseFromString(html, 'text/html'), vistos = {};
-      cacheDescargas = Array.prototype.slice.call(doc.querySelectorAll('a[href*="descargas/"]')).map(function (a) {
+      cacheDescargas = Array.prototype.slice.call(doc.querySelectorAll('a[href*="descargas/"], a[download], a[href$=".pdf"], a[href$=".xlsx"]')).map(function (a) {
         var href = a.getAttribute('href'), url = new URL(href, location.origin + base).pathname;
         if (vistos[url]) return null; vistos[url] = 1;
         var sm = a.querySelector('small'), sub = sm ? sm.textContent.trim() : '';
@@ -215,9 +244,12 @@
   }
   function pintarMas() {
     var e = ID && ENT[ID];
-    var h = cabecera('Más', e ? esc(e.nombre) : PORTAL.nombre) + '<ul class="mc-lista">' + (Object.keys(ENT).length === 1 ? '' : op(RAIZ, svg('portada'), 'Portada', PORTAL.lema));
+    var h = cabecera('Más', e ? esc(e.nombre) : PORTAL.nombre) + '<ul class="mc-lista">';
     if (ID) {
-      h += op(RAIZ + ID + '/anexos.html', svg('anexos'), 'Anexos', 'Cuadros completos del informe');
+      // Las opciones que en el celular no caben en la barra inferior
+      VISTAS.forEach(function (v) {
+        if (v.solo === 'e' && v.url && v.k !== 'portada') h += op(v.url(ID), svg(v.ico || v.k), v.t, v.sub || '');
+      });
       h += '<li><button type="button" class="mc-op" data-sub="descargas"><span class="mc-ic">' + svg('descargas') + '</span><span><b>Descargas</b><small>Informes y Excel verificable</small></span></button></li>';
     }
     panel.innerHTML = h + '</ul>';
@@ -244,7 +276,7 @@
       cuenta.textContent = (h ? h + ':' + dos(m) : dos(m)) + ':' + dos(s % 60);
     };
     tic(); setInterval(tic, 1000);
-    var quien = ID && ENT[ID] ? ENT[ID].sigla : PORTAL.quien;
+    var quien = ID && ENT[ID] ? corto(ENT[ID]) : PORTAL.quien;
     var HOR = 'Revisa los datos del MEF de ' + quien + ' cada hora, de 7:23 a 23:23 (hora de Lima).';
     var poner = function (modo, titulo) {
       caja.classList.toggle('mc-pausa', modo !== 'vivo' && modo !== 'revisa');
@@ -264,7 +296,7 @@
     };
     var c = guardado('s', 'mc-run');
     if (c) { try { c = JSON.parse(c); if (Date.now() - c.t < 600000) { leer(c.run); return; } } catch (e) {} }
-    fetch('https://api.github.com/repos/' + PORTAL.repo + '/actions/workflows/control-ro.yml/runs?per_page=1&branch=main')
+    fetch('https://api.github.com/repos/' + PORTAL.repo + '/actions/workflows/' + (PORTAL.tarea || 'control-ro.yml') + '/runs?per_page=1&branch=main')
       .then(function (r) { if (!r.ok) throw 0; return r.json(); })
       .then(function (j) { var run = j.workflow_runs && j.workflow_runs[0]; guardado('s', 'mc-run', JSON.stringify({ t: Date.now(), run: run })); leer(run); })
       .catch(function () { poner('vivo', HOR + ' No se pudo leer el resultado de la última revisión.'); });
@@ -322,11 +354,14 @@
   /* ---------- Lo que cambió desde la última visita ---------- */
   function avisoCambio() {
     if (!ID) return;
-    var url = VISTA === 'control' ? RAIZ + ID + '/ro/datos.json' : RAIZ + ID + '/estado_informe.json';
+    // Dónde está la fecha de corte de cada página (portal.json «cortes»; por defecto, las de los pliegos)
+    var C = PORTAL.cortes || { informe: 'estado_informe.json', control: 'ro/datos.json' };
+    var esControl = VISTA === 'control' || VISTA === 'dia';
+    var url = RAIZ + ID + '/' + (esControl ? C.control : C.informe);
     fetch(url, { cache: 'no-store' }).then(function (r) { return r.json(); }).then(function (D) {
       var corte = D.corte || '';
       if (!corte) return;
-      var clave = 'mc-visto-' + ID + '-' + (VISTA === 'control' ? 'control' : 'informe');
+      var clave = 'mc-visto-' + ID + '-' + (esControl ? 'control' : 'informe');
       var antes = DEMO ? '2000-01-01' : guardado('l', clave);
       guardado('l', clave, corte);
       if (!antes || antes === corte) return;
@@ -382,11 +417,8 @@
 
   /* ---------- Arranque ---------- */
   function arrancar() {
-    if (VISTA !== 'portada') { seguir(); return; }
-    // En la portada se espera la lista: con una sola entidad ya se está yendo a su resumen ejecutivo.
-    LISTA.then(function (P) {
-      if (Object.keys(P).filter(function (k) { return P[k].nombre; }).length !== 1) seguir();
-    }).catch(seguir);
+    // La portada es una página neutra del portal: no lleva menú ni lista de entidades (con una sola, ya se va a ella).
+    if (VISTA !== 'portada') seguir();
   }
   function seguir() {
     construirRiel();

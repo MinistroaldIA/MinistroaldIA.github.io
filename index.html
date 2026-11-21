@@ -1,112 +1,31 @@
 <!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Ministro al Día</title>
-<meta name="description" content="Informes de ejecución presupuestal de ministerios del Perú, con datos abiertos del MEF.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500&family=IBM+Plex+Sans:wght@400;600&family=Source+Serif+4:wght@600;700&display=swap">
+<meta name="description" content="Saldos y proyección al cierre de ministerios, con datos abiertos del MEF.">
+<meta name="robots" content="noindex">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:wght@700&family=IBM+Plex+Sans:wght@400;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Ccircle cx=%228%22 cy=%228%22 r=%227%22 fill=%22%2313294b%22/%3E%3C/svg%3E">
 <style>
-:root{--bg:#faf8f3;--card:#fff;--ink:#1d2433;--muted:#5f6878;--line:#e3dccd;--navy:#13294b;--gold:#d7a03a;
---ro:#a86a12;--r26:#1f6f68;--g26:#4b3b8f;--dec:#9e2a2b;
---f-d:"Source Serif 4",Georgia,serif;--f-t:"IBM Plex Sans","Segoe UI",Arial,sans-serif;--f-m:"IBM Plex Mono",Consolas,monospace;color-scheme:light}
+:root{--bg:#f7f6f2;--ink:#1d2433;--muted:#5f6878;--line:#e2ded3;--acento:#d7a03a}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 var(--f-t)}
-header{background:linear-gradient(135deg,#0d1d36 0%,#13294b 55%,#1f3d6b 100%);color:#fff;padding:56px 16px 64px;position:relative;overflow:hidden}
-header:after{content:"";position:absolute;left:0;right:0;bottom:0;height:6px;background:linear-gradient(90deg,var(--gold) 0 20%,var(--ro) 20% 40%,var(--r26) 40% 60%,var(--g26) 60% 80%,var(--dec) 80%)}
-.w{max-width:1040px;margin:0 auto}
-.eyebrow{font:500 11.5px/1.4 var(--f-m);letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
-h1{font:700 clamp(34px,6vw,56px)/1.05 var(--f-d);margin:10px 0 14px}
-h1 span{color:var(--gold)}
-header p{max-width:640px;color:#d6dce7;margin:0;font-size:17px}
-main{padding:40px 16px 56px}
-h2{font:700 clamp(22px,3vw,28px)/1.2 var(--f-d);color:var(--navy);margin:0 0 6px}
-.sub{color:var(--muted);margin:0 0 22px}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
-a.card{display:block;text-decoration:none;color:inherit;background:var(--card);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(19,41,75,.05);transition:transform .15s,box-shadow .15s}
-a.card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(19,41,75,.12)}
-.band{height:6px;background:linear-gradient(90deg,var(--navy),var(--ro),var(--r26),var(--g26))}
-.in{padding:20px 22px 22px}
-.tag{display:inline-block;font:500 11px var(--f-m);letter-spacing:.06em;text-transform:uppercase;color:var(--navy);background:#e8edf5;border-radius:999px;padding:3px 10px}
-.card h3{font:700 21px/1.25 var(--f-d);color:var(--navy);margin:12px 0 6px}
-.card p{margin:0 0 14px;color:var(--muted);font-size:14.5px}
-.kp{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;border-top:1px solid var(--line);padding-top:14px}
-.kp b{display:block;font:700 18px/1.1 var(--f-d);color:var(--navy)}
-.kp small{font-size:12px;color:var(--muted)}
-.kp div:nth-child(3) b{color:var(--dec)}
-.go{margin-top:16px;font-weight:600;color:var(--r26);font-size:14.5px}
-.metodo{margin-top:44px;background:var(--card);border:1px solid var(--line);border-left:5px solid var(--gold);border-radius:12px;padding:20px 22px}
-.metodo h2{font-size:20px}
-.metodo p{margin:6px 0 0;color:var(--muted);font-size:14.5px}
-footer{border-top:1px solid var(--line);padding:22px 16px;color:var(--muted);font-size:13px}
-.radar{display:flex;align-items:center;gap:10px;margin:0 0 12px;font-size:12.5px;color:var(--muted);line-height:1.25}.radar b{font:700 15px var(--f-d,inherit);color:var(--navy);font-variant-numeric:tabular-nums}
-.radar .barrido{transform-origin:16px 16px;animation:giro 4s linear infinite}.radar .eco{transform-origin:16px 16px;animation:eco 4s ease-out infinite}
-@keyframes giro{to{transform:rotate(360deg)}}@keyframes eco{0%{opacity:.55;transform:scale(.25)}80%,100%{opacity:0;transform:scale(1)}}
-@media (prefers-reduced-motion:reduce){.radar .barrido,.radar .eco{animation:none}}
+body{margin:0;min-height:100vh;display:flex;flex-direction:column;background:var(--bg);color:var(--ink);font:16px/1.6 "IBM Plex Sans","Segoe UI",Arial,sans-serif}
+header{background:linear-gradient(135deg,#0d1d36 0%,#1f3d6b 100%);color:#fff;padding:64px 18px 70px;position:relative}
+header:after{content:"";position:absolute;left:0;right:0;bottom:0;height:6px;background:var(--acento)}
+.w{max-width:860px;margin:0 auto}
+.eb{font:500 12px "IBM Plex Mono",monospace;letter-spacing:.12em;text-transform:uppercase;color:var(--acento)}
+h1{font:700 clamp(38px,7vw,64px)/1.04 "Source Serif 4",Georgia,serif;margin:10px 0 14px}
+h1 span{color:var(--acento)}
+header p{margin:0;max-width:60ch;color:#d6dde8;font-size:18px}
+main{flex:1;padding:40px 18px}
+.caja{background:#fff;border:1px solid var(--line);border-radius:14px;padding:22px 24px;display:grid;gap:10px}
+.caja h2{margin:0;font:600 19px/1.3 "IBM Plex Sans",sans-serif}
+.caja p{margin:0;color:var(--muted)}
+footer{padding:20px 18px;color:var(--muted);font-size:13px;border-top:1px solid var(--line)}
 </style>
+<meta property="og:type" content="website"><meta property="og:site_name" content="Ministro al Día"><meta property="og:title" content="Ministro al Día"><meta property="og:description" content="Saldos y proyección al cierre de ministerios, con datos abiertos del MEF."><meta property="og:url" content="https://ministroaldia.github.io/"><meta property="og:image" content="https://ministroaldia.github.io/herramientas/compartir.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:locale" content="es_PE"><meta name="twitter:card" content="summary_large_image">
 <link rel="stylesheet" href="/herramientas/marco.css"><script src="/herramientas/portal.js"></script><script src="/herramientas/marco.js"></script>
-<meta property="og:type" content="website"><meta property="og:site_name" content="Ministro al Día"><meta property="og:title" content="Ministro al Día"><meta property="og:description" content="Informes de ejecución presupuestal de ministerios del Perú, con datos abiertos del MEF."><meta property="og:url" content="https://ministroaldia.github.io/"><meta property="og:image" content="https://ministroaldia.github.io/herramientas/compartir.png"><meta property="og:image:width" content="1200"><meta property="og:image:height" content="630"><meta property="og:locale" content="es_PE"><meta name="twitter:card" content="summary_large_image">
-</head>
-<body>
-<header><div class="w">
-<div class="eyebrow">Ejecución presupuestal · Perú</div>
-<h1>Ministro al <span>Día</span></h1>
-<p>Informes sobre saldos, certificaciones y proyección al cierre de ministerios, elaborados con los datos abiertos del Ministerio de Economía y Finanzas.</p>
-</div></header>
-<main><div class="w">
-<h2>Informes publicados</h2>
-<p class="sub">Ordenados del más reciente al más antiguo. Cada informe incluye sus anexos consultables y la base en Excel.</p>
-<div class="grid">
-<a class="card" href="minsa/">
-<div class="band"></div>
-<div class="in">
-<span class="tag">Corte 19/11/2026</span>
-<h3>Ministerio de Salud</h3>
-<p>Saldos no ejecutados del pliego y sus 34 unidades ejecutoras: Recursos Ordinarios, genérica 2.6, metas e inversiones.</p>
-<div class="kp">
-<div><b>11,895.0</b><small>PIM (S/ M)</small></div>
-<div><b>82.1%</b><small>Devengado</small></div>
-<div><b>2,124.6</b><small>Saldo (S/ M)</small></div>
-</div>
-<div class="go">Consultar informe →</div>
-</div>
-</a>
-<a class="card" href="minsa/prioridades.html">
-<div class="band" style="background:linear-gradient(90deg,#19c39c,#13294b)"></div>
-<div class="in">
-<span class="tag" style="background:#e8f7f2;color:#0f8f72">Se actualiza con cada corte</span>
-<h3>Prioridades de seguimiento · MINSA</h3>
-<p>Qué revisar primero para no perder presupuesto al 31/12: dónde se concentra el saldo de Recursos Ordinarios, lo que falta certificar y lo que declaran gastar las inversiones.</p>
-<div class="go" style="color:#0f8f72">Leer las prioridades →</div>
-</div>
-</a>
-<a class="card" href="minsa/ro/">
-<div class="band" style="background:linear-gradient(90deg,#9e2a2b,#b7791f,#1f6f68)"></div>
-<div class="in">
-<span class="tag" style="background:#fbf3e4;color:#a86a12">Se revisa cada hora</span>
-<h3>Control diario de Recursos Ordinarios · MINSA</h3>
-<p>Días que quedan al 31/12, cuánto se necesita devengar por semana frente a lo que se devenga, y por unidad: PIM, saldo por devengar, saldo proyectado y quién no registra devengado.</p>
-<div class="radar" id="radar" hidden></div>
-<div class="go" style="color:#a86a12">Abrir cuadro de control →</div>
-</div>
-</a>
-</div>
-<section class="metodo">
-<h2>Fuente y método</h2>
-<p>Las cifras provienen de los archivos de Datos Abiertos del MEF (gasto mensual y diario, Formato 12B e inversiones) y se concilian con la Consulta Amigable a la fecha de corte. Las proyecciones al 31 de diciembre son escenarios de referencia; no son límites del resultado.</p>
-</section>
-</div></main>
-<footer><div class="w">Ministro al Día · Información pública del Estado peruano.</div></footer>
-<script>
-// Próxima revisión automática del MEF: a los :23 de cada hora, de 7:23 a 23:23 (Lima, UTC−5 todo el año). GitHub puede demorarla unos minutos.
-(function(){const el=document.getElementById('radar');if(!el)return;
- const prox=n=>{const L=new Date(n.getTime()-5*36e5);for(let d=0;d<2;d++)for(let h=7;h<=23;h++){const t=Date.UTC(L.getUTCFullYear(),L.getUTCMonth(),L.getUTCDate()+d,h,23)+5*36e5;if(t>n.getTime())return new Date(t)}};
- el.hidden=false;el.innerHTML='<svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><defs><linearGradient id="rgp" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#1f8f6a" stop-opacity="0"/><stop offset="1" stop-color="#1f8f6a" stop-opacity=".55"/></linearGradient></defs><circle cx="16" cy="16" r="14.5" fill="#eef6f2" stroke="#1f8f6a" stroke-opacity=".35"/><circle cx="16" cy="16" r="9" fill="none" stroke="#1f8f6a" stroke-opacity=".25"/><circle class="eco" cx="16" cy="16" r="14.5" fill="none" stroke="#1f8f6a"/><g class="barrido"><path d="M16 16 L16 1.5 A14.5 14.5 0 0 1 28.6 8.8 Z" fill="url(#rgp)"/><line x1="16" y1="16" x2="16" y2="1.5" stroke="#0f7a62" stroke-width="1.5"/></g><circle cx="16" cy="16" r="1.8" fill="#0f7a62"/></svg><span>Próxima revisión del MEF<br><b id="rdb">--:--</b> <span id="rdh"></span></span>';
- let m=prox(new Date());const t=()=>{const s=Math.round((m-new Date())/1000);if(s<=-2700)m=prox(new Date());const b=document.getElementById('rdb'),h=document.getElementById('rdh');
-  if(s>0){const hh=Math.floor(s/3600),mm=Math.floor(s%3600/60),ss=s%60;b.textContent=(hh?hh+':'+String(mm).padStart(2,'0'):mm)+':'+String(ss).padStart(2,'0');h.textContent='· a las '+m.toLocaleTimeString('es-PE',{timeZone:'America/Lima',hour:'numeric',minute:'2-digit'})}
-  else{b.textContent='Revisando';h.textContent='· si hay datos nuevos, se publican en unos minutos'}};t();setInterval(t,1000)})();
-</script>
-</body>
-</html>
+</head><body>
+<header><div class="w"><div class="eb">Ejecución presupuestal · Perú</div><h1>Ministro al <span>Día</span></h1><p>Saldos, certificaciones y proyección al cierre de los ministerios y de sus unidades ejecutoras, con datos abiertos del MEF.</p></div></header>
+<main><div class="w"><div class="caja"><h2>Acceso a su portal</h2><p>Cada entidad tiene su propio portal y entra con el enlace que se le entregó. Si no lo tiene, solicítelo a quien le presta el servicio.</p></div></div></main>
+<footer><div class="w">Ministro al Día · Plataforma independiente, no es un sitio oficial. Información pública del Estado peruano (MEF).</div></footer>
+</body></html>
