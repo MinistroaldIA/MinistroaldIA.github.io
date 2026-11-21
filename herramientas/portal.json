@@ -7,6 +7,11 @@
  "elegir": "Elige el ministerio",
  "portada": "Ministerios",
  "quien": "cada ministerio",
- "colores": {"navy": "#13294b", "navy2": "#0b1c36", "gold": "#d7a03a"},
- "commit": "MinistroaldIA"
+ "colores": {
+  "navy": "#13294b",
+  "navy2": "#0b1c36",
+  "gold": "#d7a03a"
+ },
+ "commit": "MinistroaldIA",
+ "url": "https://ministroaldia.github.io"
 }
