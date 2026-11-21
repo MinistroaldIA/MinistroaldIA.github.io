@@ -27,8 +27,22 @@
     : 'resumen';
 
   /* La entrada animada solo se ve en la portada, una vez por sesión. */
-  var conIntro = VISTA === 'portada' && !SIN_MOV && guardado('s', 'mc-intro') !== '1';
+  // La entrada animada se ve una vez por sesión, en la primera página (portada o resumen ejecutivo).
+  var conIntro = (VISTA === 'portada' || VISTA === 'resumen') && !SIN_MOV && guardado('s', 'mc-intro') !== '1';
   if (conIntro) document.documentElement.classList.add('mc-arranca');
+
+  // Con una sola entidad publicada, la portada lleva directo a su resumen ejecutivo (con varias, muestra la lista).
+  var LISTA = fetch(RAIZ + 'herramientas/pliegos.json').then(function (r) { return r.json(); });
+  if (VISTA === 'portada') {
+    document.documentElement.classList.add('mc-arranca');
+    var destapar = function () { if (!conIntro) document.documentElement.classList.remove('mc-arranca'); };
+    var tope = setTimeout(destapar, 1500);   // si la lista tarda, se muestra la portada
+    LISTA.then(function (P) {
+      var ids = Object.keys(P).filter(function (k) { return P[k].nombre; });
+      if (ids.length === 1) { location.replace(RAIZ + ids[0] + '/' + location.hash); return; }
+      clearTimeout(tope); destapar();
+    }).catch(function () { clearTimeout(tope); destapar(); });
+  }
 
   var ICO = {
     portada: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',
@@ -43,7 +57,7 @@
   // solo: 'e' = solo escritorio, 'c' = solo celular
   var VISTAS = [
     { k: 'portada', t: 'Portada', solo: 'e', url: function () { return RAIZ; } },
-    { k: 'resumen', t: 'Resumen', url: function (id) { return RAIZ + id + '/'; } },
+    { k: 'resumen', t: 'Resumen ejecutivo', url: function (id) { return RAIZ + id + '/'; } },
     { k: 'prioridades', t: 'Prioridades', url: function (id) { return RAIZ + id + '/prioridades.html'; } },
     { k: 'control', t: 'Control diario', url: function (id) { return RAIZ + id + '/ro/'; } },
     { k: 'sede', t: 'Sede', url: function (id) { return ENT[id] && ENT[id].sede ? RAIZ + id + '/ro/#ue=' + ENT[id].sede : null; } },
@@ -75,6 +89,7 @@
       var cls = 'mc-item' + (v.solo === 'e' ? ' mc-solo-escritorio' : v.solo === 'c' ? ' mc-solo-celular' : '');
       var li = '<li' + (v.solo === 'e' ? ' class="mc-solo-escritorio"' : v.solo === 'c' ? ' class="mc-solo-celular"' : '') + ' style="animation-delay:' + (120 + i * 45) + 'ms">';
       if (v.panel) { h += li + '<button type="button" class="' + cls + '" data-panel="' + v.panel + '">' + svg(v.k) + v.t + '</button></li>'; return; }
+      if (v.k === 'portada' && Object.keys(ENT).length === 1) return;   // una sola entidad: la portada es su resumen
       if (v.k === 'portada') { h += li + '<a class="' + cls + '" href="' + RAIZ + '"' + (VISTA === 'portada' ? ' aria-current="page"' : '') + '>' + svg(v.k) + v.t + '</a></li>'; return; }
       if (!ID) {   // en la portada todavía no hay entidad
         h += li + '<button type="button" class="' + cls + '" data-panel="entidades" data-destino="' + v.k + '">' + svg(v.k) + v.t + '</button></li>';
@@ -200,7 +215,7 @@
   }
   function pintarMas() {
     var e = ID && ENT[ID];
-    var h = cabecera('Más', e ? esc(e.nombre) : PORTAL.nombre) + '<ul class="mc-lista">' + op(RAIZ, svg('portada'), 'Portada', PORTAL.lema);
+    var h = cabecera('Más', e ? esc(e.nombre) : PORTAL.nombre) + '<ul class="mc-lista">' + (Object.keys(ENT).length === 1 ? '' : op(RAIZ, svg('portada'), 'Portada', PORTAL.lema));
     if (ID) {
       h += op(RAIZ + ID + '/anexos.html', svg('anexos'), 'Anexos', 'Cuadros completos del informe');
       h += '<li><button type="button" class="mc-op" data-sub="descargas"><span class="mc-ic">' + svg('descargas') + '</span><span><b>Descargas</b><small>Informes y Excel verificable</small></span></button></li>';
@@ -384,9 +399,16 @@
 
   /* ---------- Arranque ---------- */
   function arrancar() {
+    if (VISTA !== 'portada') { seguir(); return; }
+    // En la portada se espera la lista: con una sola entidad ya se está yendo a su resumen ejecutivo.
+    LISTA.then(function (P) {
+      if (Object.keys(P).filter(function (k) { return P[k].nombre; }).length !== 1) seguir();
+    }).catch(seguir);
+  }
+  function seguir() {
     construirRiel();
     entrada(function () { efectosListos = true; subirContenido(); revisar(); avisoCambio(); });
-    fetch(RAIZ + 'herramientas/pliegos.json').then(function (r) { return r.json(); }).then(function (P) {
+    LISTA.then(function (P) {
       Object.keys(P).forEach(function (id) { if (P[id].nombre) ENT[id] = P[id]; });
       conEntidades();
       iniciarVivo();
