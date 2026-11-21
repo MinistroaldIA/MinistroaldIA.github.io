@@ -202,6 +202,16 @@ jobs:
           # Auditoría F2, A5: si el MEF publica un archivo de inversiones vacío o dañado, la descarga lo rechaza y se sigue con
           # el F12B anterior del núcleo (aviso en la corrida), sin frenar el informe ni el control diario.
           python kronos/pliegos/datos/descargar_pliego.py "$P" --solo-inversiones || echo "::warning::Inversiones del MEF rechazadas; el informe usa el F12B anterior."
+          # Capa financiera (entidades con "finanzas": true en su pliego.json del núcleo, hoy los gobiernos regionales): sus
+          # controles exigen ingresos, gasto de los demás pliegos del nivel y la Consulta Amigable del mismo corte que el gasto.
+          # Se actualizan aquí, en la copia del núcleo de esta corrida. Si una descarga falla, el control del informe lo detecta,
+          # se conserva el informe anterior y la próxima revisión vuelve a intentarlo.
+          if python -c "import json,sys;sys.exit(0 if json.load(open('kronos/pliegos/entidades/$P/pliego.json',encoding='utf-8')).get('finanzas') else 1)"; then
+            echo "Capa financiera: ingresos, pares y cuadre con la Consulta Amigable del mismo corte"
+            python kronos/pliegos/datos/descargar_finanzas.py "$P" ingresos || echo "::warning::No se pudieron actualizar los ingresos del MEF."
+            python kronos/pliegos/datos/descargar_finanzas.py "$P" pares || echo "::warning::No se pudo actualizar el gasto de los demás pliegos del nivel."
+            python kronos/pliegos/datos/descargar_finanzas.py "$P" conciliar --portal . || echo "::warning::No se pudo consultar la Consulta Amigable para el cuadre."
+          fi
           if python kronos/pliegos/automatico.py "$P"; then
             W=kronos/salida/pliegos/$P/web_publica
             mkdir -p "$P/descargas"
