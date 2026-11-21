@@ -331,6 +331,24 @@ header.cab .sub{font-size:14.5px;margin:0 0 6px}
 @media (prefers-reduced-motion:reduce){.dial .pulso{animation:none}}
 @media print{.cabina{box-shadow:none}.dial .pulso{animation:none}}
 
+section{padding:26px 0 4px!important}
+h2{border-top:0!important;padding-top:0!important;margin-top:0!important}h2::before{margin:0 0 10px!important}
+.vista{margin:4px 0 8px}.vcab{align-items:center;margin-bottom:10px}.vcab .sub2{margin:0}
+.corte small{display:none}
+details.amplio{margin:10px 0 0}
+.cifras{margin:4px 0 8px;row-gap:4px}.cifras-n{flex-basis:100%;font-size:12px;color:var(--muted)}
+.linea{margin:2px 0 10px}
+.cabina-ley .ley-txt{margin-left:auto;color:#9fb0c9}
+.cabina-pie{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:baseline;gap:6px 16px;margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.10);font-size:14px;font-weight:600;color:#fff}
+.cabina-pie .pie-fte{font-size:12px;font-weight:500;color:#9fb0c9}
+.nota-legal{margin:8px 0 0}
+.ue-conc{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.ir-control{margin-top:12px;gap:10px 16px}.ir-control>span{flex:1 1 320px}
+.ir-bot{display:flex;flex-wrap:wrap;gap:8px}
+.ir-control a.ir-sec{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.45);font-weight:600}
+.ir-control a.ir-sec:hover{background:rgba(255,255,255,.1)}
+@media(max-width:640px){.ue-conc{grid-template-columns:1fr!important}.cabina-ley .ley-txt{margin-left:0}.ir-bot a{flex:1 1 auto;justify-content:center}}
+
 section[class^="t-"] th{background:var(--tono)}section[class^="t-"] tbody tr:nth-child(even) td{background:var(--tinte)}
 section[class^="t-"] h3{color:var(--tono)}
 .k{border-top-color:var(--navy)!important}.k .v{color:var(--navy)!important}.k.oro{border-top-color:#d99a06!important}
