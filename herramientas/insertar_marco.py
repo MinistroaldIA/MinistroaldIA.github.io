@@ -43,6 +43,15 @@ URL = P.get("url", "").rstrip("/")
 SITIO = re.sub(r"<[^>]+>", "", P.get("nombre", ""))
 
 
+def punto(s):
+    """Dónde insertar en el <head>: antes de </head>; si la página no lo cierra (es opcional en HTML), antes de <body> o, si tampoco está, después de <title>."""
+    m = re.search(r"</head\s*>", s, re.I) or re.search(r"<body[\s>]", s, re.I)
+    if m:
+        return m.start()
+    t = re.search(r"</title\s*>", s, re.I)   # sin </head> ni <body> (ambos opcionales): justo después del título
+    return t.end() if t else -1
+
+
 def _esc(x):
     return html.escape(html.unescape(x or ""), quote=True)
 
@@ -63,15 +72,15 @@ def vista_previa(s, ruta):
             f'<meta property="og:image" content="{URL}/herramientas/compartir.png">'
             '<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">'
             '<meta property="og:locale" content="es_PE"><meta name="twitter:card" content="summary_large_image">\n')
-    i = s.lower().find("</head>")
+    i = punto(s)
     return s if i < 0 else s[:i] + meta + s[i:]
 
 
 eid = sys.argv[1] if len(sys.argv) > 1 else ""
 if not eid or not os.path.isdir(os.path.join(RAIZ, eid)):
     sys.exit(f"Entidad desconocida: «{eid}»")
-paginas = [os.path.join(RAIZ, "index.html")] + sorted(glob.glob(os.path.join(RAIZ, eid, "*.html"))) + \
-    sorted(glob.glob(os.path.join(RAIZ, eid, "ro", "*.html")))
+# Todas las páginas de la entidad, en cualquier subcarpeta (ro/, dia/, reportes/, informe/…), y la portada.
+paginas = [os.path.join(RAIZ, "index.html")] + sorted(glob.glob(os.path.join(RAIZ, eid, "**", "*.html"), recursive=True))
 for p in paginas:
     if not os.path.isfile(p):
         continue
@@ -81,7 +90,7 @@ for p in paginas:
         if VIEJA in s:
             s = s.replace(VIEJA, LINEA)
         else:
-            i = s.lower().find("</head>")
+            i = punto(s)
             if i < 0:
                 print(f"sin <head>, no se cambia: {os.path.relpath(p, RAIZ)}")
                 continue
