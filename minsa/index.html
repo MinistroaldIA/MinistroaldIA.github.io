@@ -288,7 +288,8 @@ header.cab .sub{font-size:14.5px;margin:0 0 6px}
  .panel2>.ttab,.panel2>div>.ttab{display:block;overflow-x:auto;max-width:100%}.ctrl select,.ctrl input{max-width:100%;min-width:0;width:100%;flex:1 1 100%}}
 
 .cabina{background:linear-gradient(135deg,#0f2240,#13294b 60%,#183560);border-radius:16px;padding:18px 18px 14px;box-shadow:0 6px 18px rgba(19,41,75,.18);color:#dbe3ef}
-.cabina-ins{display:grid;grid-template-columns:repeat(auto-fit,minmax(172px,1fr));gap:12px}
+.cabina-ins{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:12px}
+@media (max-width:1100px){.cabina-ins{grid-auto-flow:row;grid-template-columns:repeat(6,minmax(0,1fr))}.cabina-ins>.ins{grid-column:span 2}.cabina-ins>.ins:nth-child(4):nth-last-child(2){grid-column:2/span 2}}
 .ins{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);border-radius:14px;padding:12px 12px 14px;display:flex;flex-direction:column;align-items:center;min-width:0}
 .ins.top{border-color:rgba(25,195,156,.55);box-shadow:inset 0 0 0 1px rgba(25,195,156,.25)}
 .ins-cab{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:center;min-height:22px;width:100%}
@@ -318,6 +319,7 @@ header.cab .sub{font-size:14.5px;margin:0 0 6px}
 @media (max-width:640px){
  .cabina{padding:12px 10px 12px;border-radius:14px}
  .cabina-ins{grid-template-columns:1fr;gap:10px}
+ .cabina-ins>.ins,.cabina-ins>.ins:nth-child(4):nth-last-child(2){grid-column:auto}
  .ins{display:grid;grid-template-columns:118px minmax(0,1fr);grid-template-areas:"dial cab" "dial txt";align-items:center;column-gap:12px;padding:10px 12px}
  .ins-cab{grid-area:cab;justify-content:flex-start}
  .dial{grid-area:dial;margin:0;max-width:118px}
