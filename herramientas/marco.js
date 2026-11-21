@@ -13,7 +13,7 @@
   var RAIZ = '/';
   var SIN_MOV = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   var DEMO = /[?&]demo=cambio\b/.test(location.search);
-  var CIFRAS_ANIMADAS = 4;   // solo las cifras principales de cada página suben hasta su valor
+  var CIFRAS_ANIMADAS = 4;   // solo las cifras principales de cada página entran con un fundido (su valor no cambia)
 
   /* ---------- Dónde estamos ---------- */
   var partes = location.pathname.split('/').filter(Boolean);
@@ -270,7 +270,7 @@
       .catch(function () { poner('vivo', HOR + ' No se pudo leer el resultado de la última revisión.'); });
   }
 
-  /* ---------- Las cifras principales suben hasta su valor ---------- */
+  /* ---------- Las cifras principales entran con un fundido, siempre con su valor real ---------- */
   var RX = /^(S\/\s?)?([−-])?(\d{1,3}(?:,\d{3})+|\d+)(\.\d+)?(\s?(?:%|M|mil|pts))?$/;
   var vistos = new WeakSet(), animadas = 0;
   function candidatoCifra(el) {
@@ -280,29 +280,12 @@
     var m = t.match(RX); if (!m) return null;
     return parseFloat(getComputedStyle(el).fontSize) >= 20 ? m : null;
   }
-  function contar(el, m) {
-    var final = el.textContent, pre = m[1] || '', signo = m[2] || '', ent = m[3], dec = m[4] || '', suf = m[5] || '';
-    var miles = ent.indexOf(',') >= 0, nd = dec ? dec.length - 1 : 0, valor = parseFloat(ent.replace(/,/g, '') + dec);
-    var nb = final.indexOf(' ') >= 0;
-    var fmt = function (v) {
-      var p = v.toFixed(nd).split('.');
-      if (miles) p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-      var r = pre + signo + p.join('.') + suf;
-      return nb ? r.replace(/ /g, ' ') : r;
-    };
-    if (SIN_MOV || !valor) return;
-    var t0 = null, dur = 900, escrito = fmt(0);
-    el.style.fontVariantNumeric = 'tabular-nums';
-    el.textContent = escrito;
-    var paso = function (ts) {
-      if (el.textContent !== escrito) return;   // la página cambió la cifra: no se pisa
-      if (t0 === null) t0 = ts;
-      var x = Math.min(1, (ts - t0) / dur), e = 1 - Math.pow(1 - x, 3);
-      escrito = x < 1 ? fmt(valor * e) : final;
-      el.textContent = escrito;
-      if (x < 1) requestAnimationFrame(paso);
-    };
-    requestAnimationFrame(paso);
+  // La cifra se muestra siempre con su valor real: solo entra con un fundido breve. Nunca se escribe un número intermedio
+  // (una captura de pantalla en ese instante mostraría un dato falso).
+  function contar(el) {
+    if (SIN_MOV) return;
+    el.classList.add('mc-cifra-entra');
+    setTimeout(function () { el.classList.remove('mc-cifra-entra'); }, 700);
   }
   var obsVista = 'IntersectionObserver' in window ? new IntersectionObserver(function (ents) {
     ents.forEach(function (en) {

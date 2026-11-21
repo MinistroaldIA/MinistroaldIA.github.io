@@ -103,6 +103,8 @@ body.mc-con-riel{padding-left:var(--mc-ancho)}
 
 /* Contenido que sube con fundido al entrar */
 .mc-sube{animation:mc-sube .7s var(--mc-curva) both}
+/* Cifra principal: aparece con su valor real, con un fundido breve (nunca un número intermedio) */
+.mc-cifra-entra{animation:mc-cifra .45s ease-out both}
 
 /* Barras que se llenan y columnas que crecen */
 .mc-llena{transform-origin:left center;animation:mc-llenar .9s cubic-bezier(.2,.7,.2,1) both}
@@ -140,6 +142,7 @@ body.mc-con-riel{padding-left:var(--mc-ancho)}
 
 /* ---------- Animaciones ---------- */
 @keyframes mc-sube{0%{opacity:0;transform:translateY(14px)}}
+@keyframes mc-cifra{0%{opacity:0;filter:blur(3px);transform:translateY(6px)}}
 @keyframes mc-nace{0%{opacity:0;filter:brightness(1.8);transform:rotate(-24deg) scale(.7)}100%{opacity:1;filter:none;transform:none}}
 @keyframes mc-orbita{to{transform:rotate(360deg)}}
 @keyframes mc-entra-izq{0%{opacity:0;transform:translateX(-14px)}}
@@ -155,7 +158,7 @@ body.mc-con-riel{padding-left:var(--mc-ancho)}
 
 /* Quien desactivó las animaciones en su equipo no ve ninguna. */
 @media (prefers-reduced-motion:reduce){
-  .mc-riel *,.mc-riel *::before,.mc-riel *::after,.mc-panel,.mc-panel *,.mc-intro,.mc-intro *,.mc-sube,.mc-llena,.mc-crece,.mc-destello,.mc-aviso,#detalle:not([hidden]){
+  .mc-riel *,.mc-riel *::before,.mc-riel *::after,.mc-panel,.mc-panel *,.mc-intro,.mc-intro *,.mc-sube,.mc-cifra-entra,.mc-llena,.mc-crece,.mc-destello,.mc-aviso,#detalle:not([hidden]){
     animation:none!important;transition:none!important}
   .mc-lista li{opacity:1}
 }
