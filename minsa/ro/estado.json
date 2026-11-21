@@ -1,5 +1,5 @@
 {
- "ultimo_intento": "2026-11-20T21:33",
+ "ultimo_intento": "2026-11-20T22:21",
  "fuentes": {
   "Datos Abiertos": "leído: archivo publicado Fri, 20 Nov 2026 13:53:32 GMT; corte 19/11/2026 (día anterior a la publicación)",
   "Consulta Amigable": "leída: corte 19/11/2026, no más reciente que Datos Abiertos"
@@ -17,5 +17,5 @@
   "recalculo": "Recalculado con el método nuevo"
  },
  "fuente": "Datos Abiertos",
- "ultimo_exito": "2026-11-20T21:33"
+ "ultimo_exito": "2026-11-20T22:21"
 }
