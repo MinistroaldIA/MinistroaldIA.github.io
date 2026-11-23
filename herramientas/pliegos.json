@@ -1,3 +1,50 @@
 {
-  "minsa": {"nombre": "Ministerio de Salud", "sigla": "MINSA", "nivel": "E", "sector": "11", "pliego": "011", "anio": 2026, "excluir_json": ["1061"], "siglas_ue": {"1345": "CENARES", "1655": "PRONIS", "1734": "PCRIS", "117": "Administración Central"}, "sede": "117"}
+ "minsa": {
+  "nombre": "Ministerio de Salud",
+  "sigla": "MINSA",
+  "nivel": "E",
+  "sector": "11",
+  "pliego": "011",
+  "anio": 2026,
+  "excluir_json": [
+   "1061"
+  ],
+  "siglas_ue": {
+   "117": "Administración Central",
+   "121": "Inst. Nac. de Salud Mental",
+   "123": "Inst. Nac. de Ciencias Neurológicas",
+   "124": "Inst. Nac. de Oftalmología",
+   "125": "Inst. Nac. de Rehabilitación",
+   "126": "INSN",
+   "127": "Inst. Nac. Materno Perinatal",
+   "132": "H. Hipólito Unanue",
+   "133": "H. Hermilio Valdizán",
+   "136": "H. Sergio Bernales",
+   "137": "H. Cayetano Heredia",
+   "141": "H. de Apoyo Departamental Maria Auxiliadora",
+   "143": "H. Arzobispo Loayza",
+   "144": "H. Dos de Mayo",
+   "145": "H. de Apoyo Santa Rosa",
+   "146": "H. de Emergencias Casimiro Ulloa",
+   "147": "H. de Emergencias Pediátricas",
+   "148": "H. Victor Larco Herrera",
+   "149": "H. Docente Madre Niño - San Bartolomé",
+   "522": "H. Carlos Lanfranco la Hoz",
+   "1138": "H. \"José Agurto Tello de Chosica\"",
+   "1216": "H. San Juan de Lurigancho",
+   "1345": "CENARES",
+   "1512": "INSN San Borja",
+   "1528": "H. de Huaycán",
+   "1655": "PRONIS",
+   "1670": "H. de Emergencias Villa el Salvador",
+   "1683": "DIRIS Lima Centro",
+   "1684": "DIRIS Lima Norte",
+   "1685": "DIRIS Lima Sur",
+   "1686": "DIRIS Lima Este",
+   "1734": "PCRIS",
+   "1746": "H. de Lima Este - Vitarte",
+   "1772": "MINSA Móvil"
+  },
+  "sede": "117"
+ }
 }
