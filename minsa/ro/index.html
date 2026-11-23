@@ -221,7 +221,9 @@ const EST=u=>{const e=ES[u.estado]||ES.sin_comparacion;return`<span class="es ${
 const RN=u=>u.sin_aumento?u.sin_aumento.n:null;
 const FINDE=()=>(D.comparacion||{}).habiles===0;     // el último periodo no tuvo días hábiles (sábado, domingo o feriado)
 const RACHA=u=>{const r=u.sin_aumento;if(!r)return'—';const c=r.n>=3?'r':r.n>=1?'a':'v',txt=r.n+(r.minimo&&r.n?'+':'');
- const t=r.n===0?(u.estado==='aumento'?'Aumento neto en el último corte':'Sin días hábiles desde el último aumento (fin de semana o feriado): no se cuenta'):`${r.n} corte${r.n>1?'s':''} sin aumento neto ${r.minimo?(r.cobertura==='interrumpida'?'(al menos: la unidad falta en el corte anterior al '+F5(r.desde)+')':'(al menos: el historial empieza el '+F5(r.desde)+')'):'desde el corte del '+F5(r.desde)+', el último con aumento'}${r.ajustes?' · incluye '+r.ajustes+' ajuste'+(r.ajustes>1?'s':'')+' neto'+(r.ajustes>1?'s':'')+' negativo'+(r.ajustes>1?'s':''):''}`;
+ // Fin de semana o feriado: el aviso de arriba ya lo explica una vez; no se repite el mismo texto en cada fila.
+ if(r.n===0&&u.estado!=='aumento')return'<span class="dias v">0</span>';
+ const t=r.n===0?'Aumento neto en el último corte':`${r.n} corte${r.n>1?'s':''} sin aumento neto ${r.minimo?(r.cobertura==='interrumpida'?'(al menos: la unidad falta en el corte anterior al '+F5(r.desde)+')':'(al menos: el historial empieza el '+F5(r.desde)+')'):'desde el corte del '+F5(r.desde)+', el último con aumento'}${r.ajustes?' · incluye '+r.ajustes+' ajuste'+(r.ajustes>1?'s':'')+' neto'+(r.ajustes>1?'s':'')+' negativo'+(r.ajustes>1?'s':''):''}`;
  return `<span class="dias ${c}" title="${esc(t)}">${txt}</span><span class="sr"> ${esc(t)}</span>`};
 let D,PJ=null,REV=null,EO=null,chip='todas',ord='riesgo',dir=-1,sel=null,origen=null;
 const TOL=()=>D.parametros.tolerancia_variacion??1;
@@ -284,12 +286,14 @@ function identidad(){const sg=D.sigla||D.pliego;
  document.getElementById('indep').textContent=`Proyecto independiente. No es un portal oficial del ${sg}.`;
  document.getElementById('pie-indep').textContent=`Proyecto independiente de análisis con datos públicos del MEF. No es un portal oficial del ${D.pliego} (${sg}).`;
  if(D.hist_inicio)document.getElementById('hini').textContent=F(D.hist_inicio);
- if(D.informe)document.getElementById('nav').insertAdjacentHTML('afterbegin',[['../#resumen','Resumen'],['../#unidades','Unidades'],['../#ro','RO'],['../#ro26','RO–2.6'],['../#g26','Inversiones'],['../anexos.html','Anexos']].map(([h,t])=>`<a href="${h}">${t}</a>`).join(''));
+ // Portal con menú propio (portal.json, "menu"): el menú vertical ya lleva al informe; arriba quedan solo los saltos de esta página.
+ if(window.MC_PORTAL&&window.MC_PORTAL.menu){const n=document.getElementById('nav');n.querySelectorAll('a[href="../"],a.act,.sep').forEach(e=>e.remove());const c=n.querySelector('a[href="#cuadro"]'),b=n.querySelector('a[href="#buscador"]');if(c)c.textContent='Cuadro por unidad';if(b)b.textContent='Buscar un proyecto';}
+ else if(D.informe)document.getElementById('nav').insertAdjacentHTML('afterbegin',[['../#resumen','Resumen'],['../#unidades','Unidades'],['../#ro','RO'],['../#ro26','RO–2.6'],['../#g26','Inversiones'],['../anexos.html','Anexos']].map(([h,t])=>`<a href="${h}">${t}</a>`).join(''));
 }
 function filas(){return D.ues.map(u=>({...u,n:nom(u),ej:u.pim?u.dev/u.pim:0}))}
 function filtradas(){const q=document.getElementById('q').value.trim().toLowerCase(),f=CHIPS.find(c=>c[0]===chip)[2];
  return filas().filter(u=>f(u)&&(!q||(u.n+' '+u.ue+' '+u.sec).toLowerCase().includes(q))).sort((a,b)=>{const x=VAL(a,ord),y=VAL(b,ord);return ord==='n'?dir*String(x).localeCompare(y):dir*((x??-1e18)-(y??-1e18))})}
-function chips(){const A=filas();document.getElementById('chips').innerHTML=CHIPS.map(([k,t,f])=>{const n=A.filter(f).length;return`<button type="button" data-k="${k}" aria-pressed="${k===chip}" ${n||k==='todas'?'':'disabled'}>${t} (${n})</button>`}).join('');
+function chips(){const A=filas();document.getElementById('chips').innerHTML=CHIPS.filter(c=>!(c[0]==='sv'&&FINDE())).map(([k,t,f])=>{const n=A.filter(f).length;return`<button type="button" data-k="${k}" aria-pressed="${k===chip}" ${n||k==='todas'?'':'disabled'}>${t} (${n})</button>`}).join('');
  document.querySelectorAll('#chips button').forEach(b=>b.onclick=()=>{chip=b.dataset.k;chips();tabla();document.querySelector(`#chips button[data-k="${chip}"]`).focus()})}
 function abrir(s,el){origen=el||document.activeElement;detalle(s,true)}
 function tabla(){const R=filtradas(),C=COLS();

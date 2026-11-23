@@ -1,12 +1,12 @@
 {
- "ultimo_intento": "2026-11-23T10:36",
+ "ultimo_intento": "2026-11-23T15:59",
  "fuentes": {
   "Datos Abiertos": "leído: archivo publicado Mon, 23 Nov 2026 13:39:59 GMT; corte 22/11/2026 (día anterior a la publicación)",
   "Consulta Amigable": "leída: corte 22/11/2026, no más reciente que Datos Abiertos"
  },
  "metodo": "2026-11-19.2",
- "resultado": "nuevo_corte",
- "detalle": "Nuevo corte 22/11/2026 (antes 21/11/2026).",
+ "resultado": "sin_cambios",
+ "detalle": "Consulta sin corte nuevo: se mantiene el corte 22/11/2026 y sus totales.",
  "corte_publicado": "2026-11-22",
  "corte_candidato": "2026-11-22",
  "textos": {
@@ -17,5 +17,5 @@
   "recalculo": "Recalculado con el método nuevo"
  },
  "fuente": "Datos Abiertos",
- "ultimo_exito": "2026-11-23T10:36"
+ "ultimo_exito": "2026-11-23T15:59"
 }
