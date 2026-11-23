@@ -13,5 +13,51 @@
   "gold": "#d7a03a"
  },
  "commit": "MinistroaldIA",
- "url": "https://ministroaldia.github.io"
+ "url": "https://ministroaldia.github.io",
+ "menu": [
+  {
+   "k": "resumen",
+   "t": "Resumen ejecutivo",
+   "ico": "resumen",
+   "ruta": ""
+  },
+  {
+   "k": "unidades",
+   "t": "Unidades",
+   "ico": "sede",
+   "ruta": "#unidades"
+  },
+  {
+   "k": "ro",
+   "t": "Recursos Ordinarios",
+   "ico": "presupuesto",
+   "ruta": "#ro"
+  },
+  {
+   "k": "inv",
+   "t": "Inversiones",
+   "ico": "pares",
+   "ruta": "#g26"
+  },
+  {
+   "k": "control",
+   "t": "Control diario",
+   "ico": "control",
+   "ruta": "ro/"
+  },
+  {
+   "k": "anexos",
+   "t": "Anexos",
+   "ico": "anexos",
+   "ruta": "anexos.html",
+   "solo": "e"
+  },
+  {
+   "k": "descargas",
+   "t": "Descargas",
+   "ico": "descargas",
+   "panel": "descargas",
+   "solo": "e"
+  }
+ ]
 }
